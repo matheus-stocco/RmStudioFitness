@@ -1,0 +1,14 @@
+{
+    "configurations": [
+        {
+            "type": "java",
+            "name": "Spring Boot-RmstudiofitnessApplication<rmstudiofitness>",
+            "request": "launch",
+            "cwd": "${workspaceFolder}",
+            "mainClass": "com.rmstudio.rmstudiofitness.RmstudiofitnessApplication",
+            "projectName": "rmstudiofitness",
+            "args": "",
+            "envFile": "${workspaceFolder}/.env"
+        }
+    ]
+}

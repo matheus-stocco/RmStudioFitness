@@ -1,0 +1,142 @@
+<!DOCTYPE html>
+<html lang="pt-BR">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Cadastro de Itens do Plano</title>
+  <link rel="stylesheet" href="/css/style.css">
+</head>
+<body>
+  <h1>Cadastro de Itens do Plano</h1>
+
+  <nav>
+    <a href="/CadastroPlanoAula.html">← Voltar ao Plano de Aula</a> |
+    <a href="/index.html">Início</a>
+  </nav>
+
+  <hr>
+
+  <!-- Filtro para visualizar itens por Plano/Dia -->
+  <h2>Consultar Itens</h2>
+  <form action="/api/planos-aula/itens/buscar" method="get">
+    <div>
+      <label for="planoIdFiltro">Plano:</label>
+      <select id="planoIdFiltro" name="planoId" required>
+        <option value="">Selecione...</option>
+        <!-- Backend deve preencher as opções -->
+        <!-- <option value="1">Hipertrofia A/B</option> -->
+      </select>
+    </div>
+
+    <div>
+      <label for="diaFiltro">Dia:</label>
+      <select id="diaFiltro" name="dia" required>
+        <option value="">Selecione...</option>
+        <option value="SEGUNDA">Segunda-feira</option>
+        <option value="TERCA">Terça-feira</option>
+        <option value="QUARTA">Quarta-feira</option>
+        <option value="QUINTA">Quinta-feira</option>
+        <option value="SEXTA">Sexta-feira</option>
+        <option value="SABADO">Sábado</option>
+        <option value="DOMINGO">Domingo</option>
+      </select>
+    </div>
+
+    <div>
+      <button type="submit">Carregar Itens</button>
+    </div>
+  </form>
+
+  <h3>Itens do Dia</h3>
+  <table border="1">
+    <thead>
+      <tr>
+        <th>Exercício</th>
+        <th>Séries</th>
+        <th>Repetições</th>
+        <th>Ações</th>
+      </tr>
+    </thead>
+    <tbody>
+      <!-- Backend/JS deve preencher a listagem -->
+      <tr>
+        <td>Supino reto</td>
+        <td>3</td>
+        <td>12</td>
+        <td>
+          <form action="/api/planos-aula/1/itens/10/excluir" method="post" style="display:inline;">
+            <button type="submit">Excluir</button>
+          </form>
+          <form action="/api/planos-aula/1/itens/10/editar" method="post" style="display:inline;">
+            <button type="submit">Editar</button>
+          </form>
+        </td>
+      </tr>
+    </tbody>
+  </table>
+
+  <hr>
+
+  <!-- Cadastro de item -->
+  <h2>Adicionar Item ao Plano</h2>
+  <form action="/api/planos-aula/itens" method="post">
+    <!-- Informe o plano ao qual o item pertence -->
+    <div>
+      <label for="planoId">Plano:</label>
+      <select id="planoId" name="planoId" required>
+        <option value="">Selecione...</option>
+        <!-- Backend deve preencher as opções -->
+        <!-- <option value="1">Hipertrofia A/B</option> -->
+      </select>
+    </div>
+
+    <div>
+      <label for="dia">Dia:</label>
+      <select id="dia" name="dia" required>
+        <option value="">Selecione...</option>
+        <option value="SEGUNDA">Segunda-feira</option>
+        <option value="TERCA">Terça-feira</option>
+        <option value="QUARTA">Quarta-feira</option>
+        <option value="QUINTA">Quinta-feira</option>
+        <option value="SEXTA">Sexta-feira</option>
+        <option value="SABADO">Sábado</option>
+        <option value="DOMINGO">Domingo</option>
+      </select>
+    </div>
+
+    <div>
+      <label for="exercicioId">Exercício:</label>
+      <select id="exercicioId" name="exercicioId" required>
+        <option value="">Selecione...</option>
+        <!-- Backend deve preencher com /api/exercicios -->
+        <!-- <option value="5">Supino reto</option> -->
+      </select>
+    </div>
+
+    <div>
+      <label for="series">Séries:</label>
+      <input type="number" id="series" name="series" min="1" required>
+    </div>
+
+    <div>
+      <label for="repeticoes">Repetições:</label>
+      <input type="number" id="repeticoes" name="repeticoes" min="1" required>
+    </div>
+
+    <div>
+      <button type="submit">Adicionar Item</button>
+      <button type="reset">Limpar</button>
+    </div>
+  </form>
+
+  <hr>
+
+  <!-- Observação de integração -->
+  <p>
+    Observação: os <strong>options</strong> de Plano e Exercício devem ser preenchidos pelo backend
+    (ou via JavaScript) a partir de <code>/api/planos-aula</code> e <code>/api/exercicios</code>.
+    A listagem de itens por dia pode ser obtida via
+    <code>/api/planos-aula/{planoId}/itens?dia=SEGUNDA</code>.
+  </p>
+</body>
+</html>

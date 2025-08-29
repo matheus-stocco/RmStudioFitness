@@ -1,0 +1,63 @@
+<!DOCTYPE html>
+<html lang="pt-BR">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Cadastro de Cidades</title>
+  <link rel="stylesheet" href="/css/style.css">
+</head>
+<body>
+  <h1>Cadastro de Cidades</h1>
+
+  <nav>
+    <a href="/index.html">Início</a>
+  </nav>
+
+  <!-- Formulário -->
+  <form action="/api/cidades" method="post">
+    <div>
+      <label for="estadoId">Estado:</label>
+      <select id="estadoId" name="estadoId" required>
+        <option value="">Selecione…</option>
+        <!-- Backend/JS deve preencher com /api/estados -->
+        <!-- <option value="1">SP - São Paulo</option> -->
+      </select>
+    </div>
+
+    <div>
+      <label for="nome">Cidade:</label>
+      <input type="text" id="nome" name="nome" required>
+    </div>
+
+    <div>
+      <button type="submit">Salvar</button>
+      <button type="reset">Novo</button>
+    </div>
+  </form>
+
+  <!-- Lista -->
+  <h2>Cidades Cadastradas</h2>
+  <table border="1">
+    <thead>
+      <tr>
+        <th>ID</th>
+        <th>Cidade</th>
+        <th>Estado</th>
+        <th>Ações</th>
+      </tr>
+    </thead>
+    <tbody>
+      <!-- Backend/JS deve preencher via /api/cidades -->
+      <tr>
+        <td>1</td>
+        <td>São Paulo</td>
+        <td>SP - São Paulo</td>
+        <td>
+          <button>Editar</button>
+          <button>Excluir</button>
+        </td>
+      </tr>
+    </tbody>
+  </table>
+</body>
+</html>

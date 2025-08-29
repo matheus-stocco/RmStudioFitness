@@ -1,0 +1,109 @@
+<!DOCTYPE html>
+<html lang="pt-BR">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Cadastro de Avaliação Física</title>
+  <link rel="stylesheet" href="/css/style.css">
+</head>
+<body>
+  <h1>Cadastro de Avaliação Física</h1>
+
+  <nav>
+    <a href="/index.html">Início</a>
+  </nav>
+
+  <h2>Nova Avaliação</h2>
+  <form action="/api/avaliacoes-fisicas" method="post">
+    <div>
+      <label for="pessoaId">Pessoa:</label>
+      <select id="pessoaId" name="pessoaId" required>
+        <option value="">Selecione…</option>
+        <!-- Backend/JS deve preencher com /api/pessoas -->
+        <!-- <option value="1">João da Silva</option> -->
+      </select>
+    </div>
+
+    <div>
+      <label for="dataAvaliacao">Data da Avaliação (opcional):</label>
+      <input type="date" id="dataAvaliacao" name="dataAvaliacao">
+    </div>
+
+    <div>
+      <label for="peso">Peso (kg):</label>
+      <input type="number" id="peso" name="peso" step="0.01" required>
+    </div>
+
+    <div>
+      <label for="altura">Altura (m):</label>
+      <input type="number" id="altura" name="altura" step="0.01" required>
+    </div>
+
+    <div>
+      <label for="gorduraCorporal">Gordura Corporal (%):</label>
+      <input type="number" id="gorduraCorporal" name="gorduraCorporal" step="0.01">
+    </div>
+
+    <div>
+      <label for="massaMagra">Massa Magra (kg):</label>
+      <input type="number" id="massaMagra" name="massaMagra" step="0.01">
+    </div>
+
+    <div>
+      <label for="aguaCorporal">Água Corporal (L):</label>
+      <input type="number" id="aguaCorporal" name="aguaCorporal" step="0.01">
+    </div>
+
+    <div>
+      <label for="massaOssea">Massa Óssea (kg):</label>
+      <input type="number" id="massaOssea" name="massaOssea" step="0.01">
+    </div>
+
+    <div>
+      <label for="taxaBasal">Taxa Basal (kcal):</label>
+      <input type="number" id="taxaBasal" name="taxaBasal" step="0.01">
+    </div>
+
+    <div>
+      <button type="submit">Salvar</button>
+      <button type="reset">Novo</button>
+    </div>
+  </form>
+
+  <h2>Avaliações Cadastradas</h2>
+  <table border="1">
+    <thead>
+      <tr>
+        <th>Pessoa</th>
+        <th>Data</th>
+        <th>Peso (kg)</th>
+        <th>Altura (m)</th>
+        <th>Gordura (%)</th>
+        <th>Massa Magra (kg)</th>
+        <th>Água (L)</th>
+        <th>Massa Óssea (kg)</th>
+        <th>Taxa Basal (kcal)</th>
+        <th>Ações</th>
+      </tr>
+    </thead>
+    <tbody>
+      <!-- Backend/JS deve preencher a lista via /api/avaliacoes-fisicas -->
+      <tr>
+        <td>João da Silva</td>
+        <td>2025-01-01</td>
+        <td>80.50</td>
+        <td>1.78</td>
+        <td>15.20</td>
+        <td>68.20</td>
+        <td>42.00</td>
+        <td>3.10</td>
+        <td>1650.00</td>
+        <td>
+          <button>Editar</button>
+          <button>Excluir</button>
+        </td>
+      </tr>
+    </tbody>
+  </table>
+</body>
+</html>

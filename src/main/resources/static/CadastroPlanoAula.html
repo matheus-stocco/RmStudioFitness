@@ -1,0 +1,65 @@
+<!DOCTYPE html>
+<html lang="pt-BR">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Cadastro de Plano de Aula</title>
+  <link rel="stylesheet" href="/css/style.css">
+</head>
+<body>
+  <h1>Cadastro de Plano de Aula</h1>
+
+  <!-- Formulário principal -->
+  <form action="/api/planos-aula" method="post">
+    <div>
+      <label for="nome">Nome do Plano:</label>
+      <input type="text" id="nome" name="nome" required>
+    </div>
+
+    <div>
+      <button type="submit">Salvar Plano</button>
+      <button type="reset">Novo Plano</button>
+    </div>
+  </form>
+
+  <!-- Dias da semana -->
+  <h2>Itens por Dia da Semana</h2>
+  <p>Aqui você pode associar exercícios aos dias da semana.</p>
+  <table border="1">
+    <thead>
+      <tr>
+        <th>Dia</th>
+        <th>Exercícios</th>
+        <th>Ações</th>
+      </tr>
+    </thead>
+    <tbody>
+      <tr>
+        <td>Segunda-feira</td>
+        <td>Exemplo: Supino reto - 3x12</td>
+        <td><button>Editar Itens</button></td>
+      </tr>
+    </tbody>
+  </table>
+
+  <!-- Lista de planos existentes -->
+  <h2>Planos Existentes</h2>
+  <table border="1">
+    <thead>
+      <tr>
+        <th>Nome do Plano</th>
+        <th>Ações</th>
+      </tr>
+    </thead>
+    <tbody>
+      <tr>
+        <td>Plano Exemplo</td>
+        <td>
+          <button>Editar</button>
+          <button>Excluir</button>
+        </td>
+      </tr>
+    </tbody>
+  </table>
+</body>
+</html>

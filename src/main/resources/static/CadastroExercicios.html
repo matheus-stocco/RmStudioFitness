@@ -1,0 +1,85 @@
+<!DOCTYPE html>
+<html lang="pt-BR">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Cadastro de Exercícios</title>
+  <link rel="stylesheet" href="/css/style.css">
+</head>
+<body>
+  <h1>Cadastro de Exercícios</h1>
+
+  <!-- Formulário -->
+  <form action="/api/exercicios" method="post">
+    <div>
+      <label for="nome">Nome:</label>
+      <input type="text" id="nome" name="nome" required>
+    </div>
+
+    <div>
+      <label for="descricao">Descrição:</label>
+      <textarea id="descricao" name="descricao"></textarea>
+    </div>
+
+    <div>
+      <label for="series">Nº de Séries:</label>
+      <input type="number" id="series" name="series" min="1">
+    </div>
+
+    <div>
+      <label for="repeticoes">Repetições:</label>
+      <input type="number" id="repeticoes" name="repeticoes" min="1">
+    </div>
+
+    <div>
+      <label for="grupoMuscular">Grupo Muscular:</label>
+      <select id="grupoMuscular" name="grupoMuscular">
+        <option value="">Selecione…</option>
+        <option value="Peito">Peito</option>
+        <option value="Costas">Costas</option>
+        <option value="Ombros">Ombros</option>
+        <option value="Bíceps">Bíceps</option>
+        <option value="Tríceps">Tríceps</option>
+        <option value="Pernas">Pernas</option>
+        <option value="Glúteos">Glúteos</option>
+        <option value="Abdômen">Abdômen</option>
+        <option value="Cardio">Cardio</option>
+      </select>
+    </div>
+
+    <div>
+      <button type="submit">Salvar</button>
+      <button type="reset">Novo</button>
+    </div>
+  </form>
+
+  <!-- Lista -->
+  <h2>Exercícios Cadastrados</h2>
+  <table border="1">
+    <thead>
+      <tr>
+        <th>Nome</th>
+        <th>Descrição</th>
+        <th>Séries</th>
+        <th>Repetições</th>
+        <th>Grupo</th>
+        <th>Ações</th>
+      </tr>
+    </thead>
+    <tbody>
+      <!-- Backend/JS preencherá a lista -->
+      <tr>
+        <td>Supino reto</td>
+        <td>Exercício para peitoral</td>
+        <td>3</td>
+        <td>12</td>
+        <td>Peito</td>
+        <td>
+          <button>Editar</button>
+          <button>Excluir</button>
+        </td>
+      </tr>
+    </tbody>
+  </table>
+</body>
+</html>

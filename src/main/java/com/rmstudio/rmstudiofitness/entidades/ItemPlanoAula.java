@@ -1,0 +1,217 @@
+package com.rmstudio.rmstudiofitness.entidades;
+
+import jakarta.persistence.*;
+import java.io.Serializable;
+import java.util.Objects;
+
+@Entity
+@Table(name = "item_plano_aula")
+public class ItemPlanoAula implements Serializable {
+    private static final long serialVersionUID = 1L;
+
+    @Id
+    @GeneratedValue(strategy = GenerationType.IDENTITY)
+    private Long id;
+
+    // Muitos itens pertencem a um plano
+    @ManyToOne(optional = false, fetch = FetchType.LAZY)
+    @JoinColumn(name = "plano_aula_id", nullable = false)
+    private PlanoAula planoAula;
+
+    // Dia da semana
+    @Enumerated(EnumType.STRING)
+    @Column(nullable = false, length = 15)
+    private DiaSemana dia;
+
+    // Exercício do item
+    @ManyToOne(optional = false, fetch = FetchType.LAZY)
+    @JoinColumn(name = "exercicio_id", nullable = false)
+    private Exercicio exercicio;
+
+    @Column(nullable = false)
+    private Integer series;
+
+    @Column(nullable = false)
+    private Integer repeticoes;
+
+    @Column(name = "carga_kg")
+    private Double cargaKg;
+
+    @Column(name = "tempo_descanso_segundos")
+    private Integer tempoDescansoSegundos;
+
+    @Column(name = "observacoes", length = 500)
+    private String observacoes;
+
+    @Column(name = "ordem")
+    private Integer ordem;
+
+    // ─── Construtores ───────────────────────────────────────────────────────────
+
+    public ItemPlanoAula() {}
+
+    public ItemPlanoAula(DiaSemana dia, Exercicio exercicio, int series, int repeticoes) {
+        this.dia = dia;
+        this.exercicio = exercicio;
+        this.series = series;
+        this.repeticoes = repeticoes;
+    }
+
+    public ItemPlanoAula(PlanoAula planoAula, DiaSemana dia, Exercicio exercicio, int series, int repeticoes) {
+        this.planoAula = planoAula;
+        this.dia = dia;
+        this.exercicio = exercicio;
+        this.series = series;
+        this.repeticoes = repeticoes;
+    }
+
+    public ItemPlanoAula(DiaSemana dia, Exercicio exercicio, int series, int repeticoes, Double cargaKg) {
+        this.dia = dia;
+        this.exercicio = exercicio;
+        this.series = series;
+        this.repeticoes = repeticoes;
+        this.cargaKg = cargaKg;
+    }
+
+    // ─── Getters & Setters ─────────────────────────────────────────────────────
+
+    public Long getId() { return id; }
+    public void setId(Long id) { this.id = id; }
+
+    public PlanoAula getPlanoAula() { return planoAula; }
+    public void setPlanoAula(PlanoAula planoAula) { this.planoAula = planoAula; }
+
+    public DiaSemana getDia() { return dia; }
+    public void setDia(DiaSemana dia) { this.dia = dia; }
+
+    public Exercicio getExercicio() { return exercicio; }
+    public void setExercicio(Exercicio exercicio) { this.exercicio = exercicio; }
+
+    public Integer getSeries() { return series; }
+    public void setSeries(Integer series) { this.series = series; }
+
+    public Integer getRepeticoes() { return repeticoes; }
+    public void setRepeticoes(Integer repeticoes) { this.repeticoes = repeticoes; }
+
+    public Double getCargaKg() { return cargaKg; }
+    public void setCargaKg(Double cargaKg) { this.cargaKg = cargaKg; }
+
+    public Integer getTempoDescansoSegundos() { return tempoDescansoSegundos; }
+    public void setTempoDescansoSegundos(Integer tempoDescansoSegundos) { this.tempoDescansoSegundos = tempoDescansoSegundos; }
+
+    public String getObservacoes() { return observacoes; }
+    public void setObservacoes(String observacoes) { this.observacoes = observacoes; }
+
+    public Integer getOrdem() { return ordem; }
+    public void setOrdem(Integer ordem) { this.ordem = ordem; }
+
+    // ─── Métodos auxiliares ────────────────────────────────────────────────────
+
+    @Transient
+    public String getDiaLabel() {
+        return dia != null ? dia.getLabel() : "";
+    }
+
+    @Transient
+    public String getExercicioNome() {
+        return (exercicio != null && exercicio.getNome() != null) ? exercicio.getNome() : "—";
+    }
+
+    @Transient
+    public String getPlanoNome() {
+        return (planoAula != null && planoAula.getNome() != null) ? planoAula.getNome() : "—";
+    }
+
+    @Transient
+    public boolean isValid() {
+        return dia != null
+            && exercicio != null
+            && series != null && series > 0
+            && repeticoes != null && repeticoes > 0;
+    }
+
+    @Transient
+    public Integer getVolumeTotal() {
+        if (series != null && repeticoes != null) {
+            return series * repeticoes;
+        }
+        return 0;
+    }
+
+    @Transient
+    public Double getVolumeComCarga() {
+        if (series != null && repeticoes != null && cargaKg != null) {
+            return series * repeticoes * cargaKg;
+        }
+        return 0.0;
+    }
+
+    @Transient
+    public String getInfoCompleta() {
+        StringBuilder info = new StringBuilder();
+        info.append(getExercicioNome()).append(" - ")
+            .append(series).append("x").append(repeticoes);
+
+        if (cargaKg != null && cargaKg > 0) {
+            info.append(" (").append(cargaKg).append("kg)");
+        }
+        if (tempoDescansoSegundos != null && tempoDescansoSegundos > 0) {
+            info.append(" - Descanso: ").append(formatarTempoDescanso());
+        }
+        return info.toString();
+    }
+
+    @Transient
+    public String formatarTempoDescanso() {
+        if (tempoDescansoSegundos == null || tempoDescansoSegundos <= 0) return "";
+        int minutos = tempoDescansoSegundos / 60;
+        int segundos = tempoDescansoSegundos % 60;
+        return (minutos > 0) ? String.format("%dm%ds", minutos, segundos)
+                             : String.format("%ds", segundos);
+    }
+
+    @Transient
+    public boolean isAltaIntensidade() {
+        return (series != null && series >= 4)
+            || (repeticoes != null && repeticoes >= 15)
+            || (cargaKg != null && cargaKg >= 50.0);
+    }
+
+    public void copiarDe(ItemPlanoAula outro) {
+        if (outro != null) {
+            this.dia = outro.dia;
+            this.exercicio = outro.exercicio;
+            this.series = outro.series;
+            this.repeticoes = outro.repeticoes;
+            this.cargaKg = outro.cargaKg;
+            this.tempoDescansoSegundos = outro.tempoDescansoSegundos;
+            this.observacoes = outro.observacoes;
+        }
+    }
+
+    // ─── equals, hashCode, toString ────────────────────────────────────────────
+
+    @Override
+    public String toString() {
+        return String.format("%s: %s %dx%d%s",
+            getDiaLabel(),
+            getExercicioNome(),
+            series != null ? series : 0,
+            repeticoes != null ? repeticoes : 0,
+            (cargaKg != null && cargaKg > 0) ? " (" + cargaKg + "kg)" : ""
+        );
+    }
+
+    @Override
+    public boolean equals(Object o) {
+        if (this == o) return true;
+        if (!(o instanceof ItemPlanoAula)) return false;
+        ItemPlanoAula that = (ItemPlanoAula) o;
+        return Objects.equals(id, that.id);
+    }
+
+    @Override
+    public int hashCode() {
+        return Objects.hash(id);
+    }
+}
