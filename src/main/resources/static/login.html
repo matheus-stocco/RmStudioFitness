@@ -3,28 +3,37 @@
 <head>
   <meta charset="UTF-8">
   <meta name="viewport" content="width=device-width, initial-scale=1.0">
-  <title>Login - RM Studio Fitness</title>
+  <title>Login - RMStudio Fitness</title>
+  <link rel="stylesheet" href="/css/style.css"/>
+  <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
 </head>
 <body>
-  <h1>Login - RM Studio Fitness</h1>
-
-  <form action="/login" method="post">
-    <div>
-      <label for="email">E-mail:</label>
-      <input type="email" id="email" name="email" required>
+  <div class="login-container">
+    <div class="card login-card">
+      <h1 class="login-title">
+        <a class="brand" href="/index.html">
+          <i class="fas fa-dumbbell"></i>
+          <span>RM</span>Studio
+        </a>
+      </h1>
+      <form action="/login" method="post">
+        <div class="form-group">
+          <label for="email" class="form-label">E-mail:</label>
+          <input type="email" id="email" name="email" class="form-control" required>
+        </div>
+        <div class="form-group">
+          <label for="password" class="form-label">Senha:</label>
+          <input type="password" id="password" name="password" class="form-control" required>
+        </div>
+        <div class="form-group">
+          <button type="submit" class="btn btn-primary" style="width: 100%;">Entrar</button>
+        </div>
+      </form>
+      <div style="text-align: center; margin-top: 16px;">
+        <p><a href="/recuperar-senha.html">Esqueceu sua senha?</a></p>
+        <p>Ainda não tem conta? <a href="/CadastroPessoas.html">Cadastre-se</a></p>
+      </div>
     </div>
-
-    <div>
-      <label for="password">Senha:</label>
-      <input type="password" id="password" name="password" required>
-    </div>
-
-    <div>
-      <button type="submit">Entrar</button>
-    </div>
-  </form>
-
-  <p><a href="/recuperar-senha.html">Esqueceu sua senha?</a></p>
-  <p>Ainda não tem conta? <a href="/cadastro.html">Cadastre-se</a></p>
+  </div>
 </body>
 </html>

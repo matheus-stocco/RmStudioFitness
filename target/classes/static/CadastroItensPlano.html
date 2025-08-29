@@ -1,142 +1,263 @@
 <!DOCTYPE html>
 <html lang="pt-BR">
 <head>
-  <meta charset="UTF-8">
-  <meta name="viewport" content="width=device-width, initial-scale=1.0">
-  <title>Cadastro de Itens do Plano</title>
-  <link rel="stylesheet" href="/css/style.css">
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Gestão de Itens do Plano - RMStudio Fitness</title>
+    <link rel="stylesheet" href="/css/style.css">
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
 </head>
 <body>
-  <h1>Cadastro de Itens do Plano</h1>
+    <header class="header">
+        <div class="container">
+            <nav class="navbar">
+                <a class="brand" href="/index.html"><i class="fas fa-dumbbell"></i> <span>RM</span>Studio</a>
+                <button class="nav-toggle" aria-label="Abrir menu"><i class="fas fa-bars"></i></button>
+                <div class="nav-links">
+                    <a href="/index.html">Home</a>
+                    <a href="/CadastroPessoas.html">Membros</a>
+                    <a class="active" href="/CadastroPlanoAula.html">Planos</a>
+                    <a href="/CadastroExercicios.html">Exercícios</a>
+                </div>
+            </nav>
+        </div>
+    </header>
 
-  <nav>
-    <a href="/CadastroPlanoAula.html">← Voltar ao Plano de Aula</a> |
-    <a href="/index.html">Início</a>
-  </nav>
+    <main class="form-page-container">
+        <div class="container">
+            <h1 class="page-title">
+                <i class="fas fa-clipboard-list"></i> Gestão de Itens do Plano
+                <span id="plano-descricao" style="color: var(--color-primary); display: block; font-size: 1rem; text-transform: none; letter-spacing: normal; margin-top: 8px;"></span>
+            </h1>
+             <a href="/CadastroPlanoAula.html" class="btn btn-secondary" style="margin-bottom: 16px;"><i class="fas fa-arrow-left"></i> Voltar para Planos</a>
 
-  <hr>
+            <div class="card form-card">
+                <h3 class="card-title">Adicionar Exercício ao Plano</h3>
+                <form id="form-item-plano">
+                    <input type="hidden" id="id" name="id">
+                    <input type="hidden" id="planoId" name="planoId">
+                    <div class="form-group">
+                        <label for="diaSemana" class="form-label">Dia da Semana</label>
+                        <select id="diaSemana" name="diaSemana" class="form-control" required>
+                            <option value="SEGUNDA">Segunda-feira</option>
+                            <option value="TERCA">Terça-feira</option>
+                            <option value="QUARTA">Quarta-feira</option>
+                            <option value="QUINTA">Quinta-feira</option>
+                            <option value="SEXTA">Sexta-feira</option>
+                            <option value="SABADO">Sábado</option>
+                            <option value="DOMINGO">Domingo</option>
+                        </select>
+                    </div>
+                    <div class="form-group">
+                        <label for="exercicioId" class="form-label">Exercício</label>
+                        <select id="exercicioId" name="exercicioId" class="form-control" required>
+                            <option value="">Carregando...</option>
+                        </select>
+                    </div>
+                    <div class="form-group">
+                        <label for="series" class="form-label">Séries</label>
+                        <input type="number" id="series" name="series" class="form-control" required min="1">
+                    </div>
+                    <div class="form-group">
+                        <label for="repeticoes" class="form-label">Repetições</label>
+                        <input type="text" id="repeticoes" name="repeticoes" class="form-control" required placeholder="Ex: 8-12">
+                    </div>
+                    <div class="form-actions">
+                        <button type="submit" class="btn btn-primary"><i class="fas fa-plus"></i> Adicionar Item</button>
+                        <button type="button" class="btn btn-secondary" onclick="resetForm()"><i class="fas fa-times"></i> Cancelar Edição</button>
+                    </div>
+                </form>
+            </div>
 
-  <!-- Filtro para visualizar itens por Plano/Dia -->
-  <h2>Consultar Itens</h2>
-  <form action="/api/planos-aula/itens/buscar" method="get">
-    <div>
-      <label for="planoIdFiltro">Plano:</label>
-      <select id="planoIdFiltro" name="planoId" required>
-        <option value="">Selecione...</option>
-        <!-- Backend deve preencher as opções -->
-        <!-- <option value="1">Hipertrofia A/B</option> -->
-      </select>
-    </div>
+            <div class="card" style="margin-top: 32px;">
+                <h3 class="card-title">Itens Cadastrados no Plano</h3>
+                <div class="table-responsive">
+                    <table class="table" id="tabela-itens">
+                        <thead>
+                            <tr>
+                                <th>Dia da Semana</th>
+                                <th>Exercício</th>
+                                <th>Séries</th>
+                                <th>Repetições</th>
+                                <th>Ações</th>
+                            </tr>
+                        </thead>
+                        <tbody></tbody>
+                    </table>
+                </div>
+            </div>
+        </div>
+    </main>
+    <footer class="footer">
+        <div class="container">
+            <div class="footer-bottom">
+                <p>&copy; 2024 RMStudio Fitness. Todos os direitos reservados.</p>
+            </div>
+        </div>
+    </footer>
+    <script>
+        const API_URL = '/api/itensplanoaula';
+        const API_EXERCICIOS_URL = '/api/exercicios';
+        const API_PLANO_URL = '/api/planoaulas';
 
-    <div>
-      <label for="diaFiltro">Dia:</label>
-      <select id="diaFiltro" name="dia" required>
-        <option value="">Selecione...</option>
-        <option value="SEGUNDA">Segunda-feira</option>
-        <option value="TERCA">Terça-feira</option>
-        <option value="QUARTA">Quarta-feira</option>
-        <option value="QUINTA">Quinta-feira</option>
-        <option value="SEXTA">Sexta-feira</option>
-        <option value="SABADO">Sábado</option>
-        <option value="DOMINGO">Domingo</option>
-      </select>
-    </div>
+        const form = document.getElementById('form-item-plano');
+        const tableBody = document.querySelector('#tabela-itens tbody');
+        const planoIdField = document.getElementById('planoId');
 
-    <div>
-      <button type="submit">Carregar Itens</button>
-    </div>
-  </form>
+        let planoId = null;
 
-  <h3>Itens do Dia</h3>
-  <table border="1">
-    <thead>
-      <tr>
-        <th>Exercício</th>
-        <th>Séries</th>
-        <th>Repetições</th>
-        <th>Ações</th>
-      </tr>
-    </thead>
-    <tbody>
-      <!-- Backend/JS deve preencher a listagem -->
-      <tr>
-        <td>Supino reto</td>
-        <td>3</td>
-        <td>12</td>
-        <td>
-          <form action="/api/planos-aula/1/itens/10/excluir" method="post" style="display:inline;">
-            <button type="submit">Excluir</button>
-          </form>
-          <form action="/api/planos-aula/1/itens/10/editar" method="post" style="display:inline;">
-            <button type="submit">Editar</button>
-          </form>
-        </td>
-      </tr>
-    </tbody>
-  </table>
+        async function fetchExercicios() {
+            const exercicioSelect = document.getElementById('exercicioId');
+            try {
+                const response = await fetch(API_EXERCICIOS_URL);
+                if (!response.ok) throw new Error('Erro ao buscar exercícios');
+                const exercicios = await response.json();
+                exercicioSelect.innerHTML = '<option value="">Selecione um exercício</option>';
+                exercicios.forEach(ex => {
+                    exercicioSelect.innerHTML += `<option value="${ex.id}">${ex.nome} (${ex.grupoMuscular})</option>`;
+                });
+            } catch (error) {
+                console.error(error);
+                exercicioSelect.innerHTML = '<option value="">Erro ao carregar</option>';
+            }
+        }
 
-  <hr>
+        async function fetchItensDoPlano() {
+            if (!planoId) return;
+            try {
+                const response = await fetch(`${API_URL}/plano/${planoId}`);
+                if (!response.ok) throw new Error('Erro ao buscar itens do plano');
+                const itens = await response.json();
+                renderTable(itens);
+            } catch (error) {
+                console.error('Falha:', error);
+                tableBody.innerHTML = `<tr><td colspan="5">Erro ao carregar itens.</td></tr>`;
+            }
+        }
+        
+         async function fetchPlanoInfo() {
+            if (!planoId) return;
+            try {
+                const response = await fetch(`${API_PLANO_URL}/${planoId}`);
+                if (!response.ok) throw new Error('Plano não encontrado');
+                const plano = await response.json();
+                document.getElementById('plano-descricao').textContent = `Plano: ${plano.descricao} - Aluno: ${plano.aluno.nome}`;
+            } catch (error) {
+                console.error(error);
+                document.getElementById('plano-descricao').textContent = 'Plano não encontrado';
+            }
+        }
 
-  <!-- Cadastro de item -->
-  <h2>Adicionar Item ao Plano</h2>
-  <form action="/api/planos-aula/itens" method="post">
-    <!-- Informe o plano ao qual o item pertence -->
-    <div>
-      <label for="planoId">Plano:</label>
-      <select id="planoId" name="planoId" required>
-        <option value="">Selecione...</option>
-        <!-- Backend deve preencher as opções -->
-        <!-- <option value="1">Hipertrofia A/B</option> -->
-      </select>
-    </div>
 
-    <div>
-      <label for="dia">Dia:</label>
-      <select id="dia" name="dia" required>
-        <option value="">Selecione...</option>
-        <option value="SEGUNDA">Segunda-feira</option>
-        <option value="TERCA">Terça-feira</option>
-        <option value="QUARTA">Quarta-feira</option>
-        <option value="QUINTA">Quinta-feira</option>
-        <option value="SEXTA">Sexta-feira</option>
-        <option value="SABADO">Sábado</option>
-        <option value="DOMINGO">Domingo</option>
-      </select>
-    </div>
+        function renderTable(itens) {
+            tableBody.innerHTML = '';
+             if (itens.length === 0) {
+                tableBody.innerHTML = `<tr><td colspan="5" style="text-align:center;">Nenhum item cadastrado neste plano.</td></tr>`;
+                return;
+            }
+            // Ordenar por dia da semana
+            const diasOrdenados = ["SEGUNDA", "TERCA", "QUARTA", "QUINTA", "SEXTA", "SABADO", "DOMINGO"];
+            itens.sort((a, b) => diasOrdenados.indexOf(a.diaSemana) - diasOrdenados.indexOf(b.diaSemana));
 
-    <div>
-      <label for="exercicioId">Exercício:</label>
-      <select id="exercicioId" name="exercicioId" required>
-        <option value="">Selecione...</option>
-        <!-- Backend deve preencher com /api/exercicios -->
-        <!-- <option value="5">Supino reto</option> -->
-      </select>
-    </div>
+            itens.forEach(item => {
+                const tr = document.createElement('tr');
+                tr.innerHTML = `
+                    <td>${item.diaSemana.charAt(0).toUpperCase() + item.diaSemana.slice(1).toLowerCase()}</td>
+                    <td>${item.exercicio.nome}</td>
+                    <td>${item.series}</td>
+                    <td>${item.repeticoes}</td>
+                    <td class="cell-actions">
+                        <button class="btn btn-secondary" onclick="editItem('${item.id}')"><i class="fas fa-edit"></i></button>
+                        <button class="btn btn-secondary" onclick="deleteItem('${item.id}')"><i class="fas fa-trash"></i></button>
+                    </td>
+                `;
+                tableBody.appendChild(tr);
+            });
+        }
 
-    <div>
-      <label for="series">Séries:</label>
-      <input type="number" id="series" name="series" min="1" required>
-    </div>
+        form.addEventListener('submit', async (e) => {
+            e.preventDefault();
+            const formData = new FormData(form);
+            const id = formData.get('id');
+            const payload = {
+                planoAula: { id: formData.get('planoId') },
+                exercicio: { id: formData.get('exercicioId') },
+                diaSemana: formData.get('diaSemana'),
+                series: formData.get('series'),
+                repeticoes: formData.get('repeticoes')
+            };
 
-    <div>
-      <label for="repeticoes">Repetições:</label>
-      <input type="number" id="repeticoes" name="repeticoes" min="1" required>
-    </div>
+            const method = id ? 'PUT' : 'POST';
+            const url = id ? `${API_URL}/${id}` : API_URL;
 
-    <div>
-      <button type="submit">Adicionar Item</button>
-      <button type="reset">Limpar</button>
-    </div>
-  </form>
+            try {
+                const response = await fetch(url, {
+                    method,
+                    headers: { 'Content-Type': 'application/json' },
+                    body: JSON.stringify(payload),
+                });
+                if (!response.ok) throw new Error('Erro ao salvar item');
+                resetForm();
+                fetchItensDoPlano();
+            } catch (error) {
+                console.error(error);
+            }
+        });
+        
+        async function editItem(id) {
+            try {
+                const response = await fetch(`${API_URL}/${id}`);
+                if (!response.ok) throw new Error('Item não encontrado');
+                const item = await response.json();
+                document.getElementById('id').value = item.id;
+                document.getElementById('diaSemana').value = item.diaSemana;
+                document.getElementById('exercicioId').value = item.exercicio.id;
+                document.getElementById('series').value = item.series;
+                document.getElementById('repeticoes').value = item.repeticoes;
+                window.scrollTo(0, 0);
+            } catch (error) {
+                console.error('Falha ao carregar para edição:', error);
+            }
+        }
+        
+        async function deleteItem(id) {
+            if (!confirm('Tem certeza que deseja remover este item do plano?')) return;
+            try {
+                const response = await fetch(`${API_URL}/${id}`, { method: 'DELETE' });
+                if (!response.ok) throw new Error('Erro ao excluir');
+                fetchItensDoPlano();
+            } catch (error) {
+                console.error('Falha ao excluir:', error);
+            }
+        }
 
-  <hr>
+        function resetForm() {
+            form.reset();
+            document.getElementById('id').value = '';
+            planoIdField.value = planoId; // Mantém o ID do plano
+        }
 
-  <!-- Observação de integração -->
-  <p>
-    Observação: os <strong>options</strong> de Plano e Exercício devem ser preenchidos pelo backend
-    (ou via JavaScript) a partir de <code>/api/planos-aula</code> e <code>/api/exercicios</code>.
-    A listagem de itens por dia pode ser obtida via
-    <code>/api/planos-aula/{planoId}/itens?dia=SEGUNDA</code>.
-  </p>
+        document.addEventListener('DOMContentLoaded', () => {
+            const urlParams = new URLSearchParams(window.location.search);
+            planoId = urlParams.get('planoId');
+            if (planoId) {
+                planoIdField.value = planoId;
+                fetchPlanoInfo();
+                fetchExercicios();
+                fetchItensDoPlano();
+            } else {
+                document.querySelector('.container').innerHTML = '<h1>Plano não especificado.</h1><a href="/CadastroPlanoAula.html">Voltar</a>';
+            }
+        });
+
+        // Mobile nav toggle
+        const navToggle = document.querySelector('.nav-toggle');
+        const navLinks = document.querySelector('.nav-links');
+        if (navToggle) {
+            navToggle.addEventListener('click', () => {
+                navLinks.classList.toggle('open');
+            });
+        }
+    </script>
 </body>
 </html>

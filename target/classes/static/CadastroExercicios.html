@@ -3,83 +3,197 @@
 <head>
   <meta charset="UTF-8">
   <meta name="viewport" content="width=device-width, initial-scale=1.0">
-  <title>Cadastro de Exercícios</title>
+  <title>Gestão de Exercícios - RMStudio Fitness</title>
   <link rel="stylesheet" href="/css/style.css">
+  <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
 </head>
 <body>
-  <h1>Cadastro de Exercícios</h1>
-
-  <!-- Formulário -->
-  <form action="/api/exercicios" method="post">
-    <div>
-      <label for="nome">Nome:</label>
-      <input type="text" id="nome" name="nome" required>
+  <header class="header">
+    <div class="container">
+      <nav class="navbar">
+        <a class="brand" href="/index.html">
+          <i class="fas fa-dumbbell"></i>
+          <span>RM</span>Studio
+        </a>
+        <button class="nav-toggle" aria-label="Abrir menu">
+          <i class="fas fa-bars"></i>
+        </button>
+        <div class="nav-links">
+          <a href="/index.html">Home</a>
+          <a href="/CadastroPessoas.html">Membros</a>
+          <a href="/CadastroPlanoAula.html">Planos</a>
+          <a class="active" href="/CadastroExercicios.html">Exercícios</a>
+        </div>
+      </nav>
     </div>
+  </header>
 
-    <div>
-      <label for="descricao">Descrição:</label>
-      <textarea id="descricao" name="descricao"></textarea>
+  <main class="form-page-container">
+    <div class="container">
+      <h1 class="page-title"><i class="fas fa-running"></i> Gestão de Exercícios</h1>
+
+      <div class="card form-card">
+        <h3 class="card-title">Adicionar / Editar Exercício</h3>
+        <form id="form-exercicio">
+          <input type="hidden" id="id" name="id">
+          <div class="form-group">
+            <label for="nome" class="form-label">Nome do Exercício</label>
+            <input type="text" id="nome" name="nome" class="form-control" required placeholder="Ex: Supino Reto">
+          </div>
+          <div class="form-group">
+            <label for="grupoMuscular" class="form-label">Grupo Muscular</label>
+            <select id="grupoMuscular" name="grupoMuscular" class="form-control" required>
+              <option value="">Selecione…</option>
+              <option value="PEITO">Peito</option>
+              <option value="COSTAS">Costas</option>
+              <option value="OMBRO">Ombros</option>
+              <option value="BICEPS">Bíceps</option>
+              <option value="TRICEPS">Tríceps</option>
+              <option value="PERNA">Pernas</option>
+              <option value="GLUTEO">Glúteos</option>
+              <option value="ABDOMEN">Abdômen</option>
+              <option value="CARDIO">Cardio</option>
+            </select>
+          </div>
+          <div class="form-group">
+            <label for="descricao" class="form-label">Descrição</label>
+            <textarea id="descricao" name="descricao" class="form-control" rows="3" placeholder="Instruções sobre o exercício..."></textarea>
+          </div>
+          <div class="form-actions">
+            <button type="submit" class="btn btn-primary"><i class="fas fa-save"></i> Salvar</button>
+            <button type="button" class="btn btn-secondary" onclick="resetForm()"><i class="fas fa-plus"></i> Novo</button>
+          </div>
+        </form>
+      </div>
+
+      <div class="card" style="margin-top: 32px;">
+        <h3 class="card-title">Exercícios Cadastrados</h3>
+        <div class="table-responsive">
+          <table class="table" id="tabela-exercicios">
+            <thead>
+              <tr>
+                <th>Nome</th>
+                <th>Grupo Muscular</th>
+                <th>Ações</th>
+              </tr>
+            </thead>
+            <tbody></tbody>
+          </table>
+        </div>
+      </div>
     </div>
+  </main>
 
-    <div>
-      <label for="series">Nº de Séries:</label>
-      <input type="number" id="series" name="series" min="1">
+  <footer class="footer">
+    <div class="container">
+      <div class="footer-bottom">
+        <p>&copy; 2024 RMStudio Fitness. Todos os direitos reservados.</p>
+      </div>
     </div>
+  </footer>
 
-    <div>
-      <label for="repeticoes">Repetições:</label>
-      <input type="number" id="repeticoes" name="repeticoes" min="1">
-    </div>
+  <script>
+    const API_URL = '/api/exercicios';
+    const form = document.getElementById('form-exercicio');
+    const tableBody = document.querySelector('#tabela-exercicios tbody');
 
-    <div>
-      <label for="grupoMuscular">Grupo Muscular:</label>
-      <select id="grupoMuscular" name="grupoMuscular">
-        <option value="">Selecione…</option>
-        <option value="Peito">Peito</option>
-        <option value="Costas">Costas</option>
-        <option value="Ombros">Ombros</option>
-        <option value="Bíceps">Bíceps</option>
-        <option value="Tríceps">Tríceps</option>
-        <option value="Pernas">Pernas</option>
-        <option value="Glúteos">Glúteos</option>
-        <option value="Abdômen">Abdômen</option>
-        <option value="Cardio">Cardio</option>
-      </select>
-    </div>
+    async function fetchData() {
+      try {
+        const response = await fetch(API_URL);
+        if (!response.ok) throw new Error('Erro ao buscar exercícios');
+        const data = await response.json();
+        renderTable(data);
+      } catch (error) {
+        console.error('Falha na requisição:', error);
+        tableBody.innerHTML = `<tr><td colspan="3">Erro ao carregar dados.</td></tr>`;
+      }
+    }
 
-    <div>
-      <button type="submit">Salvar</button>
-      <button type="reset">Novo</button>
-    </div>
-  </form>
+    function renderTable(data) {
+      tableBody.innerHTML = '';
+       if (data.length === 0) {
+        tableBody.innerHTML = `<tr><td colspan="3" style="text-align:center;">Nenhum exercício cadastrado.</td></tr>`;
+        return;
+      }
+      data.forEach(item => {
+        const tr = document.createElement('tr');
+        tr.innerHTML = `
+          <td>${item.nome}</td>
+          <td>${item.grupoMuscular}</td>
+          <td class="cell-actions">
+            <button class="btn btn-secondary" onclick="editItem('${item.id}')"><i class="fas fa-edit"></i></button>
+            <button class="btn btn-secondary" onclick="deleteItem('${item.id}')"><i class="fas fa-trash"></i></button>
+          </td>
+        `;
+        tableBody.appendChild(tr);
+      });
+    }
 
-  <!-- Lista -->
-  <h2>Exercícios Cadastrados</h2>
-  <table border="1">
-    <thead>
-      <tr>
-        <th>Nome</th>
-        <th>Descrição</th>
-        <th>Séries</th>
-        <th>Repetições</th>
-        <th>Grupo</th>
-        <th>Ações</th>
-      </tr>
-    </thead>
-    <tbody>
-      <!-- Backend/JS preencherá a lista -->
-      <tr>
-        <td>Supino reto</td>
-        <td>Exercício para peitoral</td>
-        <td>3</td>
-        <td>12</td>
-        <td>Peito</td>
-        <td>
-          <button>Editar</button>
-          <button>Excluir</button>
-        </td>
-      </tr>
-    </tbody>
-  </table>
+    async function handleSubmit(event) {
+      event.preventDefault();
+      const formData = new FormData(form);
+      const data = Object.fromEntries(formData.entries());
+      const id = data.id;
+
+      const method = id ? 'PUT' : 'POST';
+      const url = id ? `${API_URL}/${id}` : API_URL;
+
+      try {
+        const response = await fetch(url, {
+          method,
+          headers: { 'Content-Type': 'application/json' },
+          body: JSON.stringify(data),
+        });
+        if (!response.ok) throw new Error('Erro ao salvar');
+        resetForm();
+        fetchData();
+      } catch (error) {
+        console.error('Falha ao salvar:', error);
+      }
+    }
+
+    async function editItem(id) {
+      try {
+        const response = await fetch(`${API_URL}/${id}`);
+        if (!response.ok) throw new Error('Exercício não encontrado');
+        const item = await response.json();
+        document.getElementById('id').value = item.id;
+        document.getElementById('nome').value = item.nome;
+        document.getElementById('descricao').value = item.descricao;
+        document.getElementById('grupoMuscular').value = item.grupoMuscular;
+        window.scrollTo(0, 0);
+      } catch (error) {
+        console.error('Falha ao carregar para edição:', error);
+      }
+    }
+
+    async function deleteItem(id) {
+      if (!confirm('Tem certeza que deseja excluir este exercício?')) return;
+      try {
+        const response = await fetch(`${API_URL}/${id}`, { method: 'DELETE' });
+        if (!response.ok) throw new Error('Erro ao excluir');
+        fetchData();
+      } catch (error) {
+        console.error('Falha ao excluir:', error);
+      }
+    }
+
+    function resetForm() {
+      form.reset();
+      document.getElementById('id').value = '';
+    }
+
+    form.addEventListener('submit', handleSubmit);
+    document.addEventListener('DOMContentLoaded', fetchData);
+    
+    // Mobile nav toggle
+    const navToggle = document.querySelector('.nav-toggle');
+    const navLinks = document.querySelector('.nav-links');
+    if (navToggle) {
+        navToggle.addEventListener('click', () => {
+            navLinks.classList.toggle('open');
+        });
+    }
+  </script>
 </body>
 </html>

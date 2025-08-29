@@ -3,287 +3,135 @@
 <head>
   <meta charset="UTF-8"/>
   <meta name="viewport" content="width=device-width, initial-scale=1"/>
-  <title>RMStudio Fitness • Sistema de Gestão de Academias</title>
+  <title>RMStudio Fitness • Gestão de Academia</title>
   <link rel="stylesheet" href="/css/style.css"/>
-  <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700;800;900&display=swap" rel="stylesheet">
   <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
 </head>
 <body>
-  <!-- Navbar -->
-  <header class="navbar">
-    <button class="nav-toggle" aria-label="Abrir menu">
-      <i class="fas fa-bars"></i>
-    </button>
-    <a class="brand" href="/index.html">
-      <i class="fas fa-dumbbell"></i>
-      <span>RM</span>Studio Fitness
-    </a>
-    <nav class="nav-links">
-      <a class="active" href="/index.html">
-        <i class="fas fa-home"></i>
-        Início
-      </a>
-      <a href="/CadastroEstado.html">
-        <i class="fas fa-map-marker-alt"></i>
-        Estados
-      </a>
-      <a href="/CadastroCidade.html">
-        <i class="fas fa-city"></i>
-        Cidades
-      </a>
-      <a href="/CadastroPessoas.html">
-        <i class="fas fa-users"></i>
-        Pessoas
-      </a>
-      <a href="/CadastroExercicios.html">
-        <i class="fas fa-running"></i>
-        Exercícios
-      </a>
-      <a href="/CadastroPlanoAula.html">
-        <i class="fas fa-calendar-alt"></i>
-        Planos
-      </a>
-    </nav>
+  <header class="header">
+    <div class="container">
+      <nav class="navbar">
+        <a class="brand" href="/index.html">
+          <i class="fas fa-dumbbell"></i>
+          <span>RM</span>Studio
+        </a>
+        <button class="nav-toggle" aria-label="Abrir menu">
+          <i class="fas fa-bars"></i>
+        </button>
+        <div class="nav-links">
+          <a class="active" href="/index.html">Home</a>
+          <a href="/CadastroPessoas.html">Membros</a>
+          <a href="/CadastroPlanoAula.html">Planos</a>
+          <a href="/CadastroExercicios.html">Exercícios</a>
+        </div>
+      </nav>
+    </div>
   </header>
 
-  <main class="container">
-    <!-- Hero Section -->
+  <main>
+    <!-- HERO SECTION -->
     <section class="hero">
-      <div class="hero-content">
-        <h1 class="hero-title">
-          <i class="fas fa-dumbbell"></i>
-          RMStudio Fitness
-        </h1>
+      <div class="container">
+        <h1 class="hero-title">Gerencie sua Academia com Poder e Precisão</h1>
         <p class="hero-subtitle">
-          Sistema completo de gestão para academias e estúdios de fitness
+          A plataforma definitiva para transformar a gestão do seu espaço fitness. Do controle de membros aos planos de treino, tudo em um só lugar.
         </p>
         <div class="hero-actions">
-          <a href="/CadastroPessoas.html" class="btn btn-primary">
-            <i class="fas fa-users"></i>
-            Começar
-          </a>
-          <a href="#features" class="btn btn-ghost">
-            <i class="fas fa-info-circle"></i>
-            Saiba Mais
-          </a>
-        </div>
-      </div>
-      <div class="hero-visual">
-        <div class="hero-icon">
-          <i class="fas fa-dumbbell"></i>
+          <a href="/CadastroPessoas.html" class="btn btn-primary">Começar Agora</a>
+          <a href="#features" class="btn btn-secondary">Ver Funcionalidades</a>
         </div>
       </div>
     </section>
 
-    <!-- Estatísticas Rápidas -->
-    <section class="stats-section">
-      <div class="stats-grid">
-        <div class="stat-card">
-          <div class="stat-icon">
-            <i class="fas fa-users"></i>
+    <!-- FEATURES SECTION -->
+    <section id="features" class="section">
+      <div class="container">
+        <h2 class="section-title">Funcionalidades Principais</h2>
+        <div class="cards-grid">
+          <!-- Card 1: Gestão de Membros -->
+          <div class="card">
+            <div class="card-icon"><i class="fas fa-users"></i></div>
+            <h3 class="card-title">Gestão de Membros</h3>
+            <p class="card-text">Cadastre, gerencie e acompanhe a evolução de todos os seus alunos de forma centralizada e eficiente.</p>
+            <a href="/CadastroPessoas.html" class="card-link">Gerenciar Membros <i class="fas fa-arrow-right"></i></a>
           </div>
-          <div class="stat-content">
-            <div class="stat-number" id="total-pessoas">0</div>
-            <div class="stat-label">Alunos Cadastrados</div>
+
+          <!-- Card 2: Planos de Aula -->
+          <div class="card">
+            <div class="card-icon"><i class="fas fa-calendar-alt"></i></div>
+            <h3 class="card-title">Planos de Aula</h3>
+            <p class="card-text">Crie planos de treino personalizados, atribua a alunos e defina metas de performance claras.</p>
+            <a href="/CadastroPlanoAula.html" class="card-link">Montar Planos <i class="fas fa-arrow-right"></i></a>
           </div>
-        </div>
-        <div class="stat-card">
-          <div class="stat-icon">
-            <i class="fas fa-running"></i>
+
+          <!-- Card 3: Biblioteca de Exercícios -->
+          <div class="card">
+            <div class="card-icon"><i class="fas fa-running"></i></div>
+            <h3 class="card-title">Biblioteca de Exercícios</h3>
+            <p class="card-text">Construa uma base de exercícios completa para agilizar a criação de treinos variados e eficazes.</p>
+            <a href="/CadastroExercicios.html" class="card-link">Ver Exercícios <i class="fas fa-arrow-right"></i></a>
           </div>
-          <div class="stat-content">
-            <div class="stat-number" id="total-exercicios">0</div>
-            <div class="stat-label">Exercícios</div>
-          </div>
-        </div>
-        <div class="stat-card">
-          <div class="stat-icon">
-            <i class="fas fa-calendar-alt"></i>
-          </div>
-          <div class="stat-content">
-            <div class="stat-number" id="total-planos">0</div>
-            <div class="stat-label">Planos de Aula</div>
-          </div>
-        </div>
-        <div class="stat-card">
-          <div class="stat-icon">
-            <i class="fas fa-map-marker-alt"></i>
-          </div>
-          <div class="stat-content">
-            <div class="stat-number" id="total-estados">0</div>
-            <div class="stat-label">Estados</div>
+
+          <!-- Card 4: Avaliações Físicas -->
+          <div class="card">
+            <div class="card-icon"><i class="fas fa-chart-line"></i></div>
+            <h3 class="card-title">Avaliações Físicas</h3>
+            <p class="card-text">Registre e analise avaliações físicas para oferecer um acompanhamento detalhado do progresso.</p>
+            <a href="/CadastroAvaliacaoFisica.html" class="card-link">Lançar Avaliação <i class="fas fa-arrow-right"></i></a>
           </div>
         </div>
       </div>
     </section>
 
-    <!-- Funcionalidades -->
-    <section id="features" class="features-section">
-      <h2 class="section-title">
-        <i class="fas fa-star"></i>
-        Funcionalidades Principais
-      </h2>
-      
-      <div class="features-grid">
-        <div class="feature-card">
-          <div class="feature-icon">
-            <i class="fas fa-users"></i>
-          </div>
-          <h3>Gestão de Alunos</h3>
-          <p>Cadastre e gerencie todos os alunos da academia com informações completas e histórico de treinos.</p>
-          <a href="/CadastroPessoas.html" class="feature-link">
-            <i class="fas fa-arrow-right"></i>
-            Gerenciar Alunos
-          </a>
+    <!-- STATS SECTION -->
+    <section class="section" style="background-color: var(--color-secondary);">
+        <div class="container">
+            <h2 class="section-title">Visão Geral</h2>
+            <div class="cards-grid">
+                <div class="card">
+                    <h3 class="card-title">Alunos Ativos</h3>
+                    <p class="card-text" id="total-pessoas" style="font-size: 2.5rem; font-weight: 700; color: var(--color-primary);">0</p>
+                </div>
+                <div class="card">
+                    <h3 class="card-title">Exercícios Cadastrados</h3>
+                    <p class="card-text" id="total-exercicios" style="font-size: 2.5rem; font-weight: 700; color: var(--color-primary);">0</p>
+                </div>
+                <div class="card">
+                    <h3 class="card-title">Planos de Aula Criados</h3>
+                    <p class="card-text" id="total-planos" style="font-size: 2.5rem; font-weight: 700; color: var(--color-primary);">0</p>
+                </div>
+                 <div class="card">
+                    <h3 class="card-title">Estados</h3>
+                    <p class="card-text" id="total-estados" style="font-size: 2.5rem; font-weight: 700; color: var(--color-primary);">0</p>
+                </div>
+            </div>
         </div>
-
-        <div class="feature-card">
-          <div class="feature-icon">
-            <i class="fas fa-running"></i>
-          </div>
-          <h3>Biblioteca de Exercícios</h3>
-          <p>Mantenha uma biblioteca completa de exercícios com descrições, categorias e instruções.</p>
-          <a href="/CadastroExercicios.html" class="feature-link">
-            <i class="fas fa-arrow-right"></i>
-            Ver Exercícios
-          </a>
-        </div>
-
-        <div class="feature-card">
-          <div class="feature-icon">
-            <i class="fas fa-calendar-alt"></i>
-          </div>
-          <h3>Planos de Aula</h3>
-          <p>Crie e personalize planos de treino para diferentes objetivos e níveis de condicionamento.</p>
-          <a href="/CadastroPlanoAula.html" class="feature-link">
-            <i class="fas fa-arrow-right"></i>
-            Criar Planos
-          </a>
-        </div>
-
-        <div class="feature-card">
-          <div class="feature-icon">
-            <i class="fas fa-chart-line"></i>
-          </div>
-          <h3>Avaliações Físicas</h3>
-          <p>Acompanhe o progresso dos alunos com avaliações físicas detalhadas e relatórios.</p>
-          <a href="/CadastroAvaliacaoFisica.html" class="feature-link">
-            <i class="fas fa-arrow-right"></i>
-            Avaliações
-          </a>
-        </div>
-
-        <div class="feature-card">
-          <div class="feature-icon">
-            <i class="fas fa-map-marker-alt"></i>
-          </div>
-          <h3>Gestão de Localidades</h3>
-          <p>Organize estados e cidades para melhor controle regional e segmentação de mercado.</p>
-          <a href="/CadastroEstado.html" class="feature-link">
-            <i class="fas fa-arrow-right"></i>
-            Localidades
-          </a>
-        </div>
-
-        <div class="feature-card">
-          <div class="feature-icon">
-            <i class="fas fa-cogs"></i>
-          </div>
-          <h3>Configurações Flexíveis</h3>
-          <p>Sistema configurável para diferentes tipos de academia e necessidades específicas.</p>
-          <a href="/CadastroTipoPlano.html" class="feature-link">
-            <i class="fas fa-arrow-right"></i>
-            Configurar
-          </a>
-        </div>
-      </div>
     </section>
+  </main>
 
-    <!-- Ações Rápidas -->
-    <section class="quick-actions">
-      <h2 class="section-title">
-        <i class="fas fa-bolt"></i>
-        Ações Rápidas
-      </h2>
-      
-      <div class="actions-grid">
-        <a href="/CadastroPessoas.html" class="action-card">
-          <div class="action-icon">
-            <i class="fas fa-user-plus"></i>
-          </div>
-          <h3>Novo Aluno</h3>
-          <p>Cadastrar novo aluno na academia</p>
-        </a>
-
-        <a href="/CadastroExercicios.html" class="action-card">
-          <div class="action-icon">
-            <i class="fas fa-plus-circle"></i>
-          </div>
-          <h3>Novo Exercício</h3>
-          <p>Adicionar exercício à biblioteca</p>
-        </a>
-
-        <a href="/CadastroPlanoAula.html" class="action-card">
-          <div class="action-icon">
-            <i class="fas fa-calendar-plus"></i>
-          </div>
-          <h3>Novo Plano</h3>
-          <p>Criar plano de treino personalizado</p>
-        </a>
-
-        <a href="/CadastroAvaliacaoFisica.html" class="action-card">
-          <div class="action-icon">
-            <i class="fas fa-clipboard-check"></i>
-          </div>
-          <h3>Nova Avaliação</h3>
-          <p>Realizar avaliação física</p>
-        </a>
-      </div>
-    </section>
-
-    <!-- Footer -->
-    <footer class="footer">
+  <footer class="footer">
+    <div class="container">
       <div class="footer-content">
-        <div class="footer-brand">
+        <a class="brand" href="/index.html">
           <i class="fas fa-dumbbell"></i>
-          <span>RM</span>Studio Fitness
-        </div>
-        <p class="footer-description">
-          Sistema completo de gestão para academias e estúdios de fitness
-        </p>
-        <div class="footer-links">
-          <a href="/CadastroEstado.html">Estados</a>
-          <a href="/CadastroCidade.html">Cidades</a>
-          <a href="/CadastroPessoas.html">Pessoas</a>
-          <a href="/CadastroExercicios.html">Exercícios</a>
-          <a href="/CadastroPlanoAula.html">Planos</a>
-        </div>
+          <span>RM</span>Studio
+        </a>
       </div>
       <div class="footer-bottom">
         <p>&copy; 2024 RMStudio Fitness. Todos os direitos reservados.</p>
       </div>
-    </footer>
-  </main>
-
-  <!-- Loading overlay -->
-  <div id="loading-overlay" class="loading-overlay" style="display: none;">
-    <div class="loading-spinner">
-      <i class="fas fa-spinner fa-spin"></i>
-      <span>Carregando...</span>
     </div>
-  </div>
+  </footer>
 
   <script src="/js/app.js"></script>
   <script>
-    // Script específico para a página inicial
     document.addEventListener('DOMContentLoaded', async () => {
       try {
-        // Carregar estatísticas básicas
         const [pessoasRes, exerciciosRes, planosRes, estadosRes] = await Promise.all([
-          fetch('/api/pessoas').catch(() => ({ ok: false })),
-          fetch('/api/exercicios').catch(() => ({ ok: false })),
-          fetch('/api/planoaulas').catch(() => ({ ok: false })),
-          fetch('/api/estados').catch(() => ({ ok: false }))
+          fetch('/api/pessoas').catch(() => ({ ok: false, json: () => Promise.resolve([]) })),
+          fetch('/api/exercicios').catch(() => ({ ok: false, json: () => Promise.resolve([]) })),
+          fetch('/api/planoaulas').catch(() => ({ ok: false, json: () => Promise.resolve([]) })),
+          fetch('/api/estados').catch(() => ({ ok: false, json: () => Promise.resolve([]) }))
         ]);
 
         if (pessoasRes.ok) {
@@ -306,23 +154,18 @@
           document.getElementById('total-estados').textContent = estados.length;
         }
       } catch (error) {
-        console.log('Erro ao carregar estatísticas:', error);
+        console.error('Erro ao carregar estatísticas:', error);
       }
     });
 
-    // Smooth scroll para links internos
-    document.querySelectorAll('a[href^="#"]').forEach(anchor => {
-      anchor.addEventListener('click', function (e) {
-        e.preventDefault();
-        const target = document.querySelector(this.getAttribute('href'));
-        if (target) {
-          target.scrollIntoView({
-            behavior: 'smooth',
-            block: 'start'
-          });
-        }
-      });
-    });
+    // Mobile nav toggle
+    const navToggle = document.querySelector('.nav-toggle');
+    const navLinks = document.querySelector('.nav-links');
+    if (navToggle) {
+        navToggle.addEventListener('click', () => {
+            navLinks.classList.toggle('open');
+        });
+    }
   </script>
 </body>
 </html>

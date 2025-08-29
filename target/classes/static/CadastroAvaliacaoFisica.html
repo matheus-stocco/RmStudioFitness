@@ -1,109 +1,231 @@
 <!DOCTYPE html>
 <html lang="pt-BR">
 <head>
-  <meta charset="UTF-8">
-  <meta name="viewport" content="width=device-width, initial-scale=1.0">
-  <title>Cadastro de Avaliação Física</title>
-  <link rel="stylesheet" href="/css/style.css">
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Gestão de Avaliações Físicas - RMStudio Fitness</title>
+    <link rel="stylesheet" href="/css/style.css">
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
 </head>
 <body>
-  <h1>Cadastro de Avaliação Física</h1>
+    <header class="header">
+        <div class="container">
+            <nav class="navbar">
+                <a class="brand" href="/index.html"><i class="fas fa-dumbbell"></i> <span>RM</span>Studio</a>
+                <button class="nav-toggle" aria-label="Abrir menu"><i class="fas fa-bars"></i></button>
+                <div class="nav-links">
+                    <a href="/index.html">Home</a>
+                    <a href="/CadastroPessoas.html">Membros</a>
+                    <a href="/CadastroPlanoAula.html">Planos</a>
+                    <a href="/CadastroExercicios.html">Exercícios</a>
+                    <a class="active" href="/CadastroAvaliacaoFisica.html">Avaliações</a>
+                </div>
+            </nav>
+        </div>
+    </header>
 
-  <nav>
-    <a href="/index.html">Início</a>
-  </nav>
+    <main class="form-page-container">
+        <div class="container">
+            <h1 class="page-title"><i class="fas fa-chart-line"></i> Gestão de Avaliações Físicas</h1>
 
-  <h2>Nova Avaliação</h2>
-  <form action="/api/avaliacoes-fisicas" method="post">
-    <div>
-      <label for="pessoaId">Pessoa:</label>
-      <select id="pessoaId" name="pessoaId" required>
-        <option value="">Selecione…</option>
-        <!-- Backend/JS deve preencher com /api/pessoas -->
-        <!-- <option value="1">João da Silva</option> -->
-      </select>
-    </div>
+            <div class="card form-card">
+                <h3 class="card-title">Nova Avaliação Física</h3>
+                <form id="form-avaliacao">
+                    <input type="hidden" id="id" name="id">
+                    <div class="form-group">
+                        <label for="pessoaId" class="form-label">Aluno</label>
+                        <select id="pessoaId" name="pessoaId" class="form-control" required></select>
+                    </div>
+                    <div class="form-group">
+                        <label for="dataAvaliacao" class="form-label">Data da Avaliação</label>
+                        <input type="date" id="dataAvaliacao" name="dataAvaliacao" class="form-control" required>
+                    </div>
+                    <div class="form-group">
+                        <label for="peso" class="form-label">Peso (kg)</label>
+                        <input type="number" id="peso" name="peso" step="0.1" class="form-control" required>
+                    </div>
+                    <div class="form-group">
+                        <label for="altura" class="form-label">Altura (m)</label>
+                        <input type="number" id="altura" name="altura" step="0.01" class="form-control" required>
+                    </div>
+                    <div class="form-group">
+                        <label for="idade" class="form-label">Idade</label>
+                        <input type="number" id="idade" name="idade" class="form-control" required>
+                    </div>
+                     <div class="form-group">
+                        <label for="gorduraCorporal" class="form-label">Gordura Corporal (%)</label>
+                        <input type="number" id="gorduraCorporal" name="gorduraCorporal" class="form-control" step="0.1">
+                    </div>
+                    <div class="form-actions">
+                        <button type="submit" class="btn btn-primary"><i class="fas fa-save"></i> Salvar</button>
+                        <button type="button" class="btn btn-secondary" onclick="resetForm()"><i class="fas fa-plus"></i> Nova</button>
+                    </div>
+                </form>
+            </div>
 
-    <div>
-      <label for="dataAvaliacao">Data da Avaliação (opcional):</label>
-      <input type="date" id="dataAvaliacao" name="dataAvaliacao">
-    </div>
+            <div class="card" style="margin-top: 32px;">
+                <h3 class="card-title">Avaliações Recentes</h3>
+                <div class="table-responsive">
+                    <table class="table" id="tabela-avaliacoes">
+                        <thead>
+                            <tr>
+                                <th>Aluno</th>
+                                <th>Data</th>
+                                <th>Peso (kg)</th>
+                                <th>Altura (m)</th>
+                                <th>Idade</th>
+                                <th>Gordura (%)</th>
+                                <th>Ações</th>
+                            </tr>
+                        </thead>
+                        <tbody></tbody>
+                    </table>
+                </div>
+            </div>
+        </div>
+    </main>
 
-    <div>
-      <label for="peso">Peso (kg):</label>
-      <input type="number" id="peso" name="peso" step="0.01" required>
-    </div>
+    <footer class="footer">
+        <div class="container">
+             <div class="footer-bottom">
+                <p>&copy; 2024 RMStudio Fitness. Todos os direitos reservados.</p>
+            </div>
+        </div>
+    </footer>
 
-    <div>
-      <label for="altura">Altura (m):</label>
-      <input type="number" id="altura" name="altura" step="0.01" required>
-    </div>
+    <script>
+        const API_URL = '/api/avaliacoes';
+        const API_PESSOAS_URL = '/api/pessoas';
+        const form = document.getElementById('form-avaliacao');
+        const tableBody = document.querySelector('#tabela-avaliacoes tbody');
 
-    <div>
-      <label for="gorduraCorporal">Gordura Corporal (%):</label>
-      <input type="number" id="gorduraCorporal" name="gorduraCorporal" step="0.01">
-    </div>
+        async function fetchPessoas() {
+            const pessoaSelect = document.getElementById('pessoaId');
+            try {
+                const response = await fetch(API_PESSOAS_URL);
+                const pessoas = await response.json();
+                pessoaSelect.innerHTML = '<option value="">Selecione um aluno</option>';
+                pessoas.forEach(pessoa => {
+                    pessoaSelect.innerHTML += `<option value="${pessoa.id}">${pessoa.nome}</option>`;
+                });
+            } catch (error) {
+                console.error('Erro ao buscar pessoas:', error);
+                pessoaSelect.innerHTML = '<option value="">Erro ao carregar</option>';
+            }
+        }
 
-    <div>
-      <label for="massaMagra">Massa Magra (kg):</label>
-      <input type="number" id="massaMagra" name="massaMagra" step="0.01">
-    </div>
+        async function fetchAvaliacoes() {
+            try {
+                const response = await fetch(API_URL);
+                const avaliacoes = await response.json();
+                renderTable(avaliacoes);
+            } catch (error) {
+                console.error('Erro ao buscar avaliações:', error);
+                tableBody.innerHTML = `<tr><td colspan="7">Erro ao carregar avaliações.</td></tr>`;
+            }
+        }
 
-    <div>
-      <label for="aguaCorporal">Água Corporal (L):</label>
-      <input type="number" id="aguaCorporal" name="aguaCorporal" step="0.01">
-    </div>
+        function renderTable(avaliacoes) {
+            tableBody.innerHTML = '';
+             if (avaliacoes.length === 0) {
+                tableBody.innerHTML = `<tr><td colspan="7" style="text-align:center;">Nenhuma avaliação cadastrada.</td></tr>`;
+                return;
+            }
+            avaliacoes.forEach(av => {
+                const tr = document.createElement('tr');
+                tr.innerHTML = `
+                    <td>${av.pessoa ? av.pessoa.nome : 'N/A'}</td>
+                    <td>${new Date(av.dataAvaliacao).toLocaleDateString()}</td>
+                    <td>${av.peso}</td>
+                    <td>${av.altura}</td>
+                    <td>${av.idade}</td>
+                    <td>${av.gorduraCorporal || 'N/A'}</td>
+                    <td class="cell-actions">
+                        <button class="btn btn-secondary" onclick="editAvaliacao('${av.id}')"><i class="fas fa-edit"></i></button>
+                        <button class="btn btn-secondary" onclick="deleteAvaliacao('${av.id}')"><i class="fas fa-trash"></i></button>
+                    </td>
+                `;
+                tableBody.appendChild(tr);
+            });
+        }
 
-    <div>
-      <label for="massaOssea">Massa Óssea (kg):</label>
-      <input type="number" id="massaOssea" name="massaOssea" step="0.01">
-    </div>
+        form.addEventListener('submit', async (e) => {
+            e.preventDefault();
+            const formData = new FormData(form);
+            const id = formData.get('id');
+            const payload = {
+                pessoa: { id: formData.get('pessoaId') },
+                dataAvaliacao: formData.get('dataAvaliacao'),
+                peso: formData.get('peso'),
+                altura: formData.get('altura'),
+                idade: formData.get('idade'),
+                gorduraCorporal: formData.get('gorduraCorporal'),
+            };
 
-    <div>
-      <label for="taxaBasal">Taxa Basal (kcal):</label>
-      <input type="number" id="taxaBasal" name="taxaBasal" step="0.01">
-    </div>
+            const method = id ? 'PUT' : 'POST';
+            const url = id ? `${API_URL}/${id}` : API_URL;
 
-    <div>
-      <button type="submit">Salvar</button>
-      <button type="reset">Novo</button>
-    </div>
-  </form>
+            try {
+                const response = await fetch(url, {
+                    method,
+                    headers: { 'Content-Type': 'application/json' },
+                    body: JSON.stringify(payload),
+                });
+                if (!response.ok) throw new Error('Erro ao salvar avaliação');
+                resetForm();
+                fetchAvaliacoes();
+            } catch (error) {
+                console.error('Erro:', error);
+            }
+        });
 
-  <h2>Avaliações Cadastradas</h2>
-  <table border="1">
-    <thead>
-      <tr>
-        <th>Pessoa</th>
-        <th>Data</th>
-        <th>Peso (kg)</th>
-        <th>Altura (m)</th>
-        <th>Gordura (%)</th>
-        <th>Massa Magra (kg)</th>
-        <th>Água (L)</th>
-        <th>Massa Óssea (kg)</th>
-        <th>Taxa Basal (kcal)</th>
-        <th>Ações</th>
-      </tr>
-    </thead>
-    <tbody>
-      <!-- Backend/JS deve preencher a lista via /api/avaliacoes-fisicas -->
-      <tr>
-        <td>João da Silva</td>
-        <td>2025-01-01</td>
-        <td>80.50</td>
-        <td>1.78</td>
-        <td>15.20</td>
-        <td>68.20</td>
-        <td>42.00</td>
-        <td>3.10</td>
-        <td>1650.00</td>
-        <td>
-          <button>Editar</button>
-          <button>Excluir</button>
-        </td>
-      </tr>
-    </tbody>
-  </table>
+        async function editAvaliacao(id) {
+            try {
+                const response = await fetch(`${API_URL}/${id}`);
+                const av = await response.json();
+                document.getElementById('id').value = av.id;
+                document.getElementById('pessoaId').value = av.pessoa.id;
+                document.getElementById('dataAvaliacao').value = av.dataAvaliacao.split('T')[0];
+                document.getElementById('peso').value = av.peso;
+                document.getElementById('altura').value = av.altura;
+                document.getElementById('idade').value = av.idade;
+                document.getElementById('gorduraCorporal').value = av.gorduraCorporal;
+                window.scrollTo(0, 0);
+            } catch (error) {
+                console.error('Erro ao carregar avaliação para edição:', error);
+            }
+        }
+
+        async function deleteAvaliacao(id) {
+            if (!confirm('Tem certeza que deseja excluir esta avaliação?')) return;
+            try {
+                const response = await fetch(`${API_URL}/${id}`, { method: 'DELETE' });
+                if (!response.ok) throw new Error('Erro ao excluir');
+                fetchAvaliacoes();
+            } catch (error) {
+                console.error('Erro ao excluir:', error);
+            }
+        }
+
+        function resetForm() {
+            form.reset();
+            document.getElementById('id').value = '';
+        }
+
+        document.addEventListener('DOMContentLoaded', () => {
+            fetchPessoas();
+            fetchAvaliacoes();
+            document.getElementById('dataAvaliacao').valueAsDate = new Date();
+        });
+
+        // Mobile nav toggle
+        const navToggle = document.querySelector('.nav-toggle');
+        const navLinks = document.querySelector('.nav-links');
+        if (navToggle) {
+            navToggle.addEventListener('click', () => {
+                navLinks.classList.toggle('open');
+            });
+        }
+    </script>
 </body>
 </html>
