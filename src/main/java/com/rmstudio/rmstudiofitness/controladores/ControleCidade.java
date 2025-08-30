@@ -75,6 +75,16 @@ public class ControleCidade {
         return ResponseEntity.ok(res.get(0));
     }
 
+    // BUSCAR CIDADES POR ESTADO
+    @GetMapping("/por-estado/{estadoId}")
+    public List<Cidade> getCidadesPorEstado(@PathVariable Long estadoId) {
+        TypedQuery<Cidade> query = em.createQuery(
+            "SELECT c FROM Cidade c JOIN FETCH c.estado WHERE c.estado.id = :estadoId ORDER BY c.nome", Cidade.class
+        );
+        query.setParameter("estadoId", estadoId);
+        return query.getResultList();
+    }
+
     // CRIAR
     @PostMapping
     @Transactional

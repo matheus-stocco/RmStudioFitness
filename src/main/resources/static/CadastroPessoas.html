@@ -255,7 +255,7 @@
             estados.forEach(estado => {
                 const option = document.createElement('option');
                 option.value = estado.id;
-                option.textContent = `${estado.sigla} - ${estado.nome}`;
+                option.textContent = `${estado.uf} - ${estado.nome}`;
                 estadoSelect.appendChild(option);
             });
         } catch (error) {
@@ -274,9 +274,16 @@
         cidadeSelect.disabled = true;
         cidadeSelect.innerHTML = '<option value="">Carregando...</option>';
         try {
+            console.log(`Buscando cidades para o estado ID: ${estadoId}`);
             const response = await fetch(`/api/cidades/por-estado/${estadoId}`);
-            if (!response.ok) throw new Error('Erro ao buscar cidades');
+            console.log('Resposta da API:', response);
+            if (!response.ok) {
+                console.error('A resposta da API não foi OK:', response.status, response.statusText);
+                throw new Error('Erro ao buscar cidades');
+            }
             const cidades = await response.json();
+            console.log('Cidades recebidas:', cidades);
+
             cidadeSelect.innerHTML = '<option value="">Selecione uma cidade</option>';
             cidades.forEach(cidade => {
                 const option = document.createElement('option');
@@ -286,7 +293,7 @@
             });
             cidadeSelect.disabled = false;
         } catch (error) {
-            console.error(error);
+            console.error('Falha na função getCidadesPorEstado:', error);
             cidadeSelect.innerHTML = '<option value="">Erro ao carregar</option>';
         }
     }
