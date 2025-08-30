@@ -441,6 +441,12 @@ p { margin-bottom: calc(var(--spacing-unit) * 2); }
     margin: 0 auto;
 }
 
+.form-grid-double {
+    display: grid;
+    grid-template-columns: repeat(2, 1fr);
+    gap: calc(var(--spacing-unit) * 2);
+}
+
 .form-actions {
     display: flex;
     gap: calc(var(--spacing-unit) * 2);

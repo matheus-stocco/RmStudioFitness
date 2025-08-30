@@ -36,29 +36,31 @@
                 <h3 class="card-title">Nova Avaliação Física</h3>
                 <form id="form-avaliacao">
                     <input type="hidden" id="id" name="id">
-                    <div class="form-group">
-                        <label for="pessoaId" class="form-label">Aluno</label>
-                        <select id="pessoaId" name="pessoaId" class="form-control" required></select>
-                    </div>
-                    <div class="form-group">
-                        <label for="dataAvaliacao" class="form-label">Data da Avaliação</label>
-                        <input type="date" id="dataAvaliacao" name="dataAvaliacao" class="form-control" required>
-                    </div>
-                    <div class="form-group">
-                        <label for="peso" class="form-label">Peso (kg)</label>
-                        <input type="number" id="peso" name="peso" step="0.1" class="form-control" required>
-                    </div>
-                    <div class="form-group">
-                        <label for="altura" class="form-label">Altura (m)</label>
-                        <input type="number" id="altura" name="altura" step="0.01" class="form-control" required>
-                    </div>
-                    <div class="form-group">
-                        <label for="idade" class="form-label">Idade</label>
-                        <input type="number" id="idade" name="idade" class="form-control" required>
-                    </div>
-                     <div class="form-group">
-                        <label for="gorduraCorporal" class="form-label">Gordura Corporal (%)</label>
-                        <input type="number" id="gorduraCorporal" name="gorduraCorporal" class="form-control" step="0.1">
+                    <div class="form-grid-double">
+                        <div class="form-group">
+                            <label for="pessoaId" class="form-label">Aluno</label>
+                            <select id="pessoaId" name="pessoaId" class="form-control" required></select>
+                        </div>
+                        <div class="form-group">
+                            <label for="dataAvaliacao" class="form-label">Data da Avaliação</label>
+                            <input type="date" id="dataAvaliacao" name="dataAvaliacao" class="form-control" required>
+                        </div>
+                        <div class="form-group">
+                            <label for="peso" class="form-label">Peso (kg)</label>
+                            <input type="number" id="peso" name="peso" step="0.1" class="form-control" required>
+                        </div>
+                        <div class="form-group">
+                            <label for="altura" class="form-label">Altura (m)</label>
+                            <input type="number" id="altura" name="altura" step="0.01" class="form-control" required>
+                        </div>
+                        <div class="form-group">
+                            <label for="idade" class="form-label">Idade</label>
+                            <input type="number" id="idade" name="idade" class="form-control" required>
+                        </div>
+                        <div class="form-group">
+                            <label for="gorduraCorporal" class="form-label">Gordura Corporal (%)</label>
+                            <input type="number" id="gorduraCorporal" name="gorduraCorporal" class="form-control" step="0.1">
+                        </div>
                     </div>
                     <div class="form-actions">
                         <button type="submit" class="btn btn-primary"><i class="fas fa-save"></i> Salvar</button>
