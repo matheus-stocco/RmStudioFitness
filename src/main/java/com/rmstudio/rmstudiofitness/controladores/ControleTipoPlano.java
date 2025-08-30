@@ -1,13 +1,17 @@
 package com.rmstudio.rmstudiofitness.controladores;
 
-import com.rmstudio.rmstudiofitness.entidades.TipoPlano; // ajuste se suas entidades estiverem em outro package
+import com.rmstudio.rmstudiofitness.entidades.TipoPlano;
+import com.rmstudio.rmstudiofitness.repositorios.TipoPlanoRepository;
 import jakarta.persistence.EntityManager;
 import jakarta.persistence.PersistenceContext;
 import jakarta.persistence.TypedQuery;
 import jakarta.transaction.Transactional;
+import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
 import org.springframework.web.bind.annotation.*;
+import org.springframework.web.server.ResponseStatusException;
+import org.springframework.web.servlet.support.ServletUriComponentsBuilder;
 
 import java.net.URI;
 import java.util.List;
@@ -25,94 +29,84 @@ import java.util.List;
 @RequestMapping("/api/tipos-plano")
 public class ControleTipoPlano {
 
-    @PersistenceContext
-    private EntityManager em;
+    private final TipoPlanoRepository tipoPlanoRepository;
+
+    @Autowired
+    public ControleTipoPlano(TipoPlanoRepository tipoPlanoRepository) {
+        this.tipoPlanoRepository = tipoPlanoRepository;
+    }
 
     // ---------- LISTAR ----------
     @GetMapping
     public List<TipoPlano> listar() {
-        TypedQuery<TipoPlano> q = em.createQuery(
-                "SELECT t FROM TipoPlano t ORDER BY t.nome", TipoPlano.class);
-        return q.getResultList();
+        return tipoPlanoRepository.findAllByOrderByNome();
     }
 
     // ---------- BUSCAR POR ID ----------
     @GetMapping("/{id}")
     public ResponseEntity<TipoPlano> buscarPorId(@PathVariable Long id) {
-        TipoPlano encontrado = em.find(TipoPlano.class, id);
-        return (encontrado == null)
-                ? ResponseEntity.notFound().build()
-                : ResponseEntity.ok(encontrado);
+        return tipoPlanoRepository.findById(id)
+                .map(ResponseEntity::ok)
+                .orElse(ResponseEntity.notFound().build());
     }
 
     // ---------- CRIAR ----------
     @PostMapping
     @Transactional
-    public ResponseEntity<?> criar(@RequestBody TipoPlano tipoPlano) {
-        validar(tipoPlano, false);
-
-        em.persist(tipoPlano);
-        em.flush(); // garante ID gerado
-
-        return ResponseEntity
-                .created(URI.create("/api/tipos-plano/" + tipoPlano.getId()))
-                .body(tipoPlano);
+    public ResponseEntity<TipoPlano> criar(@RequestBody TipoPlano tipoPlano) {
+        validar(tipoPlano);
+        TipoPlano novoTipoPlano = tipoPlanoRepository.save(tipoPlano);
+        URI location = ServletUriComponentsBuilder
+                .fromCurrentRequest().path("/{id}")
+                .buildAndExpand(novoTipoPlano.getId()).toUri();
+        return ResponseEntity.created(location).body(novoTipoPlano);
     }
 
     // ---------- ATUALIZAR ----------
     @PutMapping("/{id}")
     @Transactional
-    public ResponseEntity<?> atualizar(@PathVariable Long id, @RequestBody TipoPlano payload) {
-        validar(payload, true);
-
-        TipoPlano existente = em.find(TipoPlano.class, id);
-        if (existente == null) {
-            return ResponseEntity.notFound().build();
-        }
-
-        existente.setNome(payload.getNome());
-        existente.setDescricao(payload.getDescricao());
-        existente.setValor(payload.getValor());
-
-        // merge não é necessário se a entidade estiver gerenciada, mas é inofensivo:
-        existente = em.merge(existente);
-        em.flush();
-
-        return ResponseEntity.ok(existente);
+    public ResponseEntity<TipoPlano> atualizar(@PathVariable Long id, @RequestBody TipoPlano payload) {
+        validar(payload);
+        
+        return tipoPlanoRepository.findById(id)
+            .map(existente -> {
+                existente.setNome(payload.getNome());
+                existente.setDescricao(payload.getDescricao());
+                existente.setValor(payload.getValor());
+                // Adicione outros campos para atualizar conforme necessário
+                // existente.setDuracaoMeses(payload.getDuracaoMeses());
+                // existente.setAtivo(payload.getAtivo());
+                
+                TipoPlano atualizado = tipoPlanoRepository.save(existente);
+                return ResponseEntity.ok(atualizado);
+            })
+            .orElse(ResponseEntity.notFound().build());
     }
 
     // ---------- EXCLUIR ----------
     @DeleteMapping("/{id}")
     @Transactional
     public ResponseEntity<?> excluir(@PathVariable Long id) {
-        TipoPlano existente = em.find(TipoPlano.class, id);
-        if (existente == null) {
+        if (!tipoPlanoRepository.existsById(id)) {
             return ResponseEntity.notFound().build();
         }
-        em.remove(existente);
-        em.flush();
+        tipoPlanoRepository.deleteById(id);
         return ResponseEntity.noContent().build();
     }
 
     // ---------- VALIDAÇÃO BÁSICA ----------
-    private void validar(TipoPlano t, boolean isUpdate) {
+    private void validar(TipoPlano t) {
         if (t == null) {
-            throw new IllegalArgumentException("Corpo da requisição vazio.");
+            throw new ResponseStatusException(HttpStatus.BAD_REQUEST, "Corpo da requisição vazio.");
         }
         if (t.getNome() == null || t.getNome().trim().isEmpty()) {
-            throw new IllegalArgumentException("Informe o nome do tipo de plano.");
+            throw new ResponseStatusException(HttpStatus.BAD_REQUEST, "Informe o nome do tipo de plano.");
         }
         if (t.getValor() == null) {
-            throw new IllegalArgumentException("Informe o valor do tipo de plano.");
+            throw new ResponseStatusException(HttpStatus.BAD_REQUEST, "Informe o valor do tipo de plano.");
         }
         if (t.getValor().doubleValue() < 0) {
-            throw new IllegalArgumentException("O valor deve ser maior ou igual a zero.");
+            throw new ResponseStatusException(HttpStatus.BAD_REQUEST, "O valor deve ser maior ou igual a zero.");
         }
-    }
-
-    // ---------- TRATAMENTO DE ERROS SIMPLES ----------
-    @ExceptionHandler(IllegalArgumentException.class)
-    public ResponseEntity<?> handleIllegalArgument(IllegalArgumentException ex) {
-        return ResponseEntity.status(HttpStatus.BAD_REQUEST).body(ex.getMessage());
     }
 }
