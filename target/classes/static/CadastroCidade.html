@@ -102,7 +102,7 @@
         estados.forEach(estado => {
           const option = document.createElement('option');
           option.value = estado.id;
-          option.textContent = `${estado.sigla} - ${estado.nome}`;
+          option.textContent = `${estado.uf} - ${estado.nome}`;
           estadoSelect.appendChild(option);
         });
       } catch (error) {
@@ -133,7 +133,7 @@
         const tr = document.createElement('tr');
         tr.innerHTML = `
           <td>${cidade.nome}</td>
-          <td>${cidade.estado ? `${cidade.estado.sigla} - ${cidade.estado.nome}` : 'N/A'}</td>
+          <td>${cidade.estado ? `${cidade.estado.uf} - ${cidade.estado.nome}` : 'N/A'}</td>
           <td class="cell-actions">
             <button class="btn btn-secondary" onclick="editCidade('${cidade.id}')"><i class="fas fa-edit"></i></button>
             <button class="btn btn-secondary" onclick="deleteCidade('${cidade.id}')"><i class="fas fa-trash"></i></button>
