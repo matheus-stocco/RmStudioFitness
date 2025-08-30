@@ -15,9 +15,9 @@
           <i class="fas fa-dumbbell"></i>
           <span>RM</span>Studio
         </a>
-        <button class="nav-toggle" aria-label="Abrir menu">
-          <i class="fas fa-bars"></i>
-        </button>
+    <button class="nav-toggle" aria-label="Abrir menu">
+      <i class="fas fa-bars"></i>
+    </button>
         <div class="nav-links">
           <a href="/index.html">Home</a>
           <a href="/CadastroPessoas.html">Membros</a>
@@ -29,7 +29,7 @@
           <a href="/CadastroCidade.html">Cidades</a>
           <a href="/login.html">Login</a>
         </div>
-      </nav>
+    </nav>
     </div>
   </header>
 
@@ -60,18 +60,18 @@
         <h3 class="card-title">Estados Cadastrados</h3>
         <div class="table-responsive">
           <table class="table" id="tabela-estados">
-            <thead>
-              <tr>
+          <thead>
+            <tr>
                 <th>Nome</th>
                 <th>Sigla</th>
                 <th>Ações</th>
-              </tr>
-            </thead>
+            </tr>
+          </thead>
             <tbody>
               <!-- Dados inseridos via JS -->
-            </tbody>
-          </table>
-        </div>
+          </tbody>
+        </table>
+      </div>
       </div>
     </div>
   </main>
@@ -111,7 +111,7 @@
         const tr = document.createElement('tr');
         tr.innerHTML = `
           <td>${item.nome}</td>
-          <td>${item.sigla}</td>
+          <td>${item.uf}</td>
           <td class="cell-actions">
             <button class="btn btn-secondary" onclick="editItem('${item.id}')"><i class="fas fa-edit"></i></button>
             <button class="btn btn-secondary" onclick="deleteItem('${item.id}')"><i class="fas fa-trash"></i></button>
@@ -127,6 +127,13 @@
       const data = Object.fromEntries(formData.entries());
       const id = data.id;
 
+      // Renomeia 'sigla' para 'uf' para corresponder ao backend
+      const payload = {
+        id: data.id || null,
+        nome: data.nome,
+        uf: data.sigla 
+      };
+
       const method = id ? 'PUT' : 'POST';
       const url = id ? `${API_URL}/${id}` : API_URL;
 
@@ -134,7 +141,7 @@
         const response = await fetch(url, {
           method,
           headers: { 'Content-Type': 'application/json' },
-          body: JSON.stringify(data),
+          body: JSON.stringify(payload),
         });
         if (!response.ok) throw new Error('Erro ao salvar');
         resetForm();
@@ -151,7 +158,7 @@
             const item = await response.json();
             document.getElementById('id').value = item.id;
             document.getElementById('nome').value = item.nome;
-            document.getElementById('sigla').value = item.sigla;
+            document.getElementById('sigla').value = item.uf;
             window.scrollTo(0, 0);
         } catch (error) {
             console.error('Falha ao carregar para edição:', error);
