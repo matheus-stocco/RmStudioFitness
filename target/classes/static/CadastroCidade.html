@@ -149,7 +149,7 @@
       const id = formData.get('id');
       const payload = {
         nome: formData.get('nome'),
-        estado: { id: formData.get('estadoId') }
+        estadoId: formData.get('estadoId') 
       };
 
       const method = id ? 'PUT' : 'POST';
@@ -164,6 +164,7 @@
         if (!response.ok) throw new Error('Erro ao salvar cidade');
         resetForm();
         getCidades();
+        location.reload();
       } catch (error) {
         console.error(error);
       }

@@ -3,9 +3,13 @@ package com.rmstudio.rmstudiofitness.entidades;
 import jakarta.persistence.*;
 import java.io.Serializable;
 import java.util.Objects;
+import lombok.Getter;
+import lombok.Setter;
 
 @Entity
 @Table(name = "cidade")
+@Getter
+@Setter
 public class Cidade implements Serializable {
     private static final long serialVersionUID = 1L;
 

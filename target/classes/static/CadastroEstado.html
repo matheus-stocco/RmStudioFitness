@@ -46,8 +46,8 @@
             <input type="text" id="nome" name="nome" class="form-control" required placeholder="Ex: São Paulo">
           </div>
           <div class="form-group">
-            <label for="sigla" class="form-label">Sigla (UF)</label>
-            <input type="text" id="sigla" name="sigla" class="form-control" required maxlength="2" placeholder="Ex: SP">
+            <label for="uf" class="form-label">Sigla (UF)</label>
+            <input type="text" id="uf" name="uf" class="form-control" required maxlength="2" placeholder="Ex: SP">
           </div>
           <div class="form-actions">
             <button type="submit" class="btn btn-primary"><i class="fas fa-save"></i> Salvar</button>
@@ -127,11 +127,10 @@
       const data = Object.fromEntries(formData.entries());
       const id = data.id;
 
-      // Renomeia 'sigla' para 'uf' para corresponder ao backend
       const payload = {
         id: data.id || null,
         nome: data.nome,
-        uf: data.sigla 
+        uf: data.uf
       };
 
       const method = id ? 'PUT' : 'POST';
@@ -158,7 +157,7 @@
             const item = await response.json();
             document.getElementById('id').value = item.id;
             document.getElementById('nome').value = item.nome;
-            document.getElementById('sigla').value = item.uf;
+            document.getElementById('uf').value = item.uf;
             window.scrollTo(0, 0);
         } catch (error) {
             console.error('Falha ao carregar para edição:', error);
@@ -169,10 +168,14 @@
       if (!confirm('Tem certeza que deseja excluir este estado?')) return;
       try {
         const response = await fetch(`${API_URL}/${id}`, { method: 'DELETE' });
-        if (!response.ok) throw new Error('Erro ao excluir');
+        if (!response.ok) {
+            const errorText = await response.text();
+            throw new Error(errorText || 'Erro ao excluir');
+        }
         fetchData();
       } catch (error) {
         console.error('Falha ao excluir:', error);
+        alert(`Não foi possível excluir: ${error.message}`);
       }
     }
 
