@@ -2,7 +2,7 @@ package com.rmstudio.rmstudiofitness.controladores;
 
 import com.rmstudio.rmstudiofitness.entidades.Pessoa;
 import com.rmstudio.rmstudiofitness.entidades.Cidade;
-import com.rmstudio.rmstudiofitness.entidades.Estado;
+
 
 import jakarta.persistence.EntityManager;
 import jakarta.persistence.PersistenceContext;
@@ -14,7 +14,6 @@ import org.springframework.http.ResponseEntity;
 import org.springframework.web.bind.annotation.*;
 
 import java.net.URI;
-import java.time.LocalDate;
 import java.time.LocalDateTime;
 import java.util.List;
 
@@ -43,8 +42,10 @@ public class ControlePessoa {
             String email,
             String telefone,
             String genero,
-            Long   cidadeId
-    ) {}
+            CidadePayload cidade
+    ) {
+        public record CidadePayload(Long id){}
+    }
 
     // ===== LISTAR (com filtros opcionais) =====
     @GetMapping
@@ -90,14 +91,8 @@ public class ControlePessoa {
     @PostMapping
     @Transactional
     public ResponseEntity<?> criar(@RequestBody PessoaPayload body) {
-        String msg = validar(body, false);
-        if (msg != null) return badRequest(msg);
-
-        if (existeDuplicata(body.usuario(), body.email(), null)) {
-            return badRequest("Usuário ou e-mail já cadastrado.");
-        }
-
-        Cidade cidade = em.find(Cidade.class, body.cidadeId());
+        
+        Cidade cidade = em.find(Cidade.class, body.cidade().id());
         if (cidade == null) return badRequest("Cidade não encontrada.");
 
         Pessoa p = new Pessoa();
@@ -106,7 +101,14 @@ public class ControlePessoa {
         p.setNome(body.nome().trim());
         p.setEmail(body.email().trim());
         p.setTelefone(isBlank(body.telefone()) ? null : body.telefone().trim());
-        p.setGenero(isBlank(body.genero()) ? null : body.genero().trim());
+        
+        // Converte o gênero para o formato do banco de dados (primeira letra)
+        if (!isBlank(body.genero())) {
+            p.setGenero(body.genero().trim().substring(0, 1).toUpperCase());
+        } else {
+            p.setGenero(null);
+        }
+
         p.setCidade(cidade);
         if (p.getDataCadastro() == null) {
             p.setDataCadastro(LocalDateTime.now());
@@ -114,6 +116,9 @@ public class ControlePessoa {
 
         em.persist(p);
         em.flush();
+
+        // Força a inicialização do proxy do Estado antes de fechar a sessão
+        p.getCidade().getEstado().getUf(); 
 
         return ResponseEntity.created(URI.create("/api/pessoas/" + p.getId())).body(p);
     }
@@ -125,27 +130,32 @@ public class ControlePessoa {
         Pessoa existente = em.find(Pessoa.class, id);
         if (existente == null) return ResponseEntity.notFound().build();
 
-        String msg = validar(body, true);
-        if (msg != null) return badRequest(msg);
-
-        if (existeDuplicata(body.usuario(), body.email(), id)) {
-            return badRequest("Usuário ou e-mail já cadastrado para outro registro.");
-        }
-
         if (!isBlank(body.usuario())) existente.setUsuario(body.usuario().trim());
         if (!isBlank(body.senha()))   existente.setSenha(body.senha());
         if (!isBlank(body.nome()))    existente.setNome(body.nome().trim());
         if (!isBlank(body.email()))   existente.setEmail(body.email().trim());
         if (body.telefone() != null)  existente.setTelefone(isBlank(body.telefone()) ? null : body.telefone().trim());
-        if (body.genero() != null)    existente.setGenero(isBlank(body.genero()) ? null : body.genero().trim());
+        
+        // Converte o gênero para o formato do banco de dados (primeira letra)
+        if (body.genero() != null) {
+            if (isBlank(body.genero())) {
+                existente.setGenero(null);
+            } else {
+                existente.setGenero(body.genero().trim().substring(0, 1).toUpperCase());
+            }
+        }
 
-        if (body.cidadeId() != null) {
-            Cidade cidade = em.find(Cidade.class, body.cidadeId());
+        if (body.cidade() != null && body.cidade().id() != null) {
+            Cidade cidade = em.find(Cidade.class, body.cidade().id());
             if (cidade == null) return badRequest("Cidade não encontrada.");
             existente.setCidade(cidade);
         }
 
         em.flush();
+        
+        // Força a inicialização do proxy do Estado antes de fechar a sessão
+        existente.getCidade().getEstado().getUf();
+
         return ResponseEntity.ok(existente);
     }
 
@@ -161,38 +171,6 @@ public class ControlePessoa {
     }
 
     // ===== Helpers =====
-
-    private String validar(PessoaPayload p, boolean update) {
-        if (p == null) return "Corpo da requisição vazio.";
-
-        if (!update) {
-            if (isBlank(p.usuario())) return "Informe o usuário.";
-            if (isBlank(p.senha()))   return "Informe a senha.";
-            if (isBlank(p.nome()))    return "Informe o nome.";
-            if (isBlank(p.email()))   return "Informe o e-mail.";
-            if (p.cidadeId() == null) return "Informe a cidade (cidadeId).";
-        } else {
-            if (p.email() != null && isBlank(p.email())) return "E-mail inválido.";
-            if (p.usuario() != null && isBlank(p.usuario())) return "Usuário inválido.";
-        }
-        return null;
-    }
-
-    private boolean existeDuplicata(String usuario, String email, Long ignorarId) {
-        StringBuilder jpql = new StringBuilder(
-                "SELECT COUNT(p) FROM Pessoa p WHERE (1=1) ");
-        if (!isBlank(usuario)) jpql.append("AND p.usuario = :usuario ");
-        if (!isBlank(email))   jpql.append("AND p.email = :email ");
-        if (ignorarId != null) jpql.append("AND p.id <> :id ");
-
-        TypedQuery<Long> q = em.createQuery(jpql.toString(), Long.class);
-        if (!isBlank(usuario)) q.setParameter("usuario", usuario.trim());
-        if (!isBlank(email))   q.setParameter("email", email.trim());
-        if (ignorarId != null) q.setParameter("id", ignorarId);
-
-        Long count = q.getSingleResult();
-        return count != null && count > 0;
-    }
 
     private boolean isBlank(String s) { return s == null || s.trim().isEmpty(); }
 

@@ -2,6 +2,7 @@ package com.rmstudio.rmstudiofitness.controladores;
 
 import org.springframework.core.convert.converter.Converter;
 import org.springframework.stereotype.Component;
+import org.springframework.lang.NonNull;
 
 import java.time.LocalDateTime;
 import java.time.format.DateTimeFormatter;
@@ -22,8 +23,7 @@ public class LocalDataTempo implements Converter<String, LocalDateTime> {
     private static final DateTimeFormatter ISO_LOCAL = DateTimeFormatter.ofPattern("yyyy-MM-dd'T'HH:mm");
 
     @Override
-    public LocalDateTime convert(String source) {
-        if (source == null) return null;
+    public LocalDateTime convert(@NonNull String source) {
         String s = source.trim();
         if (s.isEmpty()) return null;
 

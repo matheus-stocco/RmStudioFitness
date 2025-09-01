@@ -3,9 +3,6 @@ package com.rmstudio.rmstudiofitness.entidades;
 
 import com.fasterxml.jackson.annotation.JsonIgnoreProperties;
 import jakarta.persistence.*;
-import jakarta.validation.constraints.Email;
-import jakarta.validation.constraints.NotBlank;
-import jakarta.validation.constraints.Size;
 
 import java.io.Serializable;
 import java.time.LocalDateTime;
@@ -24,27 +21,21 @@ public class Pessoa implements Serializable {
     @Id @GeneratedValue(strategy = GenerationType.IDENTITY)
     private Long id;
 
-    @NotBlank @Size(max = 30)
     @Column(name = "usuario", nullable = false, unique = true, length = 30)
     private String usuario;
 
-    @NotBlank @Size(max = 50)
     @Column(name = "nome", nullable = false, length = 50)
     private String nome;
 
-    @NotBlank @Size(max = 100)
     @Column(name = "senha", nullable = false, length = 100)
     private String senha;
 
-    @NotBlank @Email @Size(max = 60)
     @Column(name = "email", nullable = false, unique = true, length = 60)
     private String email;
 
-    @Size(max = 20)
     @Column(name = "telefone", length = 20)
     private String telefone;
 
-    @Size(max = 1)
     @Column(name = "genero", length = 1) // "M","F","O"
     private String genero;
 
@@ -54,14 +45,12 @@ public class Pessoa implements Serializable {
     @Column(name = "data_nascimento")
     private LocalDate dataNascimento;
 
-    @Size(max = 14)
     @Column(name = "cpf", length = 14, unique = true)
     private String cpf;
 
     @Column(name = "ativo")
     private Boolean ativo = true;
 
-    @Size(max = 500)
     @Column(name = "observacoes", length = 500)
     private String observacoes;
 

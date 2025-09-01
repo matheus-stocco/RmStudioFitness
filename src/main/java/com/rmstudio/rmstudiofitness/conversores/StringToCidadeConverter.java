@@ -1,25 +1,29 @@
 package com.rmstudio.rmstudiofitness.conversores;
 
 import com.rmstudio.rmstudiofitness.entidades.Cidade;
+import com.rmstudio.rmstudiofitness.repositorios.CidadeRepository;
+import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.core.convert.converter.Converter;
+import org.springframework.lang.NonNull;
 import org.springframework.stereotype.Component;
-import jakarta.persistence.EntityManager;
-import jakarta.persistence.PersistenceContext;
 
 @Component
 public class StringToCidadeConverter implements Converter<String, Cidade> {
 
-    @PersistenceContext
-    private EntityManager em;
+    @Autowired
+    private CidadeRepository cidadeRepository;
 
     @Override
-    public Cidade convert(String source) {
-        if (source == null || source.isBlank()) return null;
-        try {
-            Long id = Long.valueOf(source);
-            return em.find(Cidade.class, id);
-        } catch (NumberFormatException e) {
-            return null;
+    public Cidade convert(@NonNull String source) {
+        if (source != null && !source.isEmpty()) {
+            try {
+                Long id = Long.valueOf(source);
+                return cidadeRepository.findById(id).orElse(null);
+            } catch (NumberFormatException e) {
+                // Lidar com a falha na conversão se necessário
+                return null;
+            }
         }
+        return null;
     }
 }
