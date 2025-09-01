@@ -340,3 +340,58 @@ document.addEventListener("DOMContentLoaded", () => {
     $("#nome")?.focus();
   }, 500);
 });
+
+// ---------- NAVEGAÇÃO SPA (Single Page Application) ----------
+
+const mainContent = $("main.form-page-container");
+
+async function navigateTo(url) {
+    try {
+        showLoading();
+        const response = await fetch(url);
+        if (!response.ok) {
+            toast("Erro ao carregar a página.", false);
+            return;
+        }
+        const html = await response.text();
+        const parser = new DOMParser();
+        const doc = parser.parseFromString(html, "text/html");
+        
+        const newMain = doc.querySelector("main.form-page-container");
+        const newTitle = doc.querySelector("title").innerText;
+
+        if (newMain && mainContent) {
+            mainContent.innerHTML = newMain.innerHTML;
+            document.title = newTitle;
+            window.history.pushState({ path: url }, '', url);
+
+            // Re-executar scripts específicos da página se necessário
+            // Esta é a parte mais complexa de SPAs manuais.
+            // Por enquanto, vamos assumir que o HTML é autossuficiente.
+        } else {
+            // Fallback para carregamento normal se a estrutura não for encontrada
+            window.location.href = url;
+        }
+
+    } catch (error) {
+        toast("Erro de conexão: " + error.message, false);
+    } finally {
+        hideLoading();
+    }
+}
+
+document.addEventListener("click", e => {
+    const link = e.target.closest('a[href^="/"]');
+
+    // Ignorar links que não são da navegação principal, se necessário
+    if (link && link.closest(".nav-links")) {
+        e.preventDefault();
+        navigateTo(link.href);
+    }
+});
+
+window.addEventListener("popstate", e => {
+    if (e.state && e.state.path) {
+        navigateTo(e.state.path);
+    }
+});
