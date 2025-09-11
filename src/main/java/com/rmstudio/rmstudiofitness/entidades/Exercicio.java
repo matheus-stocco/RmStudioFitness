@@ -19,10 +19,10 @@ public class Exercicio implements Serializable {
     @Column(name = "descricao", length = 255)
     private String descricao;
 
-    @Column(name = "series", nullable = false)
+    @Column(name = "series", nullable = true)
     private Integer series;
 
-    @Column(name = "repeticoes", nullable = false)
+    @Column(name = "repeticoes", nullable = true)
     private Integer repeticoes;
 
     @Column(name = "grupo_muscular", nullable = false, length = 40)
@@ -31,19 +31,15 @@ public class Exercicio implements Serializable {
     // Construtores
     public Exercicio() {}
 
-    public Exercicio(String nome, String grupoMuscular, Integer series, Integer repeticoes) {
+    public Exercicio(String nome, String grupoMuscular) {
         this.nome = nome;
         this.grupoMuscular = grupoMuscular;
-        this.series = series;
-        this.repeticoes = repeticoes;
     }
 
-    public Exercicio(String nome, String descricao, String grupoMuscular, Integer series, Integer repeticoes) {
+    public Exercicio(String nome, String descricao, String grupoMuscular) {
         this.nome = nome;
         this.descricao = descricao;
         this.grupoMuscular = grupoMuscular;
-        this.series = series;
-        this.repeticoes = repeticoes;
     }
 
     // Getters e setters
@@ -67,29 +63,12 @@ public class Exercicio implements Serializable {
 
     // Métodos utilitários
     public String getInfoCompleta() {
-        return nome + " (" + grupoMuscular + ") - " + series + "x" + repeticoes;
-    }
-
-    public String getSeriesRepeticoes() {
-        return series + "x" + repeticoes;
+        return nome + " (" + grupoMuscular + ")";
     }
 
     public boolean isValid() {
         return nome != null && !nome.trim().isEmpty() &&
-               grupoMuscular != null && !grupoMuscular.trim().isEmpty() &&
-               series != null && series > 0 &&
-               repeticoes != null && repeticoes > 0;
-    }
-
-    public Integer getVolumeTotal() {
-        if (series != null && repeticoes != null) {
-            return series * repeticoes;
-        }
-        return 0;
-    }
-
-    public boolean isAltaIntensidade() {
-        return (series != null && series >= 4) || (repeticoes != null && repeticoes >= 15);
+               grupoMuscular != null && !grupoMuscular.trim().isEmpty();
     }
 
     public void normalizarNome() {
@@ -132,6 +111,6 @@ public class Exercicio implements Serializable {
 
     @Override
     public String toString() {
-        return nome + " (" + grupoMuscular + ") - " + series + "x" + repeticoes;
+        return nome + " (" + grupoMuscular + ")";
     }
 }

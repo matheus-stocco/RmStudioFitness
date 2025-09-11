@@ -43,15 +43,6 @@ public interface ExercicioRepository extends JpaRepository<Exercicio, Long> {
      */
     List<Exercicio> findByNomeContainingIgnoreCase(String nome);
 
-    /**
-     * Busca exercícios por faixa de séries
-     */
-    List<Exercicio> findBySeriesBetweenOrderByNome(Integer seriesMin, Integer seriesMax);
-
-    /**
-     * Busca exercícios por faixa de repetições
-     */
-    List<Exercicio> findByRepeticoesBetweenOrderByNome(Integer repMin, Integer repMax);
 
     /**
      * Busca todos os grupos musculares únicos
@@ -59,12 +50,4 @@ public interface ExercicioRepository extends JpaRepository<Exercicio, Long> {
     @Query("SELECT DISTINCT e.grupoMuscular FROM Exercicio e ORDER BY e.grupoMuscular")
     List<String> findDistinctGruposMusculares();
 
-    /**
-     * Busca exercícios de alta intensidade
-     */
-    @Query("SELECT e FROM Exercicio e " +
-           "WHERE e.series >= :minSeries OR e.repeticoes >= :minRepeticoes " +
-           "ORDER BY e.nome")
-    List<Exercicio> findAltaIntensidade(@Param("minSeries") Integer minSeries,
-                                        @Param("minRepeticoes") Integer minRepeticoes);
 }
