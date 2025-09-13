@@ -2,6 +2,7 @@ package com.rmstudio.rmstudiofitness.entidades;
 
 
 import com.fasterxml.jackson.annotation.JsonIgnoreProperties;
+import com.fasterxml.jackson.annotation.JsonProperty;
 import jakarta.persistence.*;
 
 import java.io.Serializable;
@@ -135,12 +136,14 @@ public class Pessoa implements Serializable {
     }
 
     @Transient
+    @JsonProperty
     public Integer getIdade() {
         if (dataNascimento == null) return null;
         return Period.between(dataNascimento, LocalDate.now()).getYears();
     }
 
     @Transient
+    @JsonProperty
     public String getGeneroDescricao() {
         if (genero == null) return "Não informado";
         switch (genero.toUpperCase()) {

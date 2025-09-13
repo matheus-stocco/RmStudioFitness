@@ -54,12 +54,32 @@
                             <input type="number" id="altura" name="altura" step="0.01" class="form-control" required>
                         </div>
                         <div class="form-group">
-                            <label for="idade" class="form-label">Idade</label>
-                            <input type="number" id="idade" name="idade" class="form-control" required>
-                        </div>
-                        <div class="form-group">
                             <label for="gorduraCorporal" class="form-label">Gordura Corporal (%)</label>
                             <input type="number" id="gorduraCorporal" name="gorduraCorporal" class="form-control" step="0.1">
+                        </div>
+                        <div class="form-group">
+                            <label for="massaMagra" class="form-label">Massa Magra (kg)</label>
+                            <input type="number" id="massaMagra" name="massaMagra" class="form-control" step="0.1">
+                        </div>
+                        <div class="form-group">
+                            <label for="massaMuscular" class="form-label">Massa Muscular (kg)</label>
+                            <input type="number" id="massaMuscular" name="massaMuscular" class="form-control" step="0.1">
+                        </div>
+                        <div class="form-group">
+                            <label for="hidratacao" class="form-label">Hidratação Corporal (%)</label>
+                            <input type="number" id="hidratacao" name="hidratacao" class="form-control" step="0.1">
+                        </div>
+                        <div class="form-group">
+                            <label for="taxaMetabolismoBasal" class="form-label">Metabolismo Basal (kcal/dia)</label>
+                            <input type="number" id="taxaMetabolismoBasal" name="taxaMetabolismoBasal" class="form-control" step="1">
+                        </div>
+                        <div class="form-group">
+                            <label for="densidadeOssea" class="form-label">Densidade Óssea (%)</label>
+                            <input type="number" id="densidadeOssea" name="densidadeOssea" class="form-control" step="0.1">
+                        </div>
+                        <div class="form-group">
+                            <label for="gorduraVisceral" class="form-label">Gordura Visceral (%)</label>
+                            <input type="number" id="gorduraVisceral" name="gorduraVisceral" class="form-control" step="0.1">
                         </div>
                     </div>
                     <div class="form-actions">
@@ -77,10 +97,17 @@
                             <tr>
                                 <th>Aluno</th>
                                 <th>Data</th>
-                                <th>Peso (kg)</th>
-                                <th>Altura (m)</th>
-                                <th>Idade</th>
-                                <th>Gordura (%)</th>
+                                <th>Gênero</th>
+                                <th>IMC</th>
+                                <th>Peso</th>
+                                <th>Altura</th>
+                                <th>Gordura Corporal</th>
+                                <th>Massa Magra</th>
+                                <th>Massa Muscular</th>
+                                <th>Hidratação</th>
+                                <th>Metabolismo Basal</th>
+                                <th>Densidade Óssea</th>
+                                <th>Gordura Visceral</th>
                                 <th>Ações</th>
                             </tr>
                         </thead>
@@ -122,30 +149,65 @@
 
         async function fetchAvaliacoes() {
             try {
+                console.log('Buscando avaliações da API:', API_URL);
                 const response = await fetch(API_URL);
+                console.log('Response status:', response.status);
+                
+                if (!response.ok) {
+                    throw new Error(`HTTP ${response.status}: ${response.statusText}`);
+                }
+                
                 const avaliacoes = await response.json();
+                console.log('Avaliações recebidas:', avaliacoes);
                 renderTable(avaliacoes);
             } catch (error) {
                 console.error('Erro ao buscar avaliações:', error);
-                tableBody.innerHTML = `<tr><td colspan="7">Erro ao carregar avaliações.</td></tr>`;
+                tableBody.innerHTML = `<tr><td colspan="14">Erro ao carregar avaliações: ${error.message}</td></tr>`;
             }
         }
 
+        // --- Funções de Formatação ---
+        function formatValue(value, { unit = '', decimals = -1, fallback = 'N/A' } = {}) {
+            if (value === null || value === undefined || value === '') return fallback;
+            const number = parseFloat(value);
+            if (isNaN(number)) return fallback;
+
+            let formattedNumber;
+            if (decimals >= 0) {
+                formattedNumber = number.toFixed(decimals);
+            } else {
+                formattedNumber = number.toString();
+            }
+            
+            return `${formattedNumber} ${unit}`.trim();
+        }
+
         function renderTable(avaliacoes) {
+            console.log('Renderizando tabela com', avaliacoes.length, 'avaliações');
             tableBody.innerHTML = '';
              if (avaliacoes.length === 0) {
-                tableBody.innerHTML = `<tr><td colspan="7" style="text-align:center;">Nenhuma avaliação cadastrada.</td></tr>`;
+                tableBody.innerHTML = `<tr><td colspan="14" style="text-align:center;">Nenhuma avaliação cadastrada.</td></tr>`;
                 return;
             }
-            avaliacoes.forEach(av => {
+            avaliacoes.forEach((av, index) => {
+                console.log(`Avaliação ${index}:`, av);
+                console.log(`Pessoa da avaliação ${index}:`, av.pessoa);
+                
                 const tr = document.createElement('tr');
                 tr.innerHTML = `
                     <td>${av.pessoa ? av.pessoa.nome : 'N/A'}</td>
                     <td>${new Date(av.dataAvaliacao).toLocaleDateString()}</td>
-                    <td>${av.peso}</td>
-                    <td>${av.altura}</td>
-                    <td>${av.idade}</td>
-                    <td>${av.gorduraCorporal || 'N/A'}</td>
+                    <td>${av.pessoa ? av.pessoa.generoDescricao : 'N/A'}</td>
+                    <td>${av.calcularIMC ? `${formatValue(av.calcularIMC, { decimals: 1 })} (${av.classificarIMC})` : 'N/A'}</td>
+                    <td>${formatValue(av.peso, { unit: 'kg', decimals: 1 })}</td>
+                    <td>${formatValue(av.altura, { unit: 'm', decimals: 2 })}</td>
+                    <td>${formatValue(av.gorduraCorporal, { unit: '%', decimals: 1 })}</td>
+                    <td>${formatValue(av.massaMagra, { unit: 'kg', decimals: 1 })}</td>
+                    <td>${formatValue(av.massaMuscular, { unit: 'kg', decimals: 1 })}</td>
+                    <td>${formatValue(av.hidratacao, { unit: '%', decimals: 1 })}</td>
+                    <td>${formatValue(av.taxaMetabolismoBasal, { unit: 'kcal/dia', decimals: 0 })}</td>
+                    <td>${formatValue(av.densidadeOssea, { unit: '%', decimals: 1 })}</td>
+                    <td>${formatValue(av.gorduraVisceral, { unit: '%', decimals: 1 })}</td>
                     <td class="cell-actions">
                         <button class="btn btn-secondary" onclick="editAvaliacao('${av.id}')"><i class="fas fa-edit"></i></button>
                         <button class="btn btn-secondary" onclick="deleteAvaliacao('${av.id}')"><i class="fas fa-trash"></i></button>
@@ -160,12 +222,17 @@
             const formData = new FormData(form);
             const id = formData.get('id');
             const payload = {
-                pessoa: { id: formData.get('pessoaId') },
+                pessoaId: formData.get('pessoaId'),
                 dataAvaliacao: formData.get('dataAvaliacao'),
                 peso: formData.get('peso'),
                 altura: formData.get('altura'),
-                idade: formData.get('idade'),
                 gorduraCorporal: formData.get('gorduraCorporal'),
+                massaMagra: formData.get('massaMagra'),
+                massaMuscular: formData.get('massaMuscular'),
+                hidratacao: formData.get('hidratacao'),
+                taxaMetabolismoBasal: formData.get('taxaMetabolismoBasal'),
+                densidadeOssea: formData.get('densidadeOssea'),
+                gorduraVisceral: formData.get('gorduraVisceral'),
             };
 
             const method = id ? 'PUT' : 'POST';
@@ -194,8 +261,13 @@
                 document.getElementById('dataAvaliacao').value = av.dataAvaliacao.split('T')[0];
                 document.getElementById('peso').value = av.peso;
                 document.getElementById('altura').value = av.altura;
-                document.getElementById('idade').value = av.idade;
                 document.getElementById('gorduraCorporal').value = av.gorduraCorporal;
+                document.getElementById('massaMagra').value = av.massaMagra;
+                document.getElementById('massaMuscular').value = av.massaMuscular;
+                document.getElementById('hidratacao').value = av.hidratacao;
+                document.getElementById('taxaMetabolismoBasal').value = av.taxaMetabolismoBasal;
+                document.getElementById('densidadeOssea').value = av.densidadeOssea;
+                document.getElementById('gorduraVisceral').value = av.gorduraVisceral;
                 window.scrollTo(0, 0);
             } catch (error) {
                 console.error('Erro ao carregar avaliação para edição:', error);

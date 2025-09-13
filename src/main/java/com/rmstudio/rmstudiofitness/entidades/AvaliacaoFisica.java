@@ -1,5 +1,6 @@
 package com.rmstudio.rmstudiofitness.entidades;
 
+import com.fasterxml.jackson.annotation.JsonProperty;
 import jakarta.persistence.*;
 import java.io.Serializable;
 import java.math.BigDecimal;
@@ -30,14 +31,20 @@ public class AvaliacaoFisica implements Serializable {
     @Column(name = "massa_magra", precision = 10, scale = 2)
     private BigDecimal massaMagra;
 
-    @Column(name = "agua_corporal", precision = 10, scale = 2)
-    private BigDecimal aguaCorporal;
+    @Column(name = "massa_muscular", precision = 10, scale = 2)
+    private BigDecimal massaMuscular;
 
-    @Column(name = "massa_ossea", precision = 10, scale = 2)
-    private BigDecimal massaOssea;
+    @Column(name = "hidratacao", precision = 10, scale = 2)
+    private BigDecimal hidratacao;
 
-    @Column(name = "taxa_basal", precision = 10, scale = 2)
-    private BigDecimal taxaBasal;
+    @Column(name = "densidade_ossea", precision = 10, scale = 2)
+    private BigDecimal densidadeOssea;
+
+    @Column(name = "taxa_metabolismo_basal", precision = 10, scale = 2)
+    private BigDecimal taxaMetabolismoBasal;
+    
+    @Column(name = "gordura_visceral", precision = 10, scale = 2)
+    private BigDecimal gorduraVisceral;
 
     @ManyToOne(optional = false, fetch = FetchType.LAZY)
     @JoinColumn(name = "pessoa_id", nullable = false)
@@ -78,21 +85,27 @@ public class AvaliacaoFisica implements Serializable {
     public BigDecimal getMassaMagra() { return massaMagra; }
     public void setMassaMagra(BigDecimal massaMagra) { this.massaMagra = massaMagra; }
 
-    public BigDecimal getAguaCorporal() { return aguaCorporal; }
-    public void setAguaCorporal(BigDecimal aguaCorporal) { this.aguaCorporal = aguaCorporal; }
+    public BigDecimal getMassaMuscular() { return massaMuscular; }
+    public void setMassaMuscular(BigDecimal massaMuscular) { this.massaMuscular = massaMuscular; }
 
-    public BigDecimal getMassaOssea() { return massaOssea; }
-    public void setMassaOssea(BigDecimal massaOssea) { this.massaOssea = massaOssea; }
+    public BigDecimal getHidratacao() { return hidratacao; }
+    public void setHidratacao(BigDecimal hidratacao) { this.hidratacao = hidratacao; }
 
-    public BigDecimal getTaxaBasal() { return taxaBasal; }
-    public void setTaxaBasal(BigDecimal taxaBasal) { this.taxaBasal = taxaBasal; }
+    public BigDecimal getDensidadeOssea() { return densidadeOssea; }
+    public void setDensidadeOssea(BigDecimal densidadeOssea) { this.densidadeOssea = densidadeOssea; }
+
+    public BigDecimal getTaxaMetabolismoBasal() { return taxaMetabolismoBasal; }
+    public void setTaxaMetabolismoBasal(BigDecimal taxaMetabolismoBasal) { this.taxaMetabolismoBasal = taxaMetabolismoBasal; }
+
+    public BigDecimal getGorduraVisceral() { return gorduraVisceral; }
+    public void setGorduraVisceral(BigDecimal gorduraVisceral) { this.gorduraVisceral = gorduraVisceral; }
 
     public Pessoa getPessoa() { return pessoa; }
     public void setPessoa(Pessoa pessoa) { this.pessoa = pessoa; }
 
     // Utilitários
     /** Calcula o IMC = peso / (altura^2). */
-    public BigDecimal calcularIMC() {
+    public BigDecimal getCalcularIMC() {
         if (peso != null && altura != null && altura.compareTo(BigDecimal.ZERO) > 0) {
             return peso.divide(altura.multiply(altura), 2, RoundingMode.HALF_UP);
         }
@@ -100,8 +113,8 @@ public class AvaliacaoFisica implements Serializable {
     }
 
     /** Classificação textual do IMC. */
-    public String classificarIMC() {
-        BigDecimal imc = calcularIMC();
+    public String getClassificarIMC() {
+        BigDecimal imc = getCalcularIMC();
         if (imc == null) return "N/A";
 
         if (imc.compareTo(new BigDecimal("18.5")) < 0) return "Abaixo do peso";
