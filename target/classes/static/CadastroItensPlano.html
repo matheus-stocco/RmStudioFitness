@@ -6,8 +6,47 @@
     <title>Gestão de Itens do Plano - RMStudio Fitness</title>
     <link rel="stylesheet" href="/css/style.css">
     <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
+    <style>
+        .week-planner {
+            display: grid;
+            grid-template-columns: repeat(auto-fill, minmax(300px, 1fr));
+            gap: 20px;
+            margin-top: 32px;
+        }
+        .day-card {
+            background-color: #2a2a2a;
+            border-radius: 8px;
+            padding: 15px;
+        }
+        .day-title {
+            margin-top: 0;
+            margin-bottom: 15px;
+            border-bottom: 2px solid var(--color-primary);
+            padding-bottom: 10px;
+        }
+        .exercise-list {
+            list-style: none;
+            padding: 0;
+            min-height: 100px;
+        }
+        .exercise-list li {
+            background-color: #333;
+            padding: 10px;
+            border-radius: 4px;
+            margin-bottom: 8px;
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+        }
+        .exercise-list .delete-item {
+            background: none;
+            border: none;
+            color: #dc3545;
+            cursor: pointer;
+        }
+    </style>
 </head>
-<body>
+<body style="display: flex; flex-direction: column; min-height: 100vh;">
     <header class="header">
         <div class="container">
             <nav class="navbar">
@@ -39,8 +78,7 @@
             <div class="card form-card">
                 <h3 class="card-title">Adicionar Exercício ao Plano</h3>
                 <form id="form-item-plano">
-                    <input type="hidden" id="id" name="id">
-                    <input type="hidden" id="planoId" name="planoId">
+                    <input type="hidden" id="itemId" name="itemId">
                     <div class="form-group">
                         <label for="diaSemana" class="form-label">Dia da Semana</label>
                         <select id="diaSemana" name="diaSemana" class="form-control" required>
@@ -69,31 +107,17 @@
                     </div>
                     <div class="form-actions">
                         <button type="submit" class="btn btn-primary"><i class="fas fa-plus"></i> Adicionar Item</button>
-                        <button type="button" class="btn btn-secondary" onclick="resetForm()"><i class="fas fa-times"></i> Cancelar Edição</button>
+                        <button type="button" class="btn btn-secondary" onclick="resetForm()"><i class="fas fa-times"></i> Cancelar</button>
                     </div>
                 </form>
             </div>
 
-            <div class="card" style="margin-top: 32px;">
-                <h3 class="card-title">Itens Cadastrados no Plano</h3>
-                <div class="table-responsive">
-                    <table class="table" id="tabela-itens">
-                        <thead>
-                            <tr>
-                                <th>Dia da Semana</th>
-                                <th>Exercício</th>
-                                <th>Séries</th>
-                                <th>Repetições</th>
-                                <th>Ações</th>
-                            </tr>
-                        </thead>
-                        <tbody></tbody>
-                    </table>
-                </div>
+            <div class="week-planner" id="week-planner-container">
+                <!-- Cards dos dias da semana serão inseridos aqui pelo JS -->
             </div>
         </div>
     </main>
-    <footer class="footer">
+    <footer class="footer" style="margin-top: auto;">
         <div class="container">
             <div class="footer-bottom">
                 <p>&copy; 2024 RMStudio Fitness. Todos os direitos reservados.</p>
@@ -101,15 +125,22 @@
         </div>
     </footer>
     <script>
-        const API_URL = '/api/itensplanoaula';
+        const API_PLANOS_URL = '/api/planoaulas';
         const API_EXERCICIOS_URL = '/api/exercicios';
-        const API_PLANO_URL = '/api/planoaulas';
 
         const form = document.getElementById('form-item-plano');
-        const tableBody = document.querySelector('#tabela-itens tbody');
-        const planoIdField = document.getElementById('planoId');
-
+        const weekPlannerContainer = document.getElementById('week-planner-container');
+        
         let planoId = null;
+        const diasDaSemana = {
+            SEGUNDA: "Segunda-feira",
+            TERCA: "Terça-feira",
+            QUARTA: "Quarta-feira",
+            QUINTA: "Quinta-feira",
+            SEXTA: "Sexta-feira",
+            SABADO: "Sábado",
+            DOMINGO: "Domingo"
+        };
 
         async function fetchExercicios() {
             const exercicioSelect = document.getElementById('exercicioId');
@@ -126,130 +157,99 @@
                 exercicioSelect.innerHTML = '<option value="">Erro ao carregar</option>';
             }
         }
+        
+        function renderizarPlano(plano) {
+            document.getElementById('plano-descricao').textContent = `Plano: ${plano.descricao} - Aluno: ${plano.aluno.nome}`;
+            weekPlannerContainer.innerHTML = ''; // Limpa o container
 
-        async function fetchItensDoPlano() {
-            if (!planoId) return;
-            try {
-                const response = await fetch(`${API_URL}/plano/${planoId}`);
-                if (!response.ok) throw new Error('Erro ao buscar itens do plano');
-                const itens = await response.json();
-                renderTable(itens);
-            } catch (error) {
-                console.error('Falha:', error);
-                tableBody.innerHTML = `<tr><td colspan="5">Erro ao carregar itens.</td></tr>`;
+            // Cria um card para cada dia da semana
+            for (const [key, value] of Object.entries(diasDaSemana)) {
+                const dayCard = document.createElement('div');
+                dayCard.className = 'day-card';
+                dayCard.innerHTML = `<h3 class="day-title">${value}</h3><ul class="exercise-list" id="list-${key}"></ul>`;
+                weekPlannerContainer.appendChild(dayCard);
+            }
+
+            // Distribui os itens do plano nos cards corretos
+            plano.itens.forEach(item => {
+                adicionarItemNaLista(item);
+            });
+        }
+
+        function adicionarItemNaLista(item) {
+            const list = document.getElementById(`list-${item.diaSemana}`);
+            if (list) {
+                const listItem = document.createElement('li');
+                listItem.id = `item-${item.id}`;
+                listItem.innerHTML = `
+                    <span>${item.exercicioNome} (${item.series}x${item.repeticoes})</span>
+                    <button class="delete-item" onclick="deleteItem(${item.id})"><i class="fas fa-trash"></i></button>
+                `;
+                list.appendChild(listItem);
             }
         }
-        
-         async function fetchPlanoInfo() {
+
+        async function fetchPlanoDetalhado() {
             if (!planoId) return;
             try {
-                const response = await fetch(`${API_PLANO_URL}/${planoId}`);
+                const response = await fetch(`${API_PLANOS_URL}/${planoId}`);
                 if (!response.ok) throw new Error('Plano não encontrado');
                 const plano = await response.json();
-                document.getElementById('plano-descricao').textContent = `Plano: ${plano.descricao} - Aluno: ${plano.aluno.nome}`;
+                renderizarPlano(plano);
             } catch (error) {
                 console.error(error);
                 document.getElementById('plano-descricao').textContent = 'Plano não encontrado';
             }
         }
 
-
-        function renderTable(itens) {
-            tableBody.innerHTML = '';
-             if (itens.length === 0) {
-                tableBody.innerHTML = `<tr><td colspan="5" style="text-align:center;">Nenhum item cadastrado neste plano.</td></tr>`;
-                return;
-            }
-            // Ordenar por dia da semana
-            const diasOrdenados = ["SEGUNDA", "TERCA", "QUARTA", "QUINTA", "SEXTA", "SABADO", "DOMINGO"];
-            itens.sort((a, b) => diasOrdenados.indexOf(a.diaSemana) - diasOrdenados.indexOf(b.diaSemana));
-
-            itens.forEach(item => {
-                const tr = document.createElement('tr');
-                tr.innerHTML = `
-                    <td>${item.diaSemana.charAt(0).toUpperCase() + item.diaSemana.slice(1).toLowerCase()}</td>
-                    <td>${item.exercicio.nome}</td>
-                    <td>${item.series}</td>
-                    <td>${item.repeticoes}</td>
-                    <td class="cell-actions">
-                        <button class="btn btn-secondary" onclick="editItem('${item.id}')"><i class="fas fa-edit"></i></button>
-                        <button class="btn btn-secondary" onclick="deleteItem('${item.id}')"><i class="fas fa-trash"></i></button>
-                    </td>
-                `;
-                tableBody.appendChild(tr);
-            });
-        }
-
         form.addEventListener('submit', async (e) => {
             e.preventDefault();
             const formData = new FormData(form);
-            const id = formData.get('id');
             const payload = {
-                planoAula: { id: formData.get('planoId') },
-                exercicio: { id: formData.get('exercicioId') },
+                exercicioId: formData.get('exercicioId'),
                 diaSemana: formData.get('diaSemana'),
                 series: formData.get('series'),
                 repeticoes: formData.get('repeticoes')
             };
 
-            const method = id ? 'PUT' : 'POST';
-            const url = id ? `${API_URL}/${id}` : API_URL;
-
             try {
-                const response = await fetch(url, {
-                    method,
+                const response = await fetch(`${API_PLANOS_URL}/${planoId}/itens`, {
+                    method: 'POST',
                     headers: { 'Content-Type': 'application/json' },
                     body: JSON.stringify(payload),
                 });
                 if (!response.ok) throw new Error('Erro ao salvar item');
-                resetForm();
-                fetchItensDoPlano();
+                const novoItem = await response.json();
+                adicionarItemNaLista(novoItem);
+                form.reset();
             } catch (error) {
                 console.error(error);
+                alert('Erro ao salvar o item.');
             }
         });
         
-        async function editItem(id) {
-            try {
-                const response = await fetch(`${API_URL}/${id}`);
-                if (!response.ok) throw new Error('Item não encontrado');
-                const item = await response.json();
-                document.getElementById('id').value = item.id;
-                document.getElementById('diaSemana').value = item.diaSemana;
-                document.getElementById('exercicioId').value = item.exercicio.id;
-                document.getElementById('series').value = item.series;
-                document.getElementById('repeticoes').value = item.repeticoes;
-                window.scrollTo(0, 0);
-            } catch (error) {
-                console.error('Falha ao carregar para edição:', error);
-            }
-        }
-        
-        async function deleteItem(id) {
+        async function deleteItem(itemId) {
             if (!confirm('Tem certeza que deseja remover este item do plano?')) return;
             try {
-                const response = await fetch(`${API_URL}/${id}`, { method: 'DELETE' });
+                const response = await fetch(`${API_PLANOS_URL}/${planoId}/itens/${itemId}`, { method: 'DELETE' });
                 if (!response.ok) throw new Error('Erro ao excluir');
-                fetchItensDoPlano();
+                document.getElementById(`item-${itemId}`).remove();
             } catch (error) {
                 console.error('Falha ao excluir:', error);
+                alert('Erro ao excluir o item.');
             }
         }
 
         function resetForm() {
             form.reset();
-            document.getElementById('id').value = '';
-            planoIdField.value = planoId; // Mantém o ID do plano
         }
 
         document.addEventListener('DOMContentLoaded', () => {
             const urlParams = new URLSearchParams(window.location.search);
             planoId = urlParams.get('planoId');
             if (planoId) {
-                planoIdField.value = planoId;
-                fetchPlanoInfo();
+                fetchPlanoDetalhado();
                 fetchExercicios();
-                fetchItensDoPlano();
             } else {
                 document.querySelector('.container').innerHTML = '<h1>Plano não especificado.</h1><a href="/CadastroPlanoAula.html">Voltar</a>';
             }

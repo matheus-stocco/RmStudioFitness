@@ -23,6 +23,12 @@ public class ItemPlanoDeAula implements Serializable {
     @Column(name = "dia_semana", nullable = false)
     private String diaSemana;
 
+    @Column(name = "series")
+    private Integer series;
+
+    @Column(name = "repeticoes", length = 50)
+    private String repeticoes;
+
     // Getters e Setters
     public Long getId() {
         return id;
@@ -54,5 +60,21 @@ public class ItemPlanoDeAula implements Serializable {
 
     public void setDiaSemana(String diaSemana) {
         this.diaSemana = diaSemana;
+    }
+
+    public Integer getSeries() {
+        return series;
+    }
+
+    public void setSeries(Integer series) {
+        this.series = series;
+    }
+
+    public String getRepeticoes() {
+        return repeticoes;
+    }
+
+    public void setRepeticoes(String repeticoes) {
+        this.repeticoes = repeticoes;
     }
 }
