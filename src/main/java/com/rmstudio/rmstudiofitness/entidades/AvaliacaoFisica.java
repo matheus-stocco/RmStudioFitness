@@ -1,6 +1,5 @@
 package com.rmstudio.rmstudiofitness.entidades;
 
-import com.fasterxml.jackson.annotation.JsonProperty;
 import jakarta.persistence.*;
 import java.io.Serializable;
 import java.math.BigDecimal;

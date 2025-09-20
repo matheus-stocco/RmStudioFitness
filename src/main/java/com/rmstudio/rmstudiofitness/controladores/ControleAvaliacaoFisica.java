@@ -14,7 +14,6 @@ import java.net.URI;
 import java.time.LocalDate;
 import java.math.BigDecimal;
 import java.util.List;
-import java.util.Map;
 
 @RestController
 @RequestMapping("/api/avaliacoes")
