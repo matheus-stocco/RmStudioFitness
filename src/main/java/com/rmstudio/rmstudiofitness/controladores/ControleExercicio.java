@@ -47,6 +47,14 @@ public class ControleExercicio {
         return query.getResultList();
     }
 
+    // ---------- LISTAR GRUPOS MUSCULARES ----------
+    @GetMapping("/grupos-musculares")
+    public List<String> listarGruposMusculares() {
+        TypedQuery<String> query = em.createQuery(
+            "SELECT DISTINCT e.grupoMuscular FROM Exercicio e ORDER BY e.grupoMuscular", String.class);
+        return query.getResultList();
+    }
+
     // ---------- BUSCAR POR ID ----------
     @GetMapping("/{id}")
     public ResponseEntity<Exercicio> buscarPorId(@PathVariable Long id) {

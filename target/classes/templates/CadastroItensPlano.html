@@ -74,6 +74,12 @@
                         </select>
                     </div>
                     <div class="form-group">
+                        <label for="grupoMuscular" class="form-label">Grupo Muscular</label>
+                        <select id="grupoMuscular" name="grupoMuscular" class="form-control">
+                            <option value="">Todos</option>
+                        </select>
+                    </div>
+                    <div class="form-group">
                         <label for="exercicioId" class="form-label">Exercício</label>
                         <select id="exercicioId" name="exercicioId" class="form-control" required>
                             <option value="">Carregando...</option>
@@ -112,6 +118,7 @@
 
         const form = document.getElementById('form-item-plano');
         const weekPlannerContainer = document.getElementById('week-planner-container');
+        const grupoMuscularSelect = document.getElementById('grupoMuscular');
         
         let planoId = null;
         const diasDaSemana = {
@@ -124,15 +131,37 @@
             DOMINGO: "Domingo"
         };
 
-        async function fetchExercicios() {
-            const exercicioSelect = document.getElementById('exercicioId');
+        async function fetchGruposMusculares() {
             try {
-                const response = await fetch(API_EXERCICIOS_URL);
+                const response = await fetch(`${API_EXERCICIOS_URL}/grupos-musculares`);
+                if (!response.ok) throw new Error('Erro ao buscar grupos musculares');
+                const grupos = await response.json();
+                grupoMuscularSelect.innerHTML = '<option value="">Todos</option>'; // Limpa e adiciona a opção "Todos"
+                grupos.forEach(grupo => {
+                    grupoMuscularSelect.innerHTML += `<option value="${grupo}">${grupo}</option>`;
+                });
+            } catch (error) {
+                console.error(error);
+            }
+        }
+
+        async function fetchExercicios(grupoMuscular = '') {
+            const exercicioSelect = document.getElementById('exercicioId');
+            let url = API_EXERCICIOS_URL;
+            if (grupoMuscular) {
+                // Assumindo que a API aceita um parâmetro de query `grupo`
+                url += `?q=${encodeURIComponent(grupoMuscular)}`;
+            }
+            try {
+                const response = await fetch(url);
                 if (!response.ok) throw new Error('Erro ao buscar exercícios');
                 const exercicios = await response.json();
                 exercicioSelect.innerHTML = '<option value="">Selecione um exercício</option>';
                 exercicios.forEach(ex => {
-                    exercicioSelect.innerHTML += `<option value="${ex.id}">${ex.nome} (${ex.grupoMuscular})</option>`;
+                    // Filtra no cliente, já que a API de busca 'q' é ampla
+                    if (!grupoMuscular || ex.grupoMuscular.toLowerCase() === grupoMuscular.toLowerCase()) {
+                        exercicioSelect.innerHTML += `<option value="${ex.id}">${ex.nome}</option>`;
+                    }
                 });
             } catch (error) {
                 console.error(error);
@@ -231,10 +260,15 @@
             planoId = urlParams.get('planoId');
             if (planoId) {
                 fetchPlanoDetalhado();
-                fetchExercicios();
+                fetchGruposMusculares();
+                fetchExercicios(); // Carga inicial de todos os exercícios
             } else {
                 document.querySelector('.container').innerHTML = '<h1>Plano não especificado.</h1><a href="/CadastroPlanoAula.html">Voltar</a>';
             }
+        });
+
+        grupoMuscularSelect.addEventListener('change', () => {
+            fetchExercicios(grupoMuscularSelect.value);
         });
 
         // Mobile nav toggle
