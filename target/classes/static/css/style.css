@@ -665,8 +665,9 @@ p { margin-bottom: calc(var(--spacing-unit) * 2); }
     margin: 0 auto;
 }
 
-/* Modificador para fazer o card ocupar mais espaço horizontal */
-.card--wide {
+/* Modificador para fazer o card ocupar mais espaço horizontal.
+   Usar .form-card.card--wide aumenta a especificidade para sobrescrever a regra do login. */
+.form-card.card--wide {
     max-width: 100%;
 }
 
