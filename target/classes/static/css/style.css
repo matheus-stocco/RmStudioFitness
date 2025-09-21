@@ -583,6 +583,22 @@ p { margin-bottom: calc(var(--spacing-unit) * 2); }
   color: var(--color-text);
 }
 
+/* Estilo para o cabeçalho do dia da semana na lista de planos de aula */
+.dia-semana-header {
+    margin-top: 1.5rem;
+    margin-bottom: 0.75rem;
+    font-size: 1.1rem;
+    font-weight: 600;
+    color: #ffaf5f; /* Um tom de laranja/dourado para destaque */
+    padding-bottom: 5px;
+    border-bottom: 2px solid #333;
+}
+
+/* Ajuste no espaçamento da lista de exercícios */
+.exercicios-list {
+    padding-left: 20px;
+}
+
 /* --- RESPONSIVIDADE --- */
 @media (max-width: 992px) {
   h1 { font-size: 2.5rem; }

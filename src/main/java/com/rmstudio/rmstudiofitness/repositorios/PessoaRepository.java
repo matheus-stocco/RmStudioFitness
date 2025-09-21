@@ -68,6 +68,6 @@ public interface PessoaRepository extends JpaRepository<Pessoa, Long> {
     @Query("SELECT p FROM Pessoa p LEFT JOIN FETCH p.avaliacoes WHERE p.usuario = :usuario")
     Optional<Pessoa> findByUsuarioWithAvaliacoes(@Param("usuario") String usuario);
 
-    @Query("SELECT p FROM Pessoa p LEFT JOIN FETCH p.planosDeAula WHERE p.usuario = :usuario")
+    @Query("SELECT DISTINCT p FROM Pessoa p LEFT JOIN FETCH p.planosDeAula pa LEFT JOIN FETCH pa.itens i LEFT JOIN FETCH i.exercicio WHERE p.usuario = :usuario")
     Optional<Pessoa> findByUsuarioWithPlanosDeAula(@Param("usuario") String usuario);
 }

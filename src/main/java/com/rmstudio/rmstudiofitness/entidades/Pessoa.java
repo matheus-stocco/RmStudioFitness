@@ -81,7 +81,7 @@ public class Pessoa implements UserDetails {
 
     @JsonIgnore
     @OneToMany(mappedBy = "aluno", cascade = CascadeType.ALL, orphanRemoval = true, fetch = FetchType.LAZY)
-    private List<PlanoDeAula> planosDeAula = new ArrayList<>();
+    private Set<PlanoDeAula> planosDeAula = new HashSet<>();
 
     // Construtores
     public Pessoa() {
@@ -146,8 +146,8 @@ public class Pessoa implements UserDetails {
     public List<AvaliacaoFisica> getAvaliacoes() { return avaliacoes; }
     public void setAvaliacoes(List<AvaliacaoFisica> avaliacoes) { this.avaliacoes = avaliacoes; }
 
-    public List<PlanoDeAula> getPlanosDeAula() { return planosDeAula; }
-    public void setPlanosDeAula(List<PlanoDeAula> planosDeAula) { this.planosDeAula = planosDeAula; }
+    public Set<PlanoDeAula> getPlanosDeAula() { return planosDeAula; }
+    public void setPlanosDeAula(Set<PlanoDeAula> planosDeAula) { this.planosDeAula = planosDeAula; }
 
     public Set<Perfil> getPerfis() {
         return perfis;

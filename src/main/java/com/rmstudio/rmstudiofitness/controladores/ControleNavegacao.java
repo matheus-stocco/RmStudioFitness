@@ -2,6 +2,7 @@ package com.rmstudio.rmstudiofitness.controladores;
 
 import com.rmstudio.rmstudiofitness.entidades.Pessoa;
 import com.rmstudio.rmstudiofitness.repositorios.PessoaRepository;
+import java.util.Collections;
 import org.springframework.security.core.Authentication;
 import org.springframework.stereotype.Controller;
 import org.springframework.ui.Model;
@@ -106,6 +107,7 @@ public class ControleNavegacao {
  
     @GetMapping("/meus-planos-aula")
     public String meusPlanosAula(Model model, Authentication authentication) {
+        model.addAttribute("planosDeAula", Collections.emptyList()); // Default to empty list
         if (authentication != null && authentication.isAuthenticated()) {
             String username = authentication.getName();
             pessoaRepository.findByUsuarioWithPlanosDeAula(username).ifPresent(pessoaCompleta -> {

@@ -29,6 +29,9 @@ public class ItemPlanoDeAula implements Serializable {
     @Column(name = "repeticoes", length = 50)
     private String repeticoes;
 
+    @Column(name = "observacoes", length = 500)
+    private String observacoes;
+
     // Getters e Setters
     public Long getId() {
         return id;
@@ -76,5 +79,13 @@ public class ItemPlanoDeAula implements Serializable {
 
     public void setRepeticoes(String repeticoes) {
         this.repeticoes = repeticoes;
+    }
+
+    public String getObservacoes() {
+        return observacoes;
+    }
+
+    public void setObservacoes(String observacoes) {
+        this.observacoes = observacoes;
     }
 }

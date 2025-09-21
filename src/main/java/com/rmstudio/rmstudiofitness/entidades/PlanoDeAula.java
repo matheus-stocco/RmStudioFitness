@@ -4,7 +4,13 @@ import jakarta.persistence.*;
 import java.io.Serializable;
 import java.time.LocalDateTime;
 import java.util.ArrayList;
+import java.util.Arrays;
+import java.util.Collections;
+import java.util.Comparator;
+import java.util.LinkedHashMap;
 import java.util.List;
+import java.util.Map;
+import java.util.stream.Collectors;
 
 @Entity
 @Table(name = "plano_de_aula")
@@ -37,6 +43,36 @@ public class PlanoDeAula implements Serializable {
     @Column(name = "data_criacao", nullable = false, updatable = false)
     private LocalDateTime dataCriacao;
     
+    @Transient
+    public Map<String, List<ItemPlanoDeAula>> getItensAgrupadosPorDia() {
+        if (itens == null || itens.isEmpty()) {
+            return Collections.emptyMap();
+        }
+        
+        // Usa um mapa que preserva a ordem de inserção para manter os dias ordenados
+        final Map<String, List<ItemPlanoDeAula>> grouped = new LinkedHashMap<>();
+
+        // Define a ordem correta dos dias da semana
+        final List<String> dayOrder = Arrays.asList("SEGUNDA", "TERÇA", "QUARTA", "QUINTA", "SEXTA", "SÁBADO", "DOMINGO");
+
+        // Agrupa os itens pelo dia da semana
+        Map<String, List<ItemPlanoDeAula>> itemsByDay = itens.stream()
+            .collect(Collectors.groupingBy(ItemPlanoDeAula::getDiaSemana));
+
+        // Ordena os dias agrupados de acordo com a lista `dayOrder` e os insere no mapa final
+        itemsByDay.keySet().stream()
+            .sorted(Comparator.comparingInt(day -> {
+                if (day == null) return dayOrder.size();
+                // Normaliza o nome do dia para a comparação (ex: "Segunda-feira" -> "SEGUNDA")
+                String normalized = day.toUpperCase().replace("-FEIRA", "");
+                int index = dayOrder.indexOf(normalized);
+                return index == -1 ? dayOrder.size() : index; // Dias desconhecidos vão para o final
+            }))
+            .forEach(day -> grouped.put(day, itemsByDay.get(day)));
+            
+        return grouped;
+    }
+
     @PrePersist
     protected void onCreate() {
         dataCriacao = LocalDateTime.now();
