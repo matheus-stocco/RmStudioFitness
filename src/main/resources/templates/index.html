@@ -39,6 +39,7 @@
           <div class="nav-links">
             <a th:href="@{/}">Home</a>
             <a th:href="@{/planos}">Planos</a>
+            <a th:href="@{/quem-somos}">Quem Somos</a>
             <!-- Link visível apenas para usuários autenticados (logados) -->
             <a sec:authorize="isAuthenticated()" th:href="@{/minhas-avaliacoes}">Minhas Avaliações</a>
             <a sec:authorize="isAuthenticated()" th:href="@{/meus-planos-aula}">Meus Planos</a>

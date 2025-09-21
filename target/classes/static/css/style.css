@@ -118,6 +118,7 @@ p { margin-bottom: calc(var(--spacing-unit) * 2); }
   justify-content: space-between;
   align-items: center;
   width: 100%;
+  gap: calc(var(--spacing-unit) * 4);
 }
 
 .navbar-left {
@@ -127,7 +128,6 @@ p { margin-bottom: calc(var(--spacing-unit) * 2); }
 }
 
 .navbar-right {
-  margin-left: auto; /* Empurra para a direita */
   flex-shrink: 0; /* Impede que o elemento encolha */
 }
 

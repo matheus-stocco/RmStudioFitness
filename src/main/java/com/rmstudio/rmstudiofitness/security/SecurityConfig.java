@@ -37,7 +37,7 @@ public class SecurityConfig {
                     // Liberar acesso a recursos estáticos (CSS, JS, Imagens) para todos.
                     .requestMatchers("/css/**", "/js/**", "/images/**", "/webjars/**").permitAll()
                     // Liberar acesso às páginas públicas principais.
-                    .requestMatchers("/", "/index.html", "/planos", "/TiposDePlanos.html").permitAll()
+                    .requestMatchers("/", "/index.html", "/planos", "/TiposDePlanos.html", "/quem-somos").permitAll()
                     // Liberar acesso às páginas de login e autocadastro.
                     .requestMatchers("/login", "/error", "/autocadastro", "/FormularioAutoCadastro.html").permitAll()
                     // Liberar acesso às APIs públicas necessárias para o frontend.

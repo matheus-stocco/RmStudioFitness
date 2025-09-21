@@ -1,0 +1,64 @@
+<!DOCTYPE html>
+<html lang="pt-BR" xmlns:th="http://www.thymeleaf.org">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Quem Somos - RMStudio Fitness</title>
+    <link rel="stylesheet" href="/css/style.css">
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
+</head>
+<body>
+    <!-- Reutiliza o cabeçalho do index.html -->
+    <header class="header" th:replace="~{index :: header}"></header>
+
+    <!-- Seção de Cabeçalho da Página (Hero) -->
+    <section class="hero" style="background-image: linear-gradient(rgba(0, 0, 0, 0.7), rgba(0, 0, 0, 0.8)), url('https://images.unsplash.com/photo-1540496905036-5937c10647cc?q=80&w=2070&auto=format&fit=crop'); min-height: 50vh;">
+        <div class="hero-content">
+            <h1 class="hero-title"><span class="highlight">NOSSA</span> HISTÓRIA</h1>
+            <p class="hero-subtitle">Conheça a jornada que nos tornou uma referência em saúde e bem-estar.</p>
+        </div>
+    </section>
+
+    <!-- Conteúdo Principal -->
+    <main class="main-content section">
+        <div class="container">
+            <div class="card story-card" style="margin-bottom: 2rem; padding: 2rem;">
+                <h2 class="section-title" style="text-align: left; margin-bottom: 1.5rem;">O Início de um Sonho</h2>
+                <p>A RMStudio Fitness nasceu em 2015, fruto da paixão de um grupo de educadores físicos que acreditavam que a atividade física poderia ser mais do que apenas um treino: uma experiência transformadora. Começamos em um pequeno espaço, com poucos equipamentos, mas com um desejo imenso de fazer a diferença na vida das pessoas. Nosso foco sempre foi oferecer um atendimento personalizado e um ambiente acolhedor, onde cada aluno se sentisse motivado e parte de uma comunidade.</p>
+                <p>Com o passar dos anos, nossa dedicação e os resultados visíveis de nossos alunos nos permitiram crescer. Expandimos nossas instalações, investimos em equipamentos de ponta e diversificamos nossas modalidades, sempre mantendo a essência do nosso propósito original.</p>
+            </div>
+
+            <div class="cards-grid" style="grid-template-columns: repeat(auto-fit, minmax(280px, 1fr));">
+                <!-- Card de Missão -->
+                <div class="card">
+                    <div class="card-icon"><i class="fas fa-bullseye"></i></div>
+                    <h3 class="card-title">Nossa Missão</h3>
+                    <p class="card-text">Promover saúde e qualidade de vida através de um serviço de excelência, com treinos personalizados e um ambiente que inspira a superação diária.</p>
+                </div>
+
+                <!-- Card de Visão -->
+                <div class="card">
+                    <div class="card-icon"><i class="fas fa-eye"></i></div>
+                    <h3 class="card-title">Nossa Visão</h3>
+                    <p class="card-text">Ser reconhecida como a principal academia da região, sendo um centro de referência em transformação de vidas e bem-estar físico e mental.</p>
+                </div>
+
+                <!-- Card de Valores -->
+                <div class="card">
+                    <div class="card-icon"><i class="fas fa-heart"></i></div>
+                    <h3 class="card-title">Nossos Valores</h3>
+                    <ul class="plan-features" style="text-align: left; padding-left: 0;">
+                        <li><i class="fas fa-check"></i> Comprometimento</li>
+                        <li><i class="fas fa-check"></i> Respeito</li>
+                        <li><i class="fas fa-check"></i> Inovação</li>
+                        <li><i class="fas fa-check"></i> Paixão pelo que fazemos</li>
+                    </ul>
+                </div>
+            </div>
+        </div>
+    </main>
+
+    <!-- Reutiliza o rodapé do index.html -->
+    <footer class="footer" th:replace="~{index :: footer}"></footer>
+</body>
+</html>

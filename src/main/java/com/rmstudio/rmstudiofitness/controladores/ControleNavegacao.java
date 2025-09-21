@@ -20,9 +20,22 @@ public class ControleNavegacao {
         this.estadoRepository = estadoRepository;
     }
     
+    /**
+     * Mapeia a URL /login para a página de login customizada.
+     * @return O nome do template "login".
+     */
     @GetMapping("/login")
     public String login() {
         return "login";
+    }
+
+    /**
+     * Mapeia a URL /quem-somos para a página "Quem Somos".
+     * @return O nome do template "quem-somos".
+     */
+    @GetMapping("/quem-somos")
+    public String quemSomos() {
+        return "quem-somos";
     }
 
     @GetMapping({"/", "/index.html"}) // Mapeia tanto a raiz quanto /index.html
