@@ -101,187 +101,192 @@
     -->
     <script>
         document.addEventListener('DOMContentLoaded', () => {
-            const estadoSelect = document.getElementById('estado');
-            const cidadeSelect = document.getElementById('cidade');
-            const form = document.getElementById('cadastroForm');
-            const errorMessageDiv = document.getElementById('error-message');
-            const cpfInput = document.getElementById('cpf');
-            const telefoneInput = document.getElementById('telefone');
+            // Seleciona o formulário de cadastro
+            const cadastroForm = document.getElementById('cadastroForm');
 
-            // --- MÁSCARAS DE INPUT ---
-            cpfInput.addEventListener('input', (e) => {
-                let value = e.target.value.replace(/\D/g, ''); // Remove tudo que não é dígito
-                value = value.slice(0, 11); // Limita aos 11 dígitos do CPF
-                value = value.replace(/(\d{3})(\d)/, '$1.$2');
-                value = value.replace(/(\d{3})(\d)/, '$1.$2');
-                value = value.replace(/(\d{3})(\d{1,2})$/, '$1-$2');
-                e.target.value = value;
-            });
+            // --- SÓ EXECUTA O SCRIPT SE ESTIVER NA PÁGINA DE CADASTRO ---
+            if (cadastroForm) {
+                const estadoSelect = document.getElementById('estado');
+                const cidadeSelect = document.getElementById('cidade');
+                const errorMessageDiv = document.getElementById('error-message');
+                const cpfInput = document.getElementById('cpf');
+                const telefoneInput = document.getElementById('telefone');
 
-            telefoneInput.addEventListener('input', (e) => {
-                let value = e.target.value.replace(/\D/g, ''); // Remove tudo que não é dígito
-                value = value.slice(0, 11); // Limita aos 11 dígitos do telefone
-                if (value.length > 10) {
-                    value = value.replace(/^(\d\d)(\d{5})(\d{4}).*/, '($1) $2-$3');
-                } else {
-                    value = value.replace(/^(\d\d)(\d{4})(\d{0,4}).*/, '($1) $2-$3');
-                }
-                e.target.value = value;
-            });
+                // --- MÁSCARAS DE INPUT ---
+                cpfInput.addEventListener('input', (e) => {
+                    let value = e.target.value.replace(/\D/g, ''); // Remove tudo que não é dígito
+                    value = value.slice(0, 11); // Limita aos 11 dígitos do CPF
+                    value = value.replace(/(\d{3})(\d)/, '$1.$2');
+                    value = value.replace(/(\d{3})(\d)/, '$1.$2');
+                    value = value.replace(/(\d{3})(\d{1,2})$/, '$1-$2');
+                    e.target.value = value;
+                });
 
-
-            // --- 1. CARREGAMENTO DE ESTADOS E CIDADES ---
-
-            // Função para carregar os estados da API
-            async function carregarEstados() {
-                try {
-                    const response = await fetch('/api/estados');
-                    if (!response.ok) throw new Error('Erro ao buscar estados');
-                    const estados = await response.json();
-                    estadoSelect.innerHTML = '<option value="">Selecione...</option>';
-                    estados.forEach(estado => {
-                        const option = document.createElement('option');
-                        option.value = estado.id;
-                        option.textContent = `${estado.uf} - ${estado.nome}`;
-                        estadoSelect.appendChild(option);
-                    });
-                } catch (error) {
-                    console.error(error);
-                    estadoSelect.innerHTML = '<option value="">Erro ao carregar</option>';
-                }
-            }
-
-            // Função para carregar as cidades de um estado específico
-            async function carregarCidades(estadoId) {
-                if (!estadoId) {
-                    cidadeSelect.innerHTML = '<option value="">Selecione um estado</option>';
-                    cidadeSelect.disabled = true;
-                    return;
-                }
-                cidadeSelect.disabled = false;
-                cidadeSelect.innerHTML = '<option value="">Carregando...</option>';
-                try {
-                    const response = await fetch(`/api/cidades?estadoId=${estadoId}`);
-                    if (!response.ok) throw new Error('Erro ao buscar cidades');
-                    const cidades = await response.json();
-                    cidadeSelect.innerHTML = '<option value="">Selecione...</option>';
-                    cidades.forEach(cidade => {
-                        const option = document.createElement('option');
-                        option.value = cidade.id;
-                        option.textContent = cidade.nome;
-                        cidadeSelect.appendChild(option);
-                    });
-                } catch (error) {
-                    console.error(error);
-                    cidadeSelect.innerHTML = '<option value="">Erro ao carregar</option>';
-                }
-            }
-
-            // Adiciona um evento que dispara quando o usuário muda o estado selecionado
-            estadoSelect.addEventListener('change', () => {
-                carregarCidades(estadoSelect.value);
-            });
-
-            // --- 2. SUBMISSÃO DO FORMULÁRIO ---
-
-            // Função para validar CPF (algoritmo padrão)
-            function validarCPF(cpf) {
-                cpf = cpf.replace(/[^\d]+/g,'');
-                if(cpf == '') return false;
-                // Elimina CPFs invalidos conhecidos
-                if (cpf.length != 11 ||
-                    cpf == "00000000000" ||
-                    cpf == "11111111111" ||
-                    cpf == "22222222222" ||
-                    cpf == "33333333333" ||
-                    cpf == "44444444444" ||
-                    cpf == "55555555555" ||
-                    cpf == "66666666666" ||
-                    cpf == "77777777777" ||
-                    cpf == "88888888888" ||
-                    cpf == "99999999999")
-                        return false;
-                // Valida 1o digito
-                let add = 0;
-                for (let i=0; i < 9; i ++)
-                    add += parseInt(cpf.charAt(i)) * (10 - i);
-                let rev = 11 - (add % 11);
-                if (rev == 10 || rev == 11)
-                    rev = 0;
-                if (rev != parseInt(cpf.charAt(9)))
-                    return false;
-                // Valida 2o digito
-                add = 0;
-                for (let i = 0; i < 10; i ++)
-                    add += parseInt(cpf.charAt(i)) * (11 - i);
-                rev = 11 - (add % 11);
-                if (rev == 10 || rev == 11)
-                    rev = 0;
-                if (rev != parseInt(cpf.charAt(10)))
-                    return false;
-                return true;
-            }
-
-            // Adiciona um evento que dispara quando o formulário é enviado
-            form.addEventListener('submit', async (event) => {
-                event.preventDefault(); // Impede o envio padrão do formulário (que recarregaria a página)
-                errorMessageDiv.style.display = 'none'; // Esconde mensagens de erro antigas
-
-                const cpf = cpfInput.value;
-
-                if (!validarCPF(cpf)) {
-                    errorMessageDiv.textContent = 'CPF inválido. Por favor, verifique o número digitado.';
-                    errorMessageDiv.style.display = 'block';
-                    return; // Impede o envio do formulário
-                }
-
-                // Coleta os dados dos campos do formulário
-                const formData = new FormData(form);
-                const data = {
-                    nome: formData.get('nome'),
-                    email: formData.get('email'),
-                    telefone: formData.get('telefone'),
-                    genero: formData.get('genero'),
-                    usuario: formData.get('usuario'),
-                    senha: formData.get('senha'),
-                    dataNascimento: formData.get('dataNascimento') || null,
-                    cpf: formData.get('cpf'),
-                    cidade: {
-                        id: formData.get('cidade')
-                    }
-                };
-
-                try {
-                    // Envia os dados para a API de criação de pessoas usando o método POST
-                    const response = await fetch('/api/pessoas', {
-                        method: 'POST',
-                        headers: {
-                            'Content-Type': 'application/json'
-                        },
-                        body: JSON.stringify(data) // Converte o objeto JavaScript para uma string JSON
-                    });
-
-                    // Se a resposta for um sucesso (status 201 Created), redireciona para a página de login
-                    if (response.ok) {
-                        alert('Cadastro realizado com sucesso! Você será redirecionado para a página de login.');
-                        window.location.href = '/login';
+                telefoneInput.addEventListener('input', (e) => {
+                    let value = e.target.value.replace(/\D/g, ''); // Remove tudo que não é dígito
+                    value = value.slice(0, 11); // Limita aos 11 dígitos do telefone
+                    if (value.length > 10) {
+                        value = value.replace(/^(\d\d)(\d{5})(\d{4}).*/, '($1) $2-$3');
                     } else {
-                        // Se a resposta for um erro (ex: 400 Bad Request por usuário duplicado),
-                        // pega a mensagem de erro do corpo da resposta e a exibe.
-                        const errorText = await response.text();
-                        errorMessageDiv.textContent = errorText;
+                        value = value.replace(/^(\d\d)(\d{4})(\d{0,4}).*/, '($1) $2-$3');
+                    }
+                    e.target.value = value;
+                });
+
+
+                // --- 1. CARREGAMENTO DE ESTADOS E CIDADES ---
+
+                // Função para carregar os estados da API
+                async function carregarEstados() {
+                    try {
+                        const response = await fetch('/api/estados');
+                        if (!response.ok) throw new Error('Erro ao buscar estados');
+                        const estados = await response.json();
+                        estadoSelect.innerHTML = '<option value="">Selecione...</option>';
+                        estados.forEach(estado => {
+                            const option = document.createElement('option');
+                            option.value = estado.id;
+                            option.textContent = `${estado.uf} - ${estado.nome}`;
+                            estadoSelect.appendChild(option);
+                        });
+                    } catch (error) {
+                        console.error(error);
+                        estadoSelect.innerHTML = '<option value="">Erro ao carregar</option>';
+                    }
+                }
+
+                // Função para carregar as cidades de um estado específico
+                async function carregarCidades(estadoId) {
+                    if (!estadoId) {
+                        cidadeSelect.innerHTML = '<option value="">Selecione um estado</option>';
+                        cidadeSelect.disabled = true;
+                        return;
+                    }
+                    cidadeSelect.disabled = false;
+                    cidadeSelect.innerHTML = '<option value="">Carregando...</option>';
+                    try {
+                        const response = await fetch(`/api/cidades?estadoId=${estadoId}`);
+                        if (!response.ok) throw new Error('Erro ao buscar cidades');
+                        const cidades = await response.json();
+                        cidadeSelect.innerHTML = '<option value="">Selecione...</option>';
+                        cidades.forEach(cidade => {
+                            const option = document.createElement('option');
+                            option.value = cidade.id;
+                            option.textContent = cidade.nome;
+                            cidadeSelect.appendChild(option);
+                        });
+                    } catch (error) {
+                        console.error(error);
+                        cidadeSelect.innerHTML = '<option value="">Erro ao carregar</option>';
+                    }
+                }
+
+                // Adiciona um evento que dispara quando o usuário muda o estado selecionado
+                estadoSelect.addEventListener('change', () => {
+                    carregarCidades(estadoSelect.value);
+                });
+
+                // --- 2. SUBMISSÃO DO FORMULÁRIO ---
+
+                // Função para validar CPF (algoritmo padrão)
+                function validarCPF(cpf) {
+                    cpf = cpf.replace(/[^\d]+/g, '');
+                    if (cpf == '') return false;
+                    // Elimina CPFs invalidos conhecidos
+                    if (cpf.length != 11 ||
+                        cpf == "00000000000" ||
+                        cpf == "11111111111" ||
+                        cpf == "22222222222" ||
+                        cpf == "33333333333" ||
+                        cpf == "44444444444" ||
+                        cpf == "55555555555" ||
+                        cpf == "66666666666" ||
+                        cpf == "77777777777" ||
+                        cpf == "88888888888" ||
+                        cpf == "99999999999")
+                        return false;
+                    // Valida 1o digito
+                    let add = 0;
+                    for (let i = 0; i < 9; i++)
+                        add += parseInt(cpf.charAt(i)) * (10 - i);
+                    let rev = 11 - (add % 11);
+                    if (rev == 10 || rev == 11)
+                        rev = 0;
+                    if (rev != parseInt(cpf.charAt(9)))
+                        return false;
+                    // Valida 2o digito
+                    add = 0;
+                    for (let i = 0; i < 10; i++)
+                        add += parseInt(cpf.charAt(i)) * (11 - i);
+                    rev = 11 - (add % 11);
+                    if (rev == 10 || rev == 11)
+                        rev = 0;
+                    if (rev != parseInt(cpf.charAt(10)))
+                        return false;
+                    return true;
+                }
+
+                // Adiciona um evento que dispara quando o formulário é enviado
+                cadastroForm.addEventListener('submit', async (event) => {
+                    event.preventDefault(); // Impede o envio padrão do formulário (que recarregaria a página)
+                    errorMessageDiv.style.display = 'none'; // Esconde mensagens de erro antigas
+
+                    const cpf = cpfInput.value;
+
+                    if (!validarCPF(cpf)) {
+                        errorMessageDiv.textContent = 'CPF inválido. Por favor, verifique o número digitado.';
+                        errorMessageDiv.style.display = 'block';
+                        return; // Impede o envio do formulário
+                    }
+
+                    // Coleta os dados dos campos do formulário
+                    const formData = new FormData(cadastroForm);
+                    const data = {
+                        nome: formData.get('nome'),
+                        email: formData.get('email'),
+                        telefone: formData.get('telefone'),
+                        genero: formData.get('genero'),
+                        usuario: formData.get('usuario'),
+                        senha: formData.get('senha'),
+                        dataNascimento: formData.get('dataNascimento') || null,
+                        cpf: formData.get('cpf').replace(/\D/g, ''), // Envia apenas os números
+                        cidade: {
+                            id: formData.get('cidade')
+                        }
+                    };
+
+                    try {
+                        // Envia os dados para a API de criação de pessoas usando o método POST
+                        const response = await fetch('/api/pessoas', {
+                            method: 'POST',
+                            headers: {
+                                'Content-Type': 'application/json'
+                            },
+                            body: JSON.stringify(data) // Converte o objeto JavaScript para uma string JSON
+                        });
+
+                        // Se a resposta for um sucesso (status 201 Created), redireciona para a página de login
+                        if (response.ok) {
+                            alert('Cadastro realizado com sucesso! Você será redirecionado para a página de login.');
+                            window.location.href = '/login';
+                        } else {
+                            // Se a resposta for um erro (ex: 400 Bad Request por usuário duplicado),
+                            // pega a mensagem de erro do corpo da resposta e a exibe.
+                            const errorText = await response.text();
+                            errorMessageDiv.textContent = errorText;
+                            errorMessageDiv.style.display = 'block';
+                        }
+                    } catch (error) {
+                        // Se houver um erro de rede, exibe uma mensagem genérica.
+                        console.error('Erro de rede:', error);
+                        errorMessageDiv.textContent = 'Ocorreu um erro ao tentar se cadastrar. Tente novamente.';
                         errorMessageDiv.style.display = 'block';
                     }
-                } catch (error) {
-                    // Se houver um erro de rede, exibe uma mensagem genérica.
-                    console.error('Erro de rede:', error);
-                    errorMessageDiv.textContent = 'Ocorreu um erro ao tentar se cadastrar. Tente novamente.';
-                    errorMessageDiv.style.display = 'block';
-                }
-            });
+                });
 
-            // Carrega os estados assim que a página é carregada
-            carregarEstados();
+                // Carrega os estados assim que a página é carregada
+                carregarEstados();
+            } // Fim do if (cadastroForm)
         });
     </script>
 </body>
