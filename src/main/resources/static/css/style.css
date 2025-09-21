@@ -199,9 +199,13 @@ p { margin-bottom: calc(var(--spacing-unit) * 2); }
   color: var(--color-primary);
 }
 
+.nav-links {
+  display: flex; /* Garante que os links fiquem na mesma linha */
+  gap: calc(var(--spacing-unit) * 3); /* Espaçamento entre os links */
+}
+
 .nav-links a {
   color: var(--color-text);
-  margin-left: calc(var(--spacing-unit) * 3);
   padding: calc(var(--spacing-unit)) 0;
   text-transform: uppercase;
   font-weight: 700;
@@ -465,6 +469,99 @@ p { margin-bottom: calc(var(--spacing-unit) * 2); }
   color: var(--color-text-muted);
 }
 
+/* Estilos para a navegação do admin no rodapé */
+.admin-nav-links {
+  text-align: center;
+  margin-bottom: 1.5rem;
+}
+
+.admin-nav-links h4 {
+  color: var(--color-primary);
+  margin-bottom: 1rem;
+  font-size: 1.1rem;
+  text-transform: uppercase;
+  letter-spacing: 1px;
+}
+
+.admin-nav-links ul {
+  list-style: none;
+  padding: 0;
+  margin: 0;
+  display: flex;
+  flex-wrap: wrap;
+  justify-content: center;
+  gap: 0.5rem 1.5rem; /* Espaçamento vertical e horizontal */
+}
+
+.admin-nav-links a {
+  color: var(--color-text-muted);
+  text-decoration: none;
+  transition: color 0.3s ease;
+}
+
+.admin-nav-links a:hover {
+  color: var(--color-white);
+  text-decoration: underline;
+}
+
+/* Estilos para a página Minhas Avaliações */
+.avaliacao-card {
+  margin-bottom: calc(var(--spacing-unit) * 3);
+}
+
+.avaliacao-card .card-header {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  background-color: rgba(0,0,0,0.2);
+  padding: calc(var(--spacing-unit) * 1.5);
+  border-bottom: 1px solid var(--color-border);
+}
+
+.avaliacao-card .badge {
+  background-color: var(--color-primary);
+  color: var(--color-background);
+  padding: calc(var(--spacing-unit) * 0.5) var(--spacing-unit);
+  border-radius: var(--border-radius);
+  font-size: 0.8rem;
+  font-weight: 700;
+}
+
+.info-grid {
+  display: grid;
+  grid-template-columns: repeat(auto-fit, minmax(120px, 1fr));
+  gap: calc(var(--spacing-unit) * 2);
+  margin-bottom: calc(var(--spacing-unit) * 2);
+}
+
+.info-grid .info-item {
+  background-color: var(--color-background);
+  padding: var(--spacing-unit);
+  border-radius: var(--border-radius);
+  border: 1px solid var(--color-border);
+}
+
+.observacoes {
+  margin-top: calc(var(--spacing-unit) * 2);
+  background-color: var(--color-background);
+  padding: calc(var(--spacing-unit) * 1.5);
+  border-radius: var(--border-radius);
+  border-left: 3px solid var(--color-primary);
+  color: var(--color-text-muted);
+  font-style: italic;
+}
+
+.empty-state {
+  text-align: center;
+  padding: calc(var(--spacing-unit) * 5);
+}
+
+.empty-state .fas {
+  font-size: 3rem;
+  color: var(--color-primary);
+  margin-bottom: calc(var(--spacing-unit) * 2);
+}
+
 /* --- RESPONSIVIDADE --- */
 @media (max-width: 992px) {
   h1 { font-size: 2.5rem; }
@@ -547,24 +644,132 @@ p { margin-bottom: calc(var(--spacing-unit) * 2); }
     margin-right: var(--spacing-unit);
 }
 
-/* LOGIN PAGE */
-.login-container {
+/* --- ESTILOS ESPECÍFICOS PARA O FORMULÁRIO DE LOGIN --- */
+.login-container, .signup-container {
+    padding-top: calc(var(--header-height) + var(--spacing-unit) * 4);
+    padding-bottom: calc(var(--spacing-unit) * 4);
+    min-height: 100vh;
     display: flex;
     align-items: center;
     justify-content: center;
-    min-height: 100vh;
 }
 
-.login-card {
-    width: 100%;
-    max-width: 400px;
+.form-card {
+    background-color: var(--color-secondary);
+    border: 1px solid var(--color-border);
     padding: calc(var(--spacing-unit) * 5);
+    border-radius: var(--border-radius);
+    width: 100%;
+    max-width: 450px;
+    margin: 0 auto;
+    box-shadow: 0 10px 30px rgba(0,0,0,0.5);
 }
 
-.login-title {
+.form-card h1 {
     text-align: center;
     margin-bottom: calc(var(--spacing-unit) * 3);
 }
+
+.form-card h1 i {
+    color: var(--color-primary);
+    margin-right: var(--spacing-unit);
+}
+
+/* General form input styling */
+.form-card input[type="text"],
+.form-card input[type="email"],
+.form-card input[type="password"],
+.form-card input[type="date"],
+.form-card select {
+    width: 100%;
+    padding: calc(var(--spacing-unit) * 1.5);
+    background-color: #0d0d0d; /* Slightly different dark */
+    border: 1px solid var(--color-border);
+    border-radius: var(--border-radius);
+    color: var(--color-text);
+    font-size: 1rem;
+    transition: border-color 0.3s ease, box-shadow 0.3s ease;
+    margin-top: calc(var(--spacing-unit) * 0.5);
+}
+
+.form-card input[type="text"]:focus,
+.form-card input[type="email"]:focus,
+.form-card input[type="password"]:focus,
+.form-card input[type="date"]:focus,
+.form-card select:focus {
+    outline: none;
+    border-color: var(--color-primary);
+    box-shadow: 0 0 0 3px rgba(255, 107, 53, 0.25);
+}
+
+/* Placeholder text color */
+.form-card ::placeholder {
+    color: var(--color-text-muted);
+    opacity: 0.7;
+}
+
+/* Styling for select dropdown arrow */
+.form-card select {
+    appearance: none;
+    -webkit-appearance: none;
+    -moz-appearance: none;
+    background-image: url("data:image/svg+xml,%3csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 16 16'%3e%3cpath fill='none' stroke='%23888888' stroke-linecap='round' stroke-linejoin='round' stroke-width='2' d='M2 5l6 6 6-6'/%3e%3c/svg%3e");
+    background-repeat: no-repeat;
+    background-position: right calc(var(--spacing-unit) * 1.5) center;
+    background-size: 1em;
+}
+
+.form-card .form-group {
+    margin-bottom: calc(var(--spacing-unit) * 2);
+}
+
+.form-card .form-label {
+    display: block;
+    margin-bottom: var(--spacing-unit);
+    font-weight: 500;
+    font-size: 0.9rem;
+}
+
+.form-card .form-actions {
+    display: flex;
+    flex-direction: column; /* Empilha os botões */
+    gap: calc(var(--spacing-unit) * 2);
+    margin-top: calc(var(--spacing-unit) * 3);
+}
+
+.form-card .form-actions .btn {
+    width: 100%;
+    text-align: center;
+}
+
+.form-card .form-footer {
+    text-align: center;
+    margin-top: calc(var(--spacing-unit) * 3);
+    font-size: 0.9rem;
+}
+
+.form-message {
+    padding: calc(var(--spacing-unit) * 1.5);
+    margin-bottom: calc(var(--spacing-unit) * 2);
+    border-radius: var(--border-radius);
+    display: flex;
+    align-items: center;
+    gap: var(--spacing-unit);
+    font-size: 0.9rem;
+}
+
+.form-message.error-message {
+    background-color: rgba(231, 76, 60, 0.1);
+    color: #e74c3c;
+    border: 1px solid #e74c3c;
+}
+
+.form-message.success-message {
+    background-color: rgba(46, 204, 113, 0.1);
+    color: #2ecc71;
+    border: 1px solid #2ecc71;
+}
+
 
 /* SEPARATOR "OU" */
 .separator {

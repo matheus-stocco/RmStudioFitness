@@ -1,21 +1,27 @@
+<!--
+  Página de Planos.
+  Esta página tem a função de exibir todos os planos disponíveis, buscando os dados dinamicamente da API.
+  É muito semelhante à seção de planos da página inicial, mas em uma página dedicada.
+-->
 <!DOCTYPE html>
 <html lang="pt-BR" xmlns:th="http://www.thymeleaf.org" xmlns:sec="http://www.thymeleaf.org/extras/spring-security">
 <head>
   <meta charset="UTF-8">
-  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <meta name="viewport" content="width=device-width, initial-scale-1.0">
   <title>Nossos Planos - RMStudio Fitness</title>
   <link rel="stylesheet" href="/css/style.css">
   <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
 </head>
 <body>
 
-  <!-- Cabeçalho Dinâmico Reutilizado -->
+  <!-- Reutiliza o fragmento "header" definido em index.html -->
   <header class="header" th:replace="~{index :: header}"></header>
 
   <main class="main-content form-page-container">
     <section id="planos" class="section">
       <div class="container">
         <h2 class="section-title">Escolha seu <span>Plano</span></h2>
+        <!-- Contêiner onde os cards dos planos serão inseridos via JavaScript -->
         <div class="cards-grid" id="planos-grid">
           <!-- Os cards de planos serão inseridos aqui dinamicamente -->
         </div>
@@ -23,28 +29,31 @@
     </section>
   </main>
 
-  <footer class="footer">
-    <div class="container">
-      <div class="footer-bottom">
-        <p>&copy; 2025 RMStudio Fitness. Todos os direitos reservados.</p>
-      </div>
-    </div>
-  </footer>
+  <!-- Reutiliza o fragmento "footer" definido em index.html -->
+  <footer class="footer" th:replace="~{index :: footer}"></footer>
 
   <script>
-    // Script para carregar os planos
+    // --- LÓGICA PARA CARREGAR OS PLANOS DINAMICAMENTE ---
+    // Este script é praticamente idêntico ao da página inicial.
     document.addEventListener('DOMContentLoaded', async () => {
       const planosGrid = document.getElementById('planos-grid');
       try {
+        // 1. Busca os dados dos planos na API pública.
         const response = await fetch('/api/tipos-plano');
         if (!response.ok) throw new Error('Erro ao buscar planos.');
         const planos = await response.json();
+
+        // 2. Trata o caso de não haver planos cadastrados.
         if (planos.length === 0) {
           planosGrid.innerHTML = '<p style="text-align: center; color: var(--color-text-muted);">Nenhum plano cadastrado no momento.</p>';
           return;
         }
+
+        // 3. Lógica para destacar um plano (neste caso, o de maior valor).
         let planoDestaque = planos.reduce((max, p) => p.valor > max.valor ? p : max, planos[0]);
-        planosGrid.innerHTML = '';
+        planosGrid.innerHTML = ''; // Limpa a área
+
+        // 4. Itera sobre cada plano e cria o HTML correspondente.
         planos.forEach(plano => {
           const card = document.createElement('div');
           card.className = 'card plan-card';
@@ -65,9 +74,10 @@
             </ul>
             <a href="/autocadastro" class="btn ${isDestaque ? 'btn-primary' : 'btn-secondary'}">Matricule-se</a>
           `;
-          planosGrid.appendChild(card);
+          planosGrid.appendChild(card); // Adiciona o card à página
         });
       } catch (error) {
+        // 5. Exibe uma mensagem de erro se a busca falhar.
         console.error('Erro ao carregar planos:', error);
         planosGrid.innerHTML = '<p style="text-align: center; color: var(--color-primary);">Não foi possível carregar os planos. Tente novamente mais tarde.</p>';
       }

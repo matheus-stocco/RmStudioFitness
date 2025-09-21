@@ -87,4 +87,20 @@ public class ControleNavegacao {
         }
         return "perfil";
     }
+ 
+    @GetMapping("/minhas-avaliacoes")
+    public String minhasAvaliacoes(Model model, Authentication authentication) {
+        if (authentication != null && authentication.isAuthenticated()) {
+            // Em vez de usar o principal diretamente (que pode estar detached),
+            // pegamos o nome de usuário e buscamos do banco novamente para garantir
+            // que a sessão do Hibernate esteja ativa para carregar os dados.
+            String username = authentication.getName();
+            
+            // Usa o novo método do repositório que busca pelo username e já carrega as avaliações
+            pessoaRepository.findByUsuarioWithAvaliacoes(username).ifPresent(pessoaCompleta -> {
+                model.addAttribute("avaliacoes", pessoaCompleta.getAvaliacoes());
+            });
+        }
+        return "minhas-avaliacoes";
+    }
 }

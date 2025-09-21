@@ -1,3 +1,8 @@
+<!--
+  Página de Perfil do Usuário.
+  Esta página exibe as informações do usuário que está logado.
+  Ela reutiliza os fragmentos de cabeçalho e rodapé do index.html.
+-->
 <!DOCTYPE html>
 <html lang="pt-BR" xmlns:th="http://www.thymeleaf.org" xmlns:sec="http://www.thymeleaf.org/extras/spring-security">
 <head>
@@ -8,14 +13,27 @@
     <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
 </head>
 <body>
+    <!-- Inclui o cabeçalho reutilizável -->
     <header class="header" th:replace="~{index :: header}"></header>
 
     <main class="main-content form-page-container">
         <div class="container">
             <h1 class="page-title"><i class="fas fa-user-circle"></i> Meu Perfil</h1>
 
+            <!-- 
+                Container principal das informações.
+                - th:if="${pessoa != null}": Garante que o conteúdo só será renderizado se o objeto "pessoa"
+                  tiver sido enviado pelo controlador.
+            -->
             <div class="card form-card" th:if="${pessoa != null}">
                 <div class="profile-info">
+                    <!-- 
+                      Exibição dos dados da pessoa.
+                      - th:text="${pessoa.nome}": O Thymeleaf irá substituir o conteúdo desta tag pelo valor do atributo "nome"
+                        do objeto "pessoa" que veio do back-end.
+                      - O operador ternário (?:) é usado para fornecer um valor padrão caso o campo seja nulo ou vazio.
+                        Ex: th:text="${pessoa.telefone ?: 'Não informado'}"
+                    -->
                     <div class="info-item">
                         <span class="info-label">Nome Completo:</span>
                         <span class="info-value" th:text="${pessoa.nome}"></span>
@@ -49,6 +67,7 @@
                         <span class="info-value" th:text="${pessoa.localizacaoCompleta}"></span>
                     </div>
                 </div>
+                <!-- Botão de Ação (atualmente um placeholder) -->
                 <div class="form-actions" style="justify-content: center; margin-top: 24px;">
                     <a href="#" class="btn btn-primary"><i class="fas fa-edit"></i> Editar Informações</a>
                 </div>
@@ -56,6 +75,7 @@
         </div>
     </main>
 
+    <!-- Inclui o rodapé reutilizável -->
     <footer class="footer" th:replace="~{index :: footer}"></footer>
 </body>
 </html>

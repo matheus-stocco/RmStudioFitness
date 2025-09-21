@@ -1,0 +1,103 @@
+<!DOCTYPE html>
+<html lang="pt-BR" xmlns:th="http://www.thymeleaf.org" xmlns:sec="http://www.thymeleaf.org/extras/spring-security">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Minhas Avaliações Físicas - RMStudio Fitness</title>
+    <link rel="stylesheet" href="/css/style.css">
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
+</head>
+<body>
+
+<!-- Reutiliza o cabeçalho do index.html -->
+<header th:replace="~{index :: header}"></header>
+
+<main class="form-page-container">
+    <div class="container">
+        <h1 class="page-title">
+            <i class="fas fa-chart-line"></i>
+            Minhas Avaliações Físicas
+        </h1>
+
+        <!-- Seção para exibir as avaliações -->
+        <div class="avaliacoes-list">
+            
+            <!-- Mensagem caso não hajam avaliações (condição do Thymeleaf) -->
+            <div th:if="${#lists.isEmpty(avaliacoes)}" class="card empty-state">
+                <i class="fas fa-folder-open"></i>
+                <h3 class="card-title">Nenhuma Avaliação Encontrada</h3>
+                <p class="card-text">Você ainda não possui nenhuma avaliação física registrada no sistema.</p>
+            </div>
+
+            <!-- Loop para iterar sobre cada avaliação (condição do Thymeleaf) -->
+            <div th:if="${not #lists.isEmpty(avaliacoes)}" th:each="avaliacao : ${avaliacoes}" class="card avaliacao-card">
+                <div class="card-header">
+                    <h3 class="card-title">Avaliação de <span th:text="${#temporals.format(avaliacao.dataAvaliacao, 'dd/MM/yyyy')}"></span></h3>
+                    <span class="badge" th:text="${'IMC: ' + #numbers.formatDecimal(avaliacao.imc, 1, 2, 'COMMA')}"></span>
+                </div>
+                <div class="card-body">
+                    <div class="info-grid">
+                        <div class="info-item">
+                            <span class="info-label">Peso</span>
+                            <span class="info-value" th:text="${#numbers.formatDecimal(avaliacao.peso, 1, 1, 'COMMA') + ' kg'}"></span>
+                        </div>
+                        <div class="info-item">
+                            <span class="info-label">Altura</span>
+                            <span class="info-value" th:text="${#numbers.formatDecimal(avaliacao.altura, 1, 2, 'COMMA') + ' m'}"></span>
+                        </div>
+                        <div class="info-item">
+                            <span class="info-label">% Gordura</span>
+                            <span class="info-value" th:text="${#numbers.formatDecimal(avaliacao.gorduraCorporal, 1, 1, 'COMMA') + ' %'}"></span>
+                        </div>
+                        <div class="info-item">
+                            <span class="info-label">Massa Magra</span>
+                            <span class="info-value" th:text="${#numbers.formatDecimal(avaliacao.massaMagra, 1, 1, 'COMMA') + ' kg'}"></span>
+                        </div>
+                    </div>
+                    <h4>Medidas Corporais (cm)</h4>
+                    <div class="info-grid">
+                        <div class="info-item">
+                            <span class="info-label">Pescoço</span>
+                            <span class="info-value" th:text="${avaliacao.medidaPescoco}"></span>
+                        </div>
+                        <div class="info-item">
+                            <span class="info-label">Cintura</span>
+                            <span class="info-value" th:text="${avaliacao.medidaCintura}"></span>
+                        </div>
+                         <div class="info-item">
+                            <span class="info-label">Quadril</span>
+                            <span class="info-value" th:text="${avaliacao.medidaQuadril}"></span>
+                        </div>
+                        <div class="info-item">
+                            <span class="info-label">Braço Direito</span>
+                            <span class="info-value" th:text="${avaliacao.medidaBracoDireito}"></span>
+                        </div>
+                        <div class="info-item">
+                            <span class="info-label">Braço Esquerdo</span>
+                            <span class="info-value" th:text="${avaliacao.medidaBracoEsquerdo}"></span>
+                        </div>
+                        <div class="info-item">
+                            <span class="info-label">Perna Direita</span>
+                            <span class="info-value" th:text="${avaliacao.medidaPernaDireita}"></span>
+                        </div>
+                         <div class="info-item">
+                            <span class="info-label">Perna Esquerda</span>
+                            <span class="info-value" th:text="${avaliacao.medidaPernaEsquerda}"></span>
+                        </div>
+                    </div>
+                    <div th:if="${avaliacao.observacoes}" class="observacoes">
+                        <h4>Observações do Avaliador</h4>
+                        <p th:text="${avaliacao.observacoes}"></p>
+                    </div>
+                </div>
+            </div>
+
+        </div>
+    </div>
+</main>
+
+<!-- Reutiliza o rodapé do index.html -->
+<footer th:replace="~{index :: footer}"></footer>
+
+</body>
+</html>

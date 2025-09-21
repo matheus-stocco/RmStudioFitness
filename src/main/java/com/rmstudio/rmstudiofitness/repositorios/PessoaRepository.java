@@ -61,4 +61,10 @@ public interface PessoaRepository extends JpaRepository<Pessoa, Long> {
 
     @Query("SELECT p FROM Pessoa p LEFT JOIN FETCH p.cidade c LEFT JOIN FETCH c.estado WHERE p.id = :id")
     Optional<Pessoa> findByIdWithCidadeAndEstado(@Param("id") Long id);
+
+    @Query("SELECT p FROM Pessoa p LEFT JOIN FETCH p.avaliacoes WHERE p.id = :id")
+    Optional<Pessoa> findByIdWithAvaliacoes(@Param("id") Long id);
+
+    @Query("SELECT p FROM Pessoa p LEFT JOIN FETCH p.avaliacoes WHERE p.usuario = :usuario")
+    Optional<Pessoa> findByUsuarioWithAvaliacoes(@Param("usuario") String usuario);
 }

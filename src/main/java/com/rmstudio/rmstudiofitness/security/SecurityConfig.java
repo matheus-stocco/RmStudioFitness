@@ -32,27 +32,40 @@ public class SecurityConfig {
         http
             .authorizeHttpRequests(authorizeRequests ->
                 authorizeRequests
-                    // Recursos estáticos e páginas públicas
-                    .requestMatchers("/", "/index.html", "/TiposDePlanos.html", "/planos").permitAll()
-                    .requestMatchers("/css/**", "/js/**", "/images/**", "/webjars/**").permitAll() 
+                    // ===============================================================================================
+                    // REGRAS PÚBLICAS (EXECUTADAS PRIMEIRO)
+                    // Liberar acesso a recursos estáticos (CSS, JS, Imagens) para todos.
+                    .requestMatchers("/css/**", "/js/**", "/images/**", "/webjars/**").permitAll()
+                    // Liberar acesso às páginas públicas principais.
+                    .requestMatchers("/", "/index.html", "/planos", "/TiposDePlanos.html").permitAll()
+                    // Liberar acesso às páginas de login e autocadastro.
                     .requestMatchers("/login", "/error", "/autocadastro", "/FormularioAutoCadastro.html").permitAll()
-
-                    // APIs públicas
-                    .requestMatchers(HttpMethod.GET, "/api/tipos-plano").permitAll() // API de planos para a home
-                    .requestMatchers(HttpMethod.POST, "/api/pessoas").permitAll() // Endpoint de autocadastro
-                    .requestMatchers(HttpMethod.GET, "/api/estados/**", "/api/cidades/**").permitAll() // APIs para o formulário
-                    
-                    // Acesso ADMIN para APIs de escrita (garante que só admins modifiquem dados)
+                    // Liberar acesso às APIs públicas necessárias para o frontend.
+                    .requestMatchers(HttpMethod.GET, "/api/tipos-plano", "/api/estados/**", "/api/cidades/**").permitAll()
+                    .requestMatchers(HttpMethod.POST, "/api/pessoas").permitAll() // API de autocadastro
+ 
+                    // ===============================================================================================
+                    // REGRAS DE ADMIN (Páginas e APIs de escrita)
+                    // Apenas usuários com perfil ADMIN podem acessar estas páginas de gerenciamento.
+                    .requestMatchers(
+                        "/membros", "/tipos-plano", "/avaliacoes", "/cidades",
+                        "/estados", "/exercicios", "/itens-plano", "/planos-aula"
+                    ).hasRole("ADMIN")
+                    // Apenas ADMINs podem realizar operações de escrita (POST, PUT, DELETE) na API.
                     .requestMatchers(HttpMethod.POST, "/api/**").hasRole("ADMIN")
                     .requestMatchers(HttpMethod.PUT, "/api/**").hasRole("ADMIN")
                     .requestMatchers(HttpMethod.DELETE, "/api/**").hasRole("ADMIN")
-
-                    .anyRequest().authenticated() // Todas as outras requisições exigem autenticação
+ 
+                    // ===============================================================================================
+                    // REGRAS PARA USUÁRIOS AUTENTICADOS
+                    // Qualquer outra requisição que não se encaixou nas regras acima exige que o usuário esteja autenticado.
+                    // Isso inclui páginas como /perfil e /minhas-avaliacoes.
+                    .anyRequest().authenticated()
             )
             .formLogin(formLogin ->
                 formLogin
                     .loginPage("/login") // Página de login customizada
-                    .defaultSuccessUrl("/perfil", true) // Redireciona para a home após o login
+                    .defaultSuccessUrl("/", true) // Redireciona para a home após o login
                     .permitAll()
             )
             .logout(logout ->

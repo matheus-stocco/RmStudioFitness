@@ -45,6 +45,31 @@ public class AvaliacaoFisica implements Serializable {
     @Column(name = "gordura_visceral", precision = 10, scale = 2)
     private BigDecimal gorduraVisceral;
 
+    // Medidas Corporais (em cm)
+    @Column(name = "medida_pescoco", precision = 10, scale = 2)
+    private BigDecimal medidaPescoco;
+
+    @Column(name = "medida_cintura", precision = 10, scale = 2)
+    private BigDecimal medidaCintura;
+
+    @Column(name = "medida_quadril", precision = 10, scale = 2)
+    private BigDecimal medidaQuadril;
+
+    @Column(name = "medida_braco_direito", precision = 10, scale = 2)
+    private BigDecimal medidaBracoDireito;
+
+    @Column(name = "medida_braco_esquerdo", precision = 10, scale = 2)
+    private BigDecimal medidaBracoEsquerdo;
+
+    @Column(name = "medida_perna_direita", precision = 10, scale = 2)
+    private BigDecimal medidaPernaDireita;
+
+    @Column(name = "medida_perna_esquerda", precision = 10, scale = 2)
+    private BigDecimal medidaPernaEsquerda;
+
+    @Column(length = 500)
+    private String observacoes;
+
     @ManyToOne(optional = false, fetch = FetchType.LAZY)
     @JoinColumn(name = "pessoa_id", nullable = false)
     private Pessoa pessoa;
@@ -99,12 +124,37 @@ public class AvaliacaoFisica implements Serializable {
     public BigDecimal getGorduraVisceral() { return gorduraVisceral; }
     public void setGorduraVisceral(BigDecimal gorduraVisceral) { this.gorduraVisceral = gorduraVisceral; }
 
+    public BigDecimal getMedidaPescoco() { return medidaPescoco; }
+    public void setMedidaPescoco(BigDecimal medidaPescoco) { this.medidaPescoco = medidaPescoco; }
+
+    public BigDecimal getMedidaCintura() { return medidaCintura; }
+    public void setMedidaCintura(BigDecimal medidaCintura) { this.medidaCintura = medidaCintura; }
+
+    public BigDecimal getMedidaQuadril() { return medidaQuadril; }
+    public void setMedidaQuadril(BigDecimal medidaQuadril) { this.medidaQuadril = medidaQuadril; }
+
+    public BigDecimal getMedidaBracoDireito() { return medidaBracoDireito; }
+    public void setMedidaBracoDireito(BigDecimal medidaBracoDireito) { this.medidaBracoDireito = medidaBracoDireito; }
+
+    public BigDecimal getMedidaBracoEsquerdo() { return medidaBracoEsquerdo; }
+    public void setMedidaBracoEsquerdo(BigDecimal medidaBracoEsquerdo) { this.medidaBracoEsquerdo = medidaBracoEsquerdo; }
+
+    public BigDecimal getMedidaPernaDireita() { return medidaPernaDireita; }
+    public void setMedidaPernaDireita(BigDecimal medidaPernaDireita) { this.medidaPernaDireita = medidaPernaDireita; }
+
+    public BigDecimal getMedidaPernaEsquerda() { return medidaPernaEsquerda; }
+    public void setMedidaPernaEsquerda(BigDecimal medidaPernaEsquerda) { this.medidaPernaEsquerda = medidaPernaEsquerda; }
+
+    public String getObservacoes() { return observacoes; }
+    public void setObservacoes(String observacoes) { this.observacoes = observacoes; }
+
     public Pessoa getPessoa() { return pessoa; }
     public void setPessoa(Pessoa pessoa) { this.pessoa = pessoa; }
 
     // Utilitários
     /** Calcula o IMC = peso / (altura^2). */
-    public BigDecimal getCalcularIMC() {
+    @Transient // Garante que o JPA não tente mapear este método como uma coluna no banco
+    public BigDecimal getImc() {
         if (peso != null && altura != null && altura.compareTo(BigDecimal.ZERO) > 0) {
             return peso.divide(altura.multiply(altura), 2, RoundingMode.HALF_UP);
         }
@@ -112,8 +162,9 @@ public class AvaliacaoFisica implements Serializable {
     }
 
     /** Classificação textual do IMC. */
-    public String getClassificarIMC() {
-        BigDecimal imc = getCalcularIMC();
+    @Transient
+    public String getClassificacaoImc() {
+        BigDecimal imc = getImc();
         if (imc == null) return "N/A";
 
         if (imc.compareTo(new BigDecimal("18.5")) < 0) return "Abaixo do peso";

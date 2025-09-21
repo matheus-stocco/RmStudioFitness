@@ -1,90 +1,91 @@
+<!--
+  Página de Login.
+  Utiliza o cabeçalho reutilizável (header) do index.html.
+-->
 <!DOCTYPE html>
 <html lang="pt-BR" xmlns:th="http://www.thymeleaf.org">
 <head>
-  <meta charset="UTF-8">
-  <meta name="viewport" content="width=device-width, initial-scale=1.0">
-  <title>Login - RMStudio Fitness</title>
-  <link rel="stylesheet" href="/css/style.css"/>
-  <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Login - RMStudio Fitness</title>
+    <link rel="stylesheet" href="/css/style.css">
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
 </head>
 <body>
-<div class="login-container">
-  <div class="card login-card">
-    <h1 class="login-title">
-      <a class="brand" href="/index.html">
-        <i class="fas fa-dumbbell"></i>
-        <span>RM</span>Studio
-      </a>
-    </h1>
-    <!-- Mensagens de erro/sucesso agora são tratadas via pop-up -->
-    <form th:action="@{/login}" method="post">
-      <div class="form-group">
-        <label for="username" class="form-label">Usuário:</label>
-        <input type="text" id="username" name="username" class="form-control" required>
-      </div>
-      <div class="form-group">
-        <label for="password" class="form-label">Senha:</label>
-        <input type="password" id="password" name="password" class="form-control" required>
-      </div>
-      <div class="form-group">
-        <button type="submit" class="btn btn-primary" style="width: 100%;">Entrar</button>
-      </div>
-    </form>
-    <div style="text-align: center; margin-top: 16px; margin-bottom: 16px;">
-      <a href="/recuperar-senha.html">Esqueceu sua senha?</a>
-    </div>
+    
+    <!-- Inclui o cabeçalho definido em index.html -->
+    <header class="header" th:replace="~{index :: header}"></header>
 
-    <div class="separator">ou</div>
+    <main class="main-content form-page-container">
+        <div class="container">
+            <h1 class="page-title"><i class="fas fa-sign-in-alt"></i> Acessar minha conta</h1>
 
-    <a th:href="@{/autocadastro}" class="btn btn-secondary" style="width: 100%; margin-top: 16px; text-align: center;">
-      Cadastre-se
-    </a>
-  </div>
-</div>
+            <!-- 
+                Formulário de Login.
+                - th:action="@{/login}": O atributo 'action' aponta para o endpoint "/login" que o Spring Security
+                  monitora para processar as tentativas de autenticação.
+                - method="post": O login do Spring Security espera uma requisição POST.
+            -->
+            <form th:action="@{/login}" method="post" class="card form-card">
 
-<!-- Contêiner para a notificação -->
-<div id="toast-container"></div>
+                <!-- 
+                  Exibição de Erros de Login.
+                  - th:if="${param.error}": Esta div só será exibida se a URL contiver um parâmetro "error".
+                    O Spring Security adiciona esse parâmetro automaticamente após uma tentativa de login falha.
+                -->
+                <div th:if="${param.error}" class="form-message error-message">
+                    <i class="fas fa-exclamation-triangle"></i>
+                    Usuário ou senha inválidos.
+                </div>
 
-<script>
-  document.addEventListener('DOMContentLoaded', () => {
-    const params = new URLSearchParams(window.location.search);
+                <!-- 
+                  Exibição de Mensagem de Logout.
+                  - th:if="${param.logout}": Esta div só será exibida se a URL contiver um parâmetro "logout".
+                    O Spring Security redireciona para cá com esse parâmetro após um logout bem-sucedido.
+                -->
+                <div th:if="${param.logout}" class="form-message success-message">
+                    <i class="fas fa-check-circle"></i>
+                    Você saiu com sucesso.
+                </div>
 
-    function showToast(message, type = 'error', duration = 5000) {
-      const container = document.getElementById('toast-container');
-      
-      const toast = document.createElement('div');
-      toast.className = `toast-notification ${type}`;
-      
-      let iconClass = 'fas fa-exclamation-circle';
-      if (type === 'success') {
-        iconClass = 'fas fa-check-circle';
-      }
+                <!-- Campo de Usuário -->
+                <div class="form-group">
+                    <label for="username">Usuário</label>
+                    <!-- 
+                      'name="username"': O Spring Security, por padrão, espera que o campo do nome de usuário
+                      se chame "username".
+                    -->
+                    <input type="text" id="username" name="username" placeholder="Seu nome de usuário" required autofocus>
+                </div>
 
-      toast.innerHTML = `<i class="${iconClass}"></i> ${message}`;
-      
-      container.appendChild(toast);
+                <!-- Campo de Senha -->
+                <div class="form-group">
+                    <label for="password">Senha</label>
+                    <!-- 
+                      'name="password"': O Spring Security, por padrão, espera que o campo da senha
+                      se chame "password".
+                    -->
+                    <input type="password" id="password" name="password" placeholder="Sua senha" required>
+                </div>
 
-      // Trigger a reflow to enable the animation
-      setTimeout(() => {
-        toast.classList.add('show');
-      }, 10);
+                <!-- Ações do Formulário -->
+                <div class="form-actions">
+                    <button type="submit" class="btn btn-primary">Entrar</button>
+                    <!-- Link para a página de autocadastro -->
+                    <a th:href="@{/autocadastro}" class="btn btn-secondary" style="width: 100%; margin-top: 16px; text-align: center;">
+                        Cadastre-se
+                    </a>
+                </div>
 
-      // Hide and remove the toast after the duration
-      setTimeout(() => {
-        toast.classList.remove('show');
-        toast.addEventListener('transitionend', () => toast.remove());
-      }, duration);
-    }
+                <div class="form-footer">
+                    <a href="#">Esqueceu sua senha?</a>
+                </div>
+            </form>
+        </div>
+    </main>
 
-    if (params.has('error')) {
-      showToast('Usuário ou senha inválidos.', 'error');
-    }
-
-    if (params.has('logout')) {
-      showToast('Você foi desconectado com sucesso.', 'success');
-    }
-  });
-</script>
+    <!-- Inclui o rodapé definido em index.html -->
+    <footer class="footer" th:replace="~{index :: footer}"></footer>
 
 </body>
 </html>

@@ -1,40 +1,65 @@
+<!--
+  Este é o arquivo HTML principal da aplicação, a página inicial.
+  Ele utiliza Thymeleaf para integração com o back-end Spring Boot e Spring Security.
+
+  - xmlns:th="http://www.thymeleaf.org": Namespace para os atributos do Thymeleaf (ex: th:href, th:text).
+  - xmlns:sec="http://www.thymeleaf.org/extras/spring-security": Namespace para os atributos de segurança (ex: sec:authorize).
+-->
 <!DOCTYPE html>
 <html lang="pt-BR" xmlns:th="http://www.thymeleaf.org" xmlns:sec="http://www.thymeleaf.org/extras/spring-security">
 <head>
   <meta charset="UTF-8">
   <meta name="viewport" content="width=device-width, initial-scale=1.0">
   <title>RMStudio Fitness - Sua Academia Completa</title>
+  <!-- Links para as folhas de estilo (CSS) -->
   <link rel="stylesheet" href="/css/style.css">
   <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
 </head>
 <body>
+  <!-- 
+    CABEÇALHO (HEADER)
+    - th:fragment="header": Define este header como um "fragmento" reutilizável com o nome "header".
+      Outras páginas podem incluí-lo usando th:replace="~{index :: header}".
+    - A navegação é dinâmica, mostrando diferentes links e botões dependendo se o usuário está logado ou não.
+  -->
   <header class="header" th:fragment="header">
     <div class="container">
       <nav class="navbar">
         <div class="navbar-left">
+          <!-- Logo/Marca do site -->
           <a class="brand" th:href="@{/}">
             <i class="fas fa-dumbbell"></i>
             <span>RM</span>Studio
           </a>
-          <!-- Links que aparecem para todos -->
+          <!-- 
+            Links de Navegação 
+            - th:href="@{...}": Cria URLs dinâmicas gerenciadas pelo Spring Boot, garantindo que os links funcionem corretamente.
+            - sec:authorize="...": Atributo do Spring Security. O conteúdo dentro desta tag só será renderizado se a condição for verdadeira.
+          -->
           <div class="nav-links">
             <a th:href="@{/}">Home</a>
             <a th:href="@{/planos}">Planos</a>
-            <!-- Links que aparecem apenas quando logado -->
-            <a sec:authorize="isAuthenticated()" th:href="@{/membros}">Membros</a>
-            <a sec:authorize="hasRole('ROLE_ADMIN')" th:href="@{/tipos-plano}">Gestão de Planos</a>
+            <!-- Link visível apenas para usuários autenticados (logados) -->
+            <a sec:authorize="isAuthenticated()" th:href="@{/minhas-avaliacoes}">Minhas Avaliações</a>
+            <a sec:authorize="isAuthenticated()" th:href="@{/perfil}">Perfil</a>
+            <!-- Link visível apenas para administradores -->
+            <a sec:authorize="hasRole('ADMIN')" th:href="@{/tipos-plano}">Gestão de Planos</a>
+            <a sec:authorize="hasRole('ADMIN')" th:href="@{/membros}">Membros</a>
+            <a sec:authorize="hasRole('ADMIN')" th:href="@{/avaliacoes}">Avaliações Físicas</a>
           </div>
         </div>
 
-        <!-- Botão de Login / Menu do Usuário -->
+        <!-- Lado direito da barra de navegação -->
         <div class="navbar-right">
-          <!-- Visível apenas para visitantes -->
+          <!-- Visível apenas para visitantes (não autenticados) -->
           <div sec:authorize="!isAuthenticated()">
             <a th:href="@{/login}" class="btn btn-primary">Login / Cadastre-se</a>
           </div>
           <!-- Visível apenas para usuários logados -->
           <div sec:authorize="isAuthenticated()" class="user-menu">
+            <!-- sec:authentication="name": Exibe o nome do usuário logado -->
             <span class="user-info">Olá, <span sec:authentication="name"></span></span>
+            <!-- Formulário de Logout do Spring Security -->
             <form th:action="@{/logout}" method="post">
               <button type="submit" class="btn-logout" title="Sair">
                 <i class="fas fa-sign-out-alt"></i>
@@ -43,6 +68,7 @@
           </div>
         </div>
         
+        <!-- Botão para menu mobile (hamburger) -->
         <button class="nav-toggle" aria-label="Abrir menu">
           <i class="fas fa-bars"></i>
         </button>
@@ -50,7 +76,9 @@
     </div>
   </header>
 
+  <!-- Conteúdo Principal da Página -->
   <main>
+    <!-- Seção Hero: A primeira coisa que o usuário vê -->
     <section class="hero">
       <div class="hero-content">
         <h1 class="hero-title">
@@ -62,9 +90,14 @@
       </div>
     </section>
 
+    <!-- Seção de Planos -->
     <section id="planos" class="section">
       <div class="container">
         <h2 class="section-title">Escolha seu plano</h2>
+        <!-- 
+          Esta div é o contêiner onde os planos serão inseridos dinamicamente pelo JavaScript.
+          Inicialmente, ela está vazia.
+        -->
         <div class="cards-grid" id="planos-grid">
           <!-- Os cards de planos serão inseridos aqui dinamicamente -->
         </div>
@@ -72,6 +105,10 @@
     </section>
   </main>
 
+  <!-- 
+    RODAPÉ (FOOTER)
+    - th:fragment="footer": Define este footer como um fragmento reutilizável com o nome "footer".
+  -->
   <footer class="footer" th:fragment="footer">
     <div class="container">
       <div class="footer-bottom">
@@ -80,46 +117,61 @@
     </div>
   </footer>
 
+  <!-- SCRIPTS JAVASCRIPT -->
   <script>
-    // Mobile nav toggle
+    // --- LÓGICA PARA O MENU MOBILE ---
+    // Seleciona o botão e a lista de links
     const navToggle = document.querySelector('.nav-toggle');
     const navLinks = document.querySelector('.nav-links');
     if (navToggle) {
+        // Adiciona um evento de clique ao botão
         navToggle.addEventListener('click', () => {
+            // Alterna a classe 'open' na lista de links para mostrá-la ou escondê-la (controlado via CSS)
             navLinks.classList.toggle('open');
         });
     }
 
+    // --- LÓGICA PARA CARREGAR OS PLANOS DINAMICAMENTE ---
+    // Adiciona um evento que dispara quando o HTML da página foi completamente carregado
     document.addEventListener('DOMContentLoaded', async () => {
+      // Seleciona a div onde os planos serão exibidos
       const planosGrid = document.getElementById('planos-grid');
       
       try {
+        // Faz uma requisição (fetch) para a API de tipos de plano no back-end
         const response = await fetch('/api/tipos-plano');
+        // Se a resposta da API não for bem-sucedida (ex: erro 404 ou 500), lança um erro
         if (!response.ok) throw new Error('Erro ao buscar planos.');
         
+        // Converte a resposta da API (que está em formato JSON) para um objeto JavaScript
         const planos = await response.json();
         
+        // Se não houver planos retornados pela API, exibe uma mensagem
         if (planos.length === 0) {
           planosGrid.innerHTML = '<p style="text-align: center; color: var(--color-text-muted);">Nenhum plano cadastrado no momento.</p>';
           return;
         }
 
-        // Limpa o conteúdo estático
+        // Limpa qualquer conteúdo estático que possa existir na div
         planosGrid.innerHTML = '';
 
+        // Itera sobre cada plano recebido da API
         planos.forEach((plano, index) => {
+          // Cria os elementos HTML para o card do plano
           const card = document.createElement('div');
           card.className = 'card plan-card';
 
-          // Adiciona a classe 'popular' e o badge para o segundo plano, como exemplo
+          // Lógica de exemplo para destacar o segundo plano
           if (index === 1) {
             card.classList.add('popular');
             card.innerHTML += '<div class="plan-badge">Melhor Escolha</div>';
           }
           
+          // Formata o valor do plano para o formato de moeda brasileiro (BRL)
           const valorFormatado = new Intl.NumberFormat('pt-BR', { style: 'currency', currency: 'BRL' }).format(plano.valor);
           const [reais, centavos] = valorFormatado.replace('R$', '').trim().split(',');
 
+          // Monta o conteúdo HTML do card com os dados do plano
           card.innerHTML += `
             <h3 class="card-title">${plano.nome}</h3>
             <div class="plan-price">
@@ -130,10 +182,12 @@
             </ul>
             <a href="/autocadastro" class="btn ${index === 1 ? 'btn-primary' : 'btn-secondary'}">Matricule-se</a>
           `;
+          // Adiciona o card recém-criado à div na página
           planosGrid.appendChild(card);
         });
 
       } catch (error) {
+        // Se ocorrer qualquer erro durante o processo (fetch, conversão, etc.), exibe uma mensagem de erro no console e na página
         console.error('Erro ao carregar planos:', error);
         planosGrid.innerHTML = '<p style="text-align: center; color: var(--color-primary);">Não foi possível carregar os planos. Tente novamente mais tarde.</p>';
       }
