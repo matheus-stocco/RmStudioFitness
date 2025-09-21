@@ -7,9 +7,11 @@ import java.util.ArrayList;
 import java.util.Arrays;
 import java.util.Collections;
 import java.util.Comparator;
+import java.util.HashSet;
 import java.util.LinkedHashMap;
 import java.util.List;
 import java.util.Map;
+import java.util.Set;
 import java.util.stream.Collectors;
 
 @Entity
@@ -24,7 +26,7 @@ public class PlanoDeAula implements Serializable {
     @Column(nullable = false, length = 100)
     private String nome;
 
-    @Column(nullable = false, length = 100)
+    @Column(nullable = true, length = 100)
     private String descricao;
 
     @Column(name = "data_inicio", nullable = false)
@@ -38,7 +40,7 @@ public class PlanoDeAula implements Serializable {
     private Pessoa aluno;
 
     @OneToMany(mappedBy = "planoDeAula", cascade = CascadeType.ALL, orphanRemoval = true)
-    private List<ItemPlanoDeAula> itens = new ArrayList<>();
+    private Set<ItemPlanoDeAula> itens = new HashSet<>();
 
     @Column(name = "data_criacao", nullable = false, updatable = false)
     private LocalDateTime dataCriacao;
@@ -127,11 +129,11 @@ public class PlanoDeAula implements Serializable {
         this.aluno = aluno;
     }
 
-    public List<ItemPlanoDeAula> getItens() {
+    public Set<ItemPlanoDeAula> getItens() {
         return itens;
     }
 
-    public void setItens(List<ItemPlanoDeAula> itens) {
+    public void setItens(Set<ItemPlanoDeAula> itens) {
         this.itens.clear();
         if (itens != null) {
             for(ItemPlanoDeAula item : itens) {
@@ -144,7 +146,7 @@ public class PlanoDeAula implements Serializable {
         this.itens.add(item);
         item.setPlanoDeAula(this);
     }
-    
+
     public LocalDateTime getDataCriacao() {
         return dataCriacao;
     }

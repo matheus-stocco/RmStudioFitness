@@ -73,6 +73,11 @@ public class SecurityConfig {
                     .logoutSuccessUrl("/login?logout") // Redireciona para a página de login com parâmetro
                     .permitAll()
             )
+            .rememberMe(rememberMe ->
+                rememberMe
+                    .key("umaChaveMuitoSecreta") // Deve ser uma chave secreta e única
+                    .tokenValiditySeconds(86400)  // Validade de 1 dia (em segundos)
+            )
             .csrf(csrf -> csrf.disable()); // Desabilitar CSRF para simplificar, mas não recomendado em produção
 
         return http.build();

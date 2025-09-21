@@ -766,6 +766,27 @@ p { margin-bottom: calc(var(--spacing-unit) * 2); }
     margin-bottom: calc(var(--spacing-unit) * 2);
 }
 
+/* Estilo para o "Lembrar-me" */
+.form-group.remember-me {
+    display: flex;
+    align-items: center;
+    gap: calc(var(--spacing-unit) * 1);
+    margin-bottom: calc(var(--spacing-unit) * 2.5); /* Mantém o espaçamento consistente */
+}
+
+.form-group.remember-me input[type="checkbox"] {
+    width: auto; /* Remove a largura total padrão */
+    accent-color: var(--color-primary); /* Cor do checkbox */
+    transform: scale(1.2); /* Aumenta um pouco o tamanho */
+}
+
+.form-group.remember-me label {
+    margin-bottom: 0; /* Remove a margem inferior do label */
+    font-weight: 400; /* Peso da fonte normal */
+    font-size: 0.9rem;
+    color: var(--color-text-muted);
+}
+
 .form-card .form-label {
     display: block;
     margin-bottom: var(--spacing-unit);
