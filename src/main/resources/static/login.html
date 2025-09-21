@@ -16,12 +16,7 @@
         <span>RM</span>Studio
       </a>
     </h1>
-    <div th:if="${param.error}" class="alert alert-danger">
-      Usuário ou senha inválidos.
-    </div>
-    <div th:if="${param.logout}" class="alert alert-success">
-      Você foi desconectado.
-    </div>
+    <!-- Mensagens de erro/sucesso agora são tratadas via pop-up -->
     <form th:action="@{/login}" method="post">
       <div class="form-group">
         <label for="username" class="form-label">Usuário:</label>
@@ -46,5 +41,50 @@
     </a>
   </div>
 </div>
+
+<!-- Contêiner para a notificação -->
+<div id="toast-container"></div>
+
+<script>
+  document.addEventListener('DOMContentLoaded', () => {
+    const params = new URLSearchParams(window.location.search);
+
+    function showToast(message, type = 'error', duration = 5000) {
+      const container = document.getElementById('toast-container');
+      
+      const toast = document.createElement('div');
+      toast.className = `toast-notification ${type}`;
+      
+      let iconClass = 'fas fa-exclamation-circle';
+      if (type === 'success') {
+        iconClass = 'fas fa-check-circle';
+      }
+
+      toast.innerHTML = `<i class="${iconClass}"></i> ${message}`;
+      
+      container.appendChild(toast);
+
+      // Trigger a reflow to enable the animation
+      setTimeout(() => {
+        toast.classList.add('show');
+      }, 10);
+
+      // Hide and remove the toast after the duration
+      setTimeout(() => {
+        toast.classList.remove('show');
+        toast.addEventListener('transitionend', () => toast.remove());
+      }, duration);
+    }
+
+    if (params.has('error')) {
+      showToast('Usuário ou senha inválidos.', 'error');
+    }
+
+    if (params.has('logout')) {
+      showToast('Você foi desconectado com sucesso.', 'success');
+    }
+  });
+</script>
+
 </body>
 </html>

@@ -1,13 +1,14 @@
 <!DOCTYPE html>
 <html lang="pt-BR">
 <head>
-  <meta charset="UTF-8"/>
-  <meta name="viewport" content="width=device-width, initial-scale=1"/>
-  <title>RMStudio Fitness • Gestão de Academia</title>
-  <link rel="stylesheet" href="/css/style.css"/>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>RMStudio Fitness - Sua Academia Completa</title>
+  <link rel="stylesheet" href="/css/style.css">
   <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
 </head>
 <body>
+
   <header class="header">
     <div class="container">
       <nav class="navbar">
@@ -19,150 +20,52 @@
           <i class="fas fa-bars"></i>
         </button>
         <div class="nav-links">
-          <a class="active" href="/index.html">Home</a>
-          <a href="/CadastroPessoas.html">Membros</a>
-          <a href="/CadastroPlanoAula.html">Aulas</a>
+          <a href="/index.html">Home</a>
+          <a href="/TiposDePlanos.html">Planos</a>
+          <a class="active" href="/CadastroPessoas.html">Membros</a>
+          <a href="/CadastroPlanoAula.html">Planos de Aulas</a>
           <a href="/CadastroExercicios.html">Exercícios</a>
           <a href="/CadastroAvaliacaoFisica.html">Avaliações</a>
-          <a href="/CadastroTipoPlano.html">Planos</a>
+          <a href="/CadastroTipoPlano.html">Cadastro de Planos</a>
           <a href="/CadastroEstado.html">Estados</a>
           <a href="/CadastroCidade.html">Cidades</a>
-          <a href="/login.html">Login</a>
+          <a href="/login.html">Login / Cadastre-se</a>
         </div>
       </nav>
     </div>
   </header>
 
   <main>
-    <!-- HERO SECTION -->
     <section class="hero">
-      <div class="container">
-        <h1 class="hero-title">Gerencie sua Academia com Poder e Precisão</h1>
-        <p class="hero-subtitle">
-          A plataforma definitiva para transformar a gestão do seu espaço fitness. Do controle de membros aos planos de treino, tudo em um só lugar.
-        </p>
-        <div class="hero-actions">
-          <a href="/CadastroPessoas.html" class="btn btn-primary">Começar Agora</a>
-          <a href="#features" class="btn btn-secondary">Ver Funcionalidades</a>
-        </div>
+      <div class="hero-content">
+        <h1 class="hero-title">
+          Treine em uma <br>
+          <span class="highlight">Academia Completa</span>
+        </h1>
+        <p class="hero-subtitle">Sem taxa de matrícula e sem multa. Comece a transformar seu corpo hoje mesmo!</p>
+        <a href="#planos" class="btn btn-primary btn-lg">Conheça os Planos</a>
       </div>
     </section>
 
-    <!-- FEATURES SECTION -->
-    <section id="features" class="section">
+    <section id="planos" class="section">
       <div class="container">
-        <h2 class="section-title">Funcionalidades Principais</h2>
-        <div class="cards-grid">
-          <!-- Card 1: Gestão de Membros -->
-          <div class="card">
-            <div class="card-icon"><i class="fas fa-users"></i></div>
-            <h3 class="card-title">Gestão de Membros</h3>
-            <p class="card-text">Cadastre, gerencie e acompanhe a evolução de todos os seus alunos de forma centralizada e eficiente.</p>
-            <a href="/CadastroPessoas.html" class="card-link">Gerenciar Membros <i class="fas fa-arrow-right"></i></a>
-          </div>
-
-          <!-- Card 2: Planos de Aula -->
-          <div class="card">
-            <div class="card-icon"><i class="fas fa-calendar-alt"></i></div>
-            <h3 class="card-title">Planos de Aula</h3>
-            <p class="card-text">Crie planos de treino personalizados, atribua a alunos e defina metas de performance claras.</p>
-            <a href="/CadastroPlanoAula.html" class="card-link">Montar Planos <i class="fas fa-arrow-right"></i></a>
-          </div>
-
-          <!-- Card 3: Biblioteca de Exercícios -->
-          <div class="card">
-            <div class="card-icon"><i class="fas fa-running"></i></div>
-            <h3 class="card-title">Biblioteca de Exercícios</h3>
-            <p class="card-text">Construa uma base de exercícios completa para agilizar a criação de treinos variados e eficazes.</p>
-            <a href="/CadastroExercicios.html" class="card-link">Ver Exercícios <i class="fas fa-arrow-right"></i></a>
-          </div>
-
-          <!-- Card 4: Avaliações Físicas -->
-          <div class="card">
-            <div class="card-icon"><i class="fas fa-chart-line"></i></div>
-            <h3 class="card-title">Avaliações Físicas</h3>
-            <p class="card-text">Registre e analise avaliações físicas para oferecer um acompanhamento detalhado do progresso.</p>
-            <a href="/CadastroAvaliacaoFisica.html" class="card-link">Lançar Avaliação <i class="fas fa-arrow-right"></i></a>
-          </div>
+        <h2 class="section-title">Escolha seu plano</h2>
+        <div class="cards-grid" id="planos-grid">
+          <!-- Os cards de planos serão inseridos aqui dinamicamente -->
         </div>
       </div>
-    </section>
-
-    <!-- STATS SECTION -->
-    <section class="section" style="background-color: var(--color-secondary);">
-        <div class="container">
-            <h2 class="section-title">Visão Geral</h2>
-            <div class="cards-grid">
-                <div class="card">
-                    <h3 class="card-title">Alunos Ativos</h3>
-                    <p class="card-text" id="total-pessoas" style="font-size: 2.5rem; font-weight: 700; color: var(--color-primary);">0</p>
-                </div>
-                <div class="card">
-                    <h3 class="card-title">Exercícios Cadastrados</h3>
-                    <p class="card-text" id="total-exercicios" style="font-size: 2.5rem; font-weight: 700; color: var(--color-primary);">0</p>
-                </div>
-                <div class="card">
-                    <h3 class="card-title">Planos de Aula Criados</h3>
-                    <p class="card-text" id="total-planos" style="font-size: 2.5rem; font-weight: 700; color: var(--color-primary);">0</p>
-                </div>
-                 <div class="card">
-                    <h3 class="card-title">Estados</h3>
-                    <p class="card-text" id="total-estados" style="font-size: 2.5rem; font-weight: 700; color: var(--color-primary);">0</p>
-                </div>
-            </div>
-        </div>
     </section>
   </main>
 
   <footer class="footer">
     <div class="container">
-      <div class="footer-content">
-        <a class="brand" href="/index.html">
-          <i class="fas fa-dumbbell"></i>
-          <span>RM</span>Studio
-        </a>
-      </div>
       <div class="footer-bottom">
         <p>&copy; 2025 RMStudio Fitness. Todos os direitos reservados.</p>
       </div>
     </div>
   </footer>
 
-  <script src="/js/app.js"></script>
   <script>
-    document.addEventListener('DOMContentLoaded', async () => {
-      try {
-        const [pessoasRes, exerciciosRes, planosRes, estadosRes] = await Promise.all([
-          fetch('/api/pessoas').catch(() => ({ ok: false, json: () => Promise.resolve([]) })),
-          fetch('/api/exercicios').catch(() => ({ ok: false, json: () => Promise.resolve([]) })),
-          fetch('/api/planoaulas').catch(() => ({ ok: false, json: () => Promise.resolve([]) })),
-          fetch('/api/estados').catch(() => ({ ok: false, json: () => Promise.resolve([]) }))
-        ]);
-
-        if (pessoasRes.ok) {
-          const pessoas = await pessoasRes.json();
-          document.getElementById('total-pessoas').textContent = pessoas.length;
-        }
-
-        if (exerciciosRes.ok) {
-          const exercicios = await exerciciosRes.json();
-          document.getElementById('total-exercicios').textContent = exercicios.length;
-        }
-
-        if (planosRes.ok) {
-          const planos = await planosRes.json();
-          document.getElementById('total-planos').textContent = planos.length;
-        }
-
-        if (estadosRes.ok) {
-          const estados = await estadosRes.json();
-          document.getElementById('total-estados').textContent = estados.length;
-        }
-      } catch (error) {
-        console.error('Erro ao carregar estatísticas:', error);
-      }
-    });
-
     // Mobile nav toggle
     const navToggle = document.querySelector('.nav-toggle');
     const navLinks = document.querySelector('.nav-links');
@@ -171,6 +74,55 @@
             navLinks.classList.toggle('open');
         });
     }
+
+    document.addEventListener('DOMContentLoaded', async () => {
+      const planosGrid = document.getElementById('planos-grid');
+      
+      try {
+        const response = await fetch('/api/tipos-plano');
+        if (!response.ok) throw new Error('Erro ao buscar planos.');
+        
+        const planos = await response.json();
+        
+        if (planos.length === 0) {
+          planosGrid.innerHTML = '<p style="text-align: center; color: var(--color-text-muted);">Nenhum plano cadastrado no momento.</p>';
+          return;
+        }
+
+        // Limpa o conteúdo estático
+        planosGrid.innerHTML = '';
+
+        planos.forEach((plano, index) => {
+          const card = document.createElement('div');
+          card.className = 'card plan-card';
+
+          // Adiciona a classe 'popular' e o badge para o segundo plano, como exemplo
+          if (index === 1) {
+            card.classList.add('popular');
+            card.innerHTML += '<div class="plan-badge">Melhor Escolha</div>';
+          }
+          
+          const valorFormatado = new Intl.NumberFormat('pt-BR', { style: 'currency', currency: 'BRL' }).format(plano.valor);
+          const [reais, centavos] = valorFormatado.replace('R$', '').trim().split(',');
+
+          card.innerHTML += `
+            <h3 class="card-title">${plano.nome}</h3>
+            <div class="plan-price">
+              <span>R$</span> ${reais}<span class="price-cents">,${centavos}</span><span class="price-period">/mês</span>
+            </div>
+            <ul class="plan-features">
+              ${plano.descricao.split(';').map(item => `<li><i class="fas fa-check"></i> ${item.trim()}</li>`).join('')}
+            </ul>
+            <a href="#" class="btn ${index === 1 ? 'btn-primary' : 'btn-secondary'}">Matricule-se</a>
+          `;
+          planosGrid.appendChild(card);
+        });
+
+      } catch (error) {
+        console.error('Erro ao carregar planos:', error);
+        planosGrid.innerHTML = '<p style="text-align: center; color: var(--color-primary);">Não foi possível carregar os planos. Tente novamente mais tarde.</p>';
+      }
+    });
   </script>
 </body>
 </html>

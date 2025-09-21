@@ -178,13 +178,24 @@ p { margin-bottom: calc(var(--spacing-unit) * 2); }
   text-align: center;
   min-height: 100vh;
   padding-top: var(--header-height);
-  background: linear-gradient(rgba(0, 0, 0, 0.7), rgba(0, 0, 0, 0.7)), url('/images/hero-bg.jpg') no-repeat center center/cover;
+  background: linear-gradient(rgba(0, 0, 0, 0.6), rgba(0, 0, 0, 0.8)), url('https://images.unsplash.com/photo-1571902943202-507ec2618e8f?q=80&w=1975&auto=format&fit=crop') no-repeat center center/cover;
+  color: var(--color-text);
+}
+
+.hero-content {
+  max-width: 800px;
 }
 
 .hero-title {
-  font-size: 4.5rem; /* 72px */
+  font-size: 4rem;
+  font-weight: 900;
   margin-bottom: var(--spacing-unit);
-  line-height: 1;
+  line-height: 1.1;
+  text-shadow: 0 4px 15px rgba(0,0,0,0.5);
+}
+
+.hero-title .highlight {
+  color: var(--color-primary);
 }
 
 .hero-subtitle {
@@ -192,6 +203,11 @@ p { margin-bottom: calc(var(--spacing-unit) * 2); }
   color: var(--color-text-muted);
   max-width: 600px;
   margin: 0 auto calc(var(--spacing-unit) * 4) auto;
+}
+
+.btn-lg {
+  padding: calc(var(--spacing-unit) * 2) calc(var(--spacing-unit) * 5);
+  font-size: 1.1rem;
 }
 
 /* --- BOTÕES --- */
@@ -507,4 +523,110 @@ p { margin-bottom: calc(var(--spacing-unit) * 2); }
 
 .separator:not(:empty)::after {
   margin-left: 1em;
+}
+
+/* --- TOAST / POP-UP NOTIFICATION --- */
+.toast-notification {
+  position: fixed;
+  top: 20px;
+  right: 20px;
+  background-color: var(--color-secondary);
+  color: var(--color-text);
+  padding: calc(var(--spacing-unit) * 2) calc(var(--spacing-unit) * 3);
+  border-radius: var(--border-radius);
+  border: 1px solid var(--color-border);
+  border-left: 5px solid var(--color-primary);
+  box-shadow: 0 5px 15px rgba(0,0,0,0.5);
+  display: flex;
+  align-items: center;
+  z-index: 1001;
+  transform: translateX(calc(100% + 20px));
+  transition: transform 0.5s ease-in-out;
+}
+
+.toast-notification.show {
+  transform: translateX(0);
+}
+
+.toast-notification.error {
+  border-left-color: #e74c3c; /* Vermelho para erros */
+}
+
+.toast-notification i {
+  margin-right: calc(var(--spacing-unit) * 2);
+  font-size: 1.2rem;
+}
+
+.toast-notification.error i {
+  color: #e74c3c;
+}
+
+/* --- PLANOS SECTION --- */
+.plan-card {
+  text-align: center;
+  border-width: 2px;
+}
+
+.plan-card.popular {
+  border-color: var(--color-primary);
+  transform: scale(1.05);
+  position: relative;
+  overflow: hidden;
+}
+
+.plan-badge {
+  position: absolute;
+  top: 15px;
+  right: -30px;
+  background-color: var(--color-primary);
+  color: var(--color-background);
+  padding: 5px 30px;
+  transform: rotate(45deg);
+  font-size: 0.8rem;
+  font-weight: 700;
+  text-transform: uppercase;
+}
+
+.plan-price {
+  font-size: 3rem;
+  font-weight: 900;
+  color: var(--color-primary);
+  margin-bottom: calc(var(--spacing-unit) * 3);
+}
+
+.plan-price span {
+  font-size: 1.5rem;
+  font-weight: 700;
+  vertical-align: super;
+}
+
+.plan-price .price-cents {
+  font-size: 1.5rem;
+}
+
+.plan-price .price-period {
+  font-size: 1rem;
+  color: var(--color-text-muted);
+  font-weight: 400;
+}
+
+.plan-features {
+  list-style: none;
+  padding: 0;
+  margin-bottom: calc(var(--spacing-unit) * 3);
+  text-align: left;
+}
+
+.plan-features li {
+  margin-bottom: var(--spacing-unit);
+  color: var(--color-text-muted);
+}
+
+.plan-features li i {
+  color: var(--color-primary);
+  margin-right: var(--spacing-unit);
+}
+
+.plan-card .btn {
+  width: 100%;
 }

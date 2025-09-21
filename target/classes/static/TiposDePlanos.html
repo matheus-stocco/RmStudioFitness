@@ -3,7 +3,7 @@
 <head>
   <meta charset="UTF-8">
   <meta name="viewport" content="width=device-width, initial-scale=1.0">
-  <title>RMStudio Fitness - Sua Academia Completa</title>
+  <title>Nossos Planos - RMStudio Fitness</title>
   <link rel="stylesheet" href="/css/style.css">
   <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
 </head>
@@ -20,36 +20,25 @@
           <i class="fas fa-bars"></i>
         </button>
         <div class="nav-links">
-          <a href="/index.html">Home</a>
-          <a href="/TiposDePlanos.html">Planos</a>
-          <a class="active" href="/CadastroPessoas.html">Membros</a>
-          <a href="/CadastroPlanoAula.html">Planos de Aulas</a>
-          <a href="/CadastroExercicios.html">Exercícios</a>
-          <a href="/CadastroAvaliacaoFisica.html">Avaliações</a>
-          <a href="/CadastroTipoPlano.html">Cadastro de Planos</a>
-          <a href="/CadastroEstado.html">Estados</a>
-          <a href="/CadastroCidade.html">Cidades</a>
-          <a href="/login.html">Login / Cadastre-se</a>
+            <a href="/index.html">Home</a>
+            <a href="/TiposDePlanos.html">Planos</a>
+            <a class="active" href="/CadastroPessoas.html">Membros</a>
+            <a href="/CadastroPlanoAula.html">Planos de Aulas</a>
+            <a href="/CadastroExercicios.html">Exercícios</a>
+            <a href="/CadastroAvaliacaoFisica.html">Avaliações</a>
+            <a href="/CadastroTipoPlano.html">Cadastro de Planos</a>
+            <a href="/CadastroEstado.html">Estados</a>
+            <a href="/CadastroCidade.html">Cidades</a>
+            <a href="/login.html">Login / Cadastre-se</a>
         </div>
       </nav>
     </div>
   </header>
 
-  <main>
-    <section class="hero">
-      <div class="hero-content">
-        <h1 class="hero-title">
-          Treine em uma <br>
-          <span class="highlight">Academia Completa</span>
-        </h1>
-        <p class="hero-subtitle">Sem taxa de matrícula e sem multa. Comece a transformar seu corpo hoje mesmo!</p>
-        <a href="#planos" class="btn btn-primary btn-lg">Conheça os Planos</a>
-      </div>
-    </section>
-
+  <main class="form-page-container">
     <section id="planos" class="section">
       <div class="container">
-        <h2 class="section-title">Escolha seu plano</h2>
+        <h2 class="section-title">Escolha seu Plano</h2>
         <div class="cards-grid" id="planos-grid">
           <!-- Os cards de planos serão inseridos aqui dinamicamente -->
         </div>
@@ -89,17 +78,19 @@
           return;
         }
 
-        // Limpa o conteúdo estático
+        // Encontra o plano mais caro para destacar
+        let planoDestaque = planos.reduce((max, p) => p.valor > max.valor ? p : max, planos[0]);
+
         planosGrid.innerHTML = '';
 
-        planos.forEach((plano, index) => {
+        planos.forEach(plano => {
           const card = document.createElement('div');
           card.className = 'card plan-card';
+          const isDestaque = plano.id === planoDestaque.id;
 
-          // Adiciona a classe 'popular' e o badge para o segundo plano, como exemplo
-          if (index === 1) {
+          if (isDestaque) {
             card.classList.add('popular');
-            card.innerHTML += '<div class="plan-badge">Melhor Escolha</div>';
+            card.innerHTML += '<div class="plan-badge">Melhor Custo-Benefício</div>';
           }
           
           const valorFormatado = new Intl.NumberFormat('pt-BR', { style: 'currency', currency: 'BRL' }).format(plano.valor);
@@ -113,7 +104,7 @@
             <ul class="plan-features">
               ${plano.descricao.split(';').map(item => `<li><i class="fas fa-check"></i> ${item.trim()}</li>`).join('')}
             </ul>
-            <a href="#" class="btn ${index === 1 ? 'btn-primary' : 'btn-secondary'}">Matricule-se</a>
+            <a href="/FormularioAutoCadastro.html" class="btn ${isDestaque ? 'btn-primary' : 'btn-secondary'}">Matricule-se</a>
           `;
           planosGrid.appendChild(card);
         });
