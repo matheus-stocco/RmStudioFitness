@@ -24,15 +24,25 @@ public class ControleAvaliacaoFisica {
 
     public record AvaliacaoPayload(
             Long pessoaId,
-            Double peso,
-            Double altura,
-            Double gorduraCorporal,
-            Double massaMagra,
-            Double massaMuscular,
-            Double hidratacao,
-            Double densidadeOssea,
-            Double taxaMetabolismoBasal,
-            Double gorduraVisceral
+            LocalDate dataAvaliacao, // Adicionado para permitir edição da data
+            BigDecimal peso,
+            BigDecimal altura,
+            BigDecimal gorduraCorporal,
+            BigDecimal massaMagra,
+            BigDecimal massaMuscular,
+            BigDecimal hidratacao,
+            BigDecimal densidadeOssea,
+            BigDecimal taxaMetabolismoBasal,
+            BigDecimal gorduraVisceral,
+            // Novos campos opcionais
+            BigDecimal medidaPescoco,
+            BigDecimal medidaCintura,
+            BigDecimal medidaQuadril,
+            BigDecimal medidaBracoDireito,
+            BigDecimal medidaBracoEsquerdo,
+            BigDecimal medidaPernaDireita,
+            BigDecimal medidaPernaEsquerda,
+            String observacoes
     ) {}
 
     private AvaliacaoFisica findAvaliacaoCompleta(Long id) {
@@ -67,17 +77,11 @@ public class ControleAvaliacaoFisica {
 
         AvaliacaoFisica a = new AvaliacaoFisica();
         a.setPessoa(pessoa);
-        a.setDataAvaliacao(LocalDate.now());
+        // A data pode ser a de hoje ou a enviada no payload
+        a.setDataAvaliacao(body.dataAvaliacao() != null ? body.dataAvaliacao() : LocalDate.now());
 
-        if (body.peso() != null) a.setPeso(BigDecimal.valueOf(body.peso()));
-        if (body.altura() != null) a.setAltura(BigDecimal.valueOf(body.altura()));
-        if (body.gorduraCorporal() != null) a.setGorduraCorporal(BigDecimal.valueOf(body.gorduraCorporal()));
-        if (body.massaMagra() != null) a.setMassaMagra(BigDecimal.valueOf(body.massaMagra()));
-        if (body.massaMuscular() != null) a.setMassaMuscular(BigDecimal.valueOf(body.massaMuscular()));
-        if (body.hidratacao() != null) a.setHidratacao(BigDecimal.valueOf(body.hidratacao()));
-        if (body.densidadeOssea() != null) a.setDensidadeOssea(BigDecimal.valueOf(body.densidadeOssea()));
-        if (body.taxaMetabolismoBasal() != null) a.setTaxaMetabolismoBasal(BigDecimal.valueOf(body.taxaMetabolismoBasal()));
-        if (body.gorduraVisceral() != null) a.setGorduraVisceral(BigDecimal.valueOf(body.gorduraVisceral()));
+        // Atribui todos os campos do payload à entidade
+        setCamposFromPayload(a, body);
         
         em.persist(a);
         em.flush(); 
@@ -98,15 +102,13 @@ public class ControleAvaliacaoFisica {
             a.setPessoa(pessoa);
         }
         
-        if (body.peso() != null) a.setPeso(BigDecimal.valueOf(body.peso()));
-        if (body.altura() != null) a.setAltura(BigDecimal.valueOf(body.altura()));
-        if (body.gorduraCorporal() != null) a.setGorduraCorporal(BigDecimal.valueOf(body.gorduraCorporal()));
-        if (body.massaMagra() != null) a.setMassaMagra(BigDecimal.valueOf(body.massaMagra()));
-        if (body.massaMuscular() != null) a.setMassaMuscular(BigDecimal.valueOf(body.massaMuscular()));
-        if (body.hidratacao() != null) a.setHidratacao(BigDecimal.valueOf(body.hidratacao()));
-        if (body.densidadeOssea() != null) a.setDensidadeOssea(BigDecimal.valueOf(body.densidadeOssea()));
-        if (body.taxaMetabolismoBasal() != null) a.setTaxaMetabolismoBasal(BigDecimal.valueOf(body.taxaMetabolismoBasal()));
-        if (body.gorduraVisceral() != null) a.setGorduraVisceral(BigDecimal.valueOf(body.gorduraVisceral()));
+        // A data só é atualizada se for fornecida
+        if (body.dataAvaliacao() != null) {
+            a.setDataAvaliacao(body.dataAvaliacao());
+        }
+
+        // Atribui todos os campos do payload à entidade
+        setCamposFromPayload(a, body);
 
         em.flush(); 
 
@@ -125,8 +127,32 @@ public class ControleAvaliacaoFisica {
     private String validar(AvaliacaoPayload b) {
         if (b == null) return "Payload ausente";
         if (b.pessoaId() == null || b.pessoaId() <= 0) return "pessoaId obrigatório";
-        if (b.peso() == null || b.peso() <= 0) return "peso obrigatório";
-        if (b.altura() == null || b.altura() <= 0) return "altura obrigatória";
+        if (b.peso() == null || b.peso().compareTo(BigDecimal.ZERO) <= 0) return "peso obrigatório";
+        if (b.altura() == null || b.altura().compareTo(BigDecimal.ZERO) <= 0) return "altura obrigatória";
         return null;
+    }
+
+    /**
+     * Método auxiliar para evitar repetição de código ao atribuir
+     * os valores do payload para a entidade.
+     */
+    private void setCamposFromPayload(AvaliacaoFisica a, AvaliacaoPayload body) {
+        if (body.peso() != null) a.setPeso(body.peso());
+        if (body.altura() != null) a.setAltura(body.altura());
+        if (body.gorduraCorporal() != null) a.setGorduraCorporal(body.gorduraCorporal());
+        if (body.massaMagra() != null) a.setMassaMagra(body.massaMagra());
+        if (body.massaMuscular() != null) a.setMassaMuscular(body.massaMuscular());
+        if (body.hidratacao() != null) a.setHidratacao(body.hidratacao());
+        if (body.densidadeOssea() != null) a.setDensidadeOssea(body.densidadeOssea());
+        if (body.taxaMetabolismoBasal() != null) a.setTaxaMetabolismoBasal(body.taxaMetabolismoBasal());
+        if (body.gorduraVisceral() != null) a.setGorduraVisceral(body.gorduraVisceral());
+        if (body.medidaPescoco() != null) a.setMedidaPescoco(body.medidaPescoco());
+        if (body.medidaCintura() != null) a.setMedidaCintura(body.medidaCintura());
+        if (body.medidaQuadril() != null) a.setMedidaQuadril(body.medidaQuadril());
+        if (body.medidaBracoDireito() != null) a.setMedidaBracoDireito(body.medidaBracoDireito());
+        if (body.medidaBracoEsquerdo() != null) a.setMedidaBracoEsquerdo(body.medidaBracoEsquerdo());
+        if (body.medidaPernaDireita() != null) a.setMedidaPernaDireita(body.medidaPernaDireita());
+        if (body.medidaPernaEsquerda() != null) a.setMedidaPernaEsquerda(body.medidaPernaEsquerda());
+        if (body.observacoes() != null) a.setObservacoes(body.observacoes());
     }
 }

@@ -64,6 +64,44 @@
                             <input type="number" id="gorduraVisceral" name="gorduraVisceral" class="form-control" step="0.1">
                         </div>
                     </div>
+
+                    <h4 class="form-subtitle">Medidas Corporais (cm)</h4>
+                    <div class="form-grid-double">
+                        <div class="form-group">
+                            <label for="medidaPescoco" class="form-label">Pescoço</label>
+                            <input type="number" id="medidaPescoco" name="medidaPescoco" class="form-control" step="0.1">
+                        </div>
+                        <div class="form-group">
+                            <label for="medidaCintura" class="form-label">Cintura</label>
+                            <input type="number" id="medidaCintura" name="medidaCintura" class="form-control" step="0.1">
+                        </div>
+                        <div class="form-group">
+                            <label for="medidaQuadril" class="form-label">Quadril</label>
+                            <input type="number" id="medidaQuadril" name="medidaQuadril" class="form-control" step="0.1">
+                        </div>
+                        <div class="form-group">
+                            <label for="medidaBracoDireito" class="form-label">Braço Direito</label>
+                            <input type="number" id="medidaBracoDireito" name="medidaBracoDireito" class="form-control" step="0.1">
+                        </div>
+                        <div class="form-group">
+                            <label for="medidaBracoEsquerdo" class="form-label">Braço Esquerdo</label>
+                            <input type="number" id="medidaBracoEsquerdo" name="medidaBracoEsquerdo" class="form-control" step="0.1">
+                        </div>
+                        <div class="form-group">
+                            <label for="medidaPernaDireita" class="form-label">Perna Direita</label>
+                            <input type="number" id="medidaPernaDireita" name="medidaPernaDireita" class="form-control" step="0.1">
+                        </div>
+                        <div class="form-group">
+                            <label for="medidaPernaEsquerda" class="form-label">Perna Esquerda</label>
+                            <input type="number" id="medidaPernaEsquerda" name="medidaPernaEsquerda" class="form-control" step="0.1">
+                        </div>
+                    </div>
+
+                    <div class="form-group">
+                        <label for="observacoes" class="form-label">Observações</label>
+                        <textarea id="observacoes" name="observacoes" class="form-control" rows="4"></textarea>
+                    </div>
+
                     <div class="form-actions">
                         <button type="submit" class="btn btn-primary"><i class="fas fa-save"></i> Salvar</button>
                         <button type="button" class="btn btn-secondary" onclick="resetForm()"><i class="fas fa-plus"></i> Nova</button>
@@ -90,6 +128,9 @@
                                 <th>Metabolismo Basal</th>
                                 <th>Densidade Óssea</th>
                                 <th>Gordura Visceral</th>
+                                <th>Pescoço</th>
+                                <th>Cintura</th>
+                                <th>Quadril</th>
                                 <th>Ações</th>
                             </tr>
                         </thead>
@@ -128,11 +169,11 @@
                 console.log('Buscando avaliações da API:', API_URL);
                 const response = await fetch(API_URL);
                 console.log('Response status:', response.status);
-                
+
                 if (!response.ok) {
                     throw new Error(`HTTP ${response.status}: ${response.statusText}`);
                 }
-                
+
                 const avaliacoes = await response.json();
                 console.log('Avaliações recebidas:', avaliacoes);
                 renderTable(avaliacoes);
@@ -154,7 +195,7 @@
             } else {
                 formattedNumber = number.toString();
             }
-            
+
             return `${formattedNumber} ${unit}`.trim();
         }
 
@@ -168,7 +209,7 @@
             avaliacoes.forEach((av, index) => {
                 console.log(`Avaliação ${index}:`, av);
                 console.log(`Pessoa da avaliação ${index}:`, av.pessoa);
-                
+
                 const tr = document.createElement('tr');
                 tr.innerHTML = `
                     <td>${av.pessoa ? av.pessoa.nome : 'N/A'}</td>
@@ -184,6 +225,9 @@
                     <td>${formatValue(av.taxaMetabolismoBasal, { unit: 'kcal/dia', decimals: 0 })}</td>
                     <td>${formatValue(av.densidadeOssea, { unit: '%', decimals: 1 })}</td>
                     <td>${formatValue(av.gorduraVisceral, { unit: '%', decimals: 1 })}</td>
+                    <td>${formatValue(av.medidaPescoco, { unit: 'cm', decimals: 1 })}</td>
+                    <td>${formatValue(av.medidaCintura, { unit: 'cm', decimals: 1 })}</td>
+                    <td>${formatValue(av.medidaQuadril, { unit: 'cm', decimals: 1 })}</td>
                     <td class="cell-actions">
                         <button class="btn btn-secondary" onclick="editAvaliacao('${av.id}')"><i class="fas fa-edit"></i></button>
                         <button class="btn btn-secondary" onclick="deleteAvaliacao('${av.id}')"><i class="fas fa-trash"></i></button>
@@ -209,6 +253,14 @@
                 taxaMetabolismoBasal: formData.get('taxaMetabolismoBasal'),
                 densidadeOssea: formData.get('densidadeOssea'),
                 gorduraVisceral: formData.get('gorduraVisceral'),
+                medidaPescoco: formData.get('medidaPescoco'),
+                medidaCintura: formData.get('medidaCintura'),
+                medidaQuadril: formData.get('medidaQuadril'),
+                medidaBracoDireito: formData.get('medidaBracoDireito'),
+                medidaBracoEsquerdo: formData.get('medidaBracoEsquerdo'),
+                medidaPernaDireita: formData.get('medidaPernaDireita'),
+                medidaPernaEsquerda: formData.get('medidaPernaEsquerda'),
+                observacoes: formData.get('observacoes')
             };
 
             const method = id ? 'PUT' : 'POST';
@@ -244,6 +296,14 @@
                 document.getElementById('taxaMetabolismoBasal').value = av.taxaMetabolismoBasal;
                 document.getElementById('densidadeOssea').value = av.densidadeOssea;
                 document.getElementById('gorduraVisceral').value = av.gorduraVisceral;
+                document.getElementById('medidaPescoco').value = av.medidaPescoco;
+                document.getElementById('medidaCintura').value = av.medidaCintura;
+                document.getElementById('medidaQuadril').value = av.medidaQuadril;
+                document.getElementById('medidaBracoDireito').value = av.medidaBracoDireito;
+                document.getElementById('medidaBracoEsquerdo').value = av.medidaBracoEsquerdo;
+                document.getElementById('medidaPernaDireita').value = av.medidaPernaDireita;
+                document.getElementById('medidaPernaEsquerda').value = av.medidaPernaEsquerda;
+                document.getElementById('observacoes').value = av.observacoes;
                 window.scrollTo(0, 0);
             } catch (error) {
                 console.error('Erro ao carregar avaliação para edição:', error);
