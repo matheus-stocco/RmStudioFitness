@@ -44,14 +44,19 @@
             <a sec:authorize="isAuthenticated()" th:href="@{/minhas-avaliacoes}">Minhas Avaliações</a>
             <a sec:authorize="isAuthenticated()" th:href="@{/meus-planos-aula}">Meus Planos</a>
             <a sec:authorize="isAuthenticated()" th:href="@{/perfil}">Perfil</a>
-            <!-- Link visível apenas para administradores -->
-            <a sec:authorize="hasRole('ADMIN')" th:href="@{/tipos-plano}">Gestão de Planos</a>
-            <a sec:authorize="hasRole('ADMIN')" th:href="@{/membros}">Membros</a>
-            <a sec:authorize="hasRole('ADMIN')" th:href="@{/avaliacoes}">Avaliações Físicas</a>
-            <a sec:authorize="hasRole('ADMIN')" th:href="@{/cidades}">Cadastro de Cidade</a>
-            <a sec:authorize="hasRole('ADMIN')" th:href="@{/estados}">Cadastro de Estado</a>
-            <a sec:authorize="hasRole('ADMIN')" th:href="@{/exercicios}">Cadastro de Exercício</a>
-            <a sec:authorize="hasRole('ADMIN')" th:href="@{/planos-aula}">Cadastro de Plano de Aula</a>
+            <!-- Dropdown de Gestão para Administradores -->
+            <div sec:authorize="hasRole('ADMIN')" class="nav-dropdown">
+              <a href="#" class="nav-dropdown-toggle">Gestão <i class="fas fa-caret-down"></i></a>
+              <div class="nav-dropdown-menu">
+                <a th:href="@{/membros}">Membros</a>
+                <a th:href="@{/avaliacoes}">Avaliações Físicas</a>
+                <a th:href="@{/tipos-plano}">Planos</a>
+                <a th:href="@{/planos-aula}">Planos de Aula</a>
+                <a th:href="@{/exercicios}">Exercícios</a>
+                <a th:href="@{/cidades}">Cidades</a>
+                <a th:href="@{/estados}">Estados</a>
+              </div>
+            </div>
           </div>
         </div>
 

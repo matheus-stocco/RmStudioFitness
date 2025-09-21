@@ -969,3 +969,52 @@ p { margin-bottom: calc(var(--spacing-unit) * 2); }
 .plan-card .btn {
   width: 100%;
 }
+
+/* --- ESTILOS PARA DROPDOWN DE NAVEGAÇÃO --- */
+.nav-dropdown {
+  position: relative;
+  display: inline-block;
+}
+
+.nav-dropdown-toggle {
+  cursor: pointer;
+  display: flex;
+  align-items: center;
+  gap: calc(var(--spacing-unit) * 0.5);
+}
+
+.nav-dropdown-menu {
+  display: none;
+  position: absolute;
+  top: 100%;
+  left: 0;
+  background-color: var(--color-secondary);
+  border: 1px solid var(--color-border);
+  border-radius: var(--border-radius);
+  padding: var(--spacing-unit);
+  min-width: 200px;
+  z-index: 100;
+  box-shadow: 0 8px 16px rgba(0,0,0,0.3);
+}
+
+.nav-dropdown:hover .nav-dropdown-menu {
+  display: block;
+}
+
+.nav-dropdown-menu a {
+  display: block;
+  padding: calc(var(--spacing-unit) * 1) calc(var(--spacing-unit) * 1.5);
+  color: var(--color-text-muted);
+  border-radius: var(--border-radius);
+  transition: background-color 0.2s ease, color 0.2s ease;
+  white-space: nowrap; /* Impede que o texto quebre em duas linhas */
+}
+
+.nav-dropdown-menu a:hover {
+  background-color: var(--color-primary);
+  color: var(--color-background);
+}
+
+.nav-dropdown-menu a::after {
+    display: none; /* Remove o sublinhado animado dos links do dropdown */
+}
