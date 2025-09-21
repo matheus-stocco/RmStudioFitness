@@ -86,6 +86,12 @@ p { margin-bottom: calc(var(--spacing-unit) * 2); }
   padding: 0 calc(var(--spacing-unit) * 2);
 }
 
+/* Container que ocupa a largura total */
+.container-fluid {
+    width: 100%;
+    padding: 0 calc(var(--spacing-unit) * 3);
+}
+
 .section {
   padding: calc(var(--spacing-unit) * 8) 0;
 }
@@ -659,10 +665,29 @@ p { margin-bottom: calc(var(--spacing-unit) * 2); }
     margin: 0 auto;
 }
 
+/* Modificador para fazer o card ocupar mais espaço horizontal */
+.card--wide {
+    max-width: 100%;
+}
+
 .form-grid-double {
     display: grid;
     grid-template-columns: repeat(2, 1fr);
     gap: calc(var(--spacing-unit) * 2);
+}
+
+.form-grid-quad {
+    display: grid;
+    /* Cria um grid responsivo: as colunas terão no mínimo 220px. 
+       O navegador tentará encaixar o máximo de colunas que puder. */
+    grid-template-columns: repeat(auto-fit, minmax(220px, 1fr));
+    gap: calc(var(--spacing-unit) * 2.5);
+    align-items: end; /* Alinha os itens na base, garantindo que os inputs fiquem na mesma linha */
+}
+
+/* Reduz o espaçamento interno dos grupos de formulário dentro do grid para compactar */
+.form-grid-quad .form-group {
+    margin-bottom: 0;
 }
 
 .form-actions {

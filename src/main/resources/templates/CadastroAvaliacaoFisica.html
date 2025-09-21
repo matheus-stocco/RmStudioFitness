@@ -11,14 +11,17 @@
     <header class="header" th:replace="~{index :: header}"></header>
 
     <main class="main-content form-page-container">
-        <div class="container">
+        <div class="container-fluid">
             <h1 class="page-title"><i class="fas fa-chart-line"></i> Gestão de Avaliações Físicas</h1>
 
-            <div class="card form-card">
+            <div class="card form-card card--wide">
                 <h3 class="card-title">Nova Avaliação Física</h3>
                 <form id="form-avaliacao">
                     <input type="hidden" id="id" name="id">
-                    <div class="form-grid-double">
+                    
+                    <!-- Grid principal com 4 colunas -->
+                    <div class="form-grid-quad">
+                        <!-- Coluna 1: Aluno e Medidas Principais -->
                         <div class="form-group">
                             <label for="pessoaId" class="form-label">Aluno</label>
                             <select id="pessoaId" name="pessoaId" class="form-control" required></select>
@@ -35,8 +38,10 @@
                             <label for="altura" class="form-label">Altura (m)</label>
                             <input type="number" id="altura" name="altura" step="0.01" class="form-control" required>
                         </div>
+
+                        <!-- Coluna 2: Composição Corporal -->
                         <div class="form-group">
-                            <label for="gorduraCorporal" class="form-label">Gordura Corporal (%)</label>
+                            <label for="gorduraCorporal" class="form-label">Gordura Corp. (%)</label>
                             <input type="number" id="gorduraCorporal" name="gorduraCorporal" class="form-control" step="0.1">
                         </div>
                         <div class="form-group">
@@ -47,59 +52,59 @@
                             <label for="massaMuscular" class="form-label">Massa Muscular (kg)</label>
                             <input type="number" id="massaMuscular" name="massaMuscular" class="form-control" step="0.1">
                         </div>
-                        <div class="form-group">
-                            <label for="hidratacao" class="form-label">Hidratação Corporal (%)</label>
+                         <div class="form-group">
+                            <label for="hidratacao" class="form-label">Hidratação (%)</label>
                             <input type="number" id="hidratacao" name="hidratacao" class="form-control" step="0.1">
                         </div>
+
+                        <!-- Coluna 3: Métricas de Saúde -->
                         <div class="form-group">
-                            <label for="taxaMetabolismoBasal" class="form-label">Metabolismo Basal (kcal/dia)</label>
+                            <label for="taxaMetabolismoBasal" class="form-label">Metab. Basal (kcal)</label>
                             <input type="number" id="taxaMetabolismoBasal" name="taxaMetabolismoBasal" class="form-control" step="1">
                         </div>
                         <div class="form-group">
-                            <label for="densidadeOssea" class="form-label">Densidade Óssea (%)</label>
+                            <label for="densidadeOssea" class="form-label">Dens. Óssea (%)</label>
                             <input type="number" id="densidadeOssea" name="densidadeOssea" class="form-control" step="0.1">
                         </div>
                         <div class="form-group">
-                            <label for="gorduraVisceral" class="form-label">Gordura Visceral (%)</label>
+                            <label for="gorduraVisceral" class="form-label">Gord. Visceral (%)</label>
                             <input type="number" id="gorduraVisceral" name="gorduraVisceral" class="form-control" step="0.1">
                         </div>
-                    </div>
-
-                    <h4 class="form-subtitle">Medidas Corporais (cm)</h4>
-                    <div class="form-grid-double">
-                        <div class="form-group">
-                            <label for="medidaPescoco" class="form-label">Pescoço</label>
+                         <div class="form-group">
+                            <label for="medidaPescoco" class="form-label">Pescoço (cm)</label>
                             <input type="number" id="medidaPescoco" name="medidaPescoco" class="form-control" step="0.1">
                         </div>
+                        
+                        <!-- Coluna 4: Medidas Corporais -->
                         <div class="form-group">
-                            <label for="medidaCintura" class="form-label">Cintura</label>
+                            <label for="medidaCintura" class="form-label">Cintura (cm)</label>
                             <input type="number" id="medidaCintura" name="medidaCintura" class="form-control" step="0.1">
                         </div>
                         <div class="form-group">
-                            <label for="medidaQuadril" class="form-label">Quadril</label>
+                            <label for="medidaQuadril" class="form-label">Quadril (cm)</label>
                             <input type="number" id="medidaQuadril" name="medidaQuadril" class="form-control" step="0.1">
                         </div>
                         <div class="form-group">
-                            <label for="medidaBracoDireito" class="form-label">Braço Direito</label>
+                            <label for="medidaBracoDireito" class="form-label">Braço D. (cm)</label>
                             <input type="number" id="medidaBracoDireito" name="medidaBracoDireito" class="form-control" step="0.1">
                         </div>
                         <div class="form-group">
-                            <label for="medidaBracoEsquerdo" class="form-label">Braço Esquerdo</label>
+                            <label for="medidaBracoEsquerdo" class="form-label">Braço E. (cm)</label>
                             <input type="number" id="medidaBracoEsquerdo" name="medidaBracoEsquerdo" class="form-control" step="0.1">
                         </div>
                         <div class="form-group">
-                            <label for="medidaPernaDireita" class="form-label">Perna Direita</label>
+                            <label for="medidaPernaDireita" class="form-label">Perna D. (cm)</label>
                             <input type="number" id="medidaPernaDireita" name="medidaPernaDireita" class="form-control" step="0.1">
                         </div>
                         <div class="form-group">
-                            <label for="medidaPernaEsquerda" class="form-label">Perna Esquerda</label>
+                            <label for="medidaPernaEsquerda" class="form-label">Perna E. (cm)</label>
                             <input type="number" id="medidaPernaEsquerda" name="medidaPernaEsquerda" class="form-control" step="0.1">
                         </div>
                     </div>
 
                     <div class="form-group">
                         <label for="observacoes" class="form-label">Observações</label>
-                        <textarea id="observacoes" name="observacoes" class="form-control" rows="4"></textarea>
+                        <textarea id="observacoes" name="observacoes" class="form-control" rows="3"></textarea>
                     </div>
 
                     <div class="form-actions">
@@ -109,7 +114,7 @@
                 </form>
             </div>
 
-            <div class="card" style="margin-top: 32px;">
+            <div class="card card--wide" style="margin-top: 32px;">
                 <h3 class="card-title">Avaliações Recentes</h3>
                 <div class="table-responsive">
                     <table class="table" id="tabela-avaliacoes">
