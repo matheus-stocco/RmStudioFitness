@@ -2,7 +2,8 @@ package com.rmstudio.rmstudiofitness.controladores;
 
 import com.rmstudio.rmstudiofitness.entidades.Pessoa;
 import com.rmstudio.rmstudiofitness.entidades.Cidade;
-
+import com.rmstudio.rmstudiofitness.entidades.Perfil;
+import com.rmstudio.rmstudiofitness.repositorios.PerfilRepository;
 
 import jakarta.persistence.EntityManager;
 import jakarta.persistence.PersistenceContext;
@@ -11,11 +12,14 @@ import jakarta.transaction.Transactional;
 
 import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
+import org.springframework.security.crypto.password.PasswordEncoder;
 import org.springframework.web.bind.annotation.*;
 
 import java.net.URI;
 import java.time.LocalDateTime;
 import java.time.LocalDate;
+import java.util.Set;
+
 import java.util.List;
 
 /**
@@ -34,6 +38,14 @@ public class ControlePessoa {
 
     @PersistenceContext
     private EntityManager em;
+
+    private final PasswordEncoder passwordEncoder;
+    private final PerfilRepository perfilRepository;
+
+    public ControlePessoa(PasswordEncoder passwordEncoder, PerfilRepository perfilRepository) {
+        this.passwordEncoder = passwordEncoder;
+        this.perfilRepository = perfilRepository;
+    }
 
     /** Payload para criação/atualização. */
     public record PessoaPayload(
@@ -98,9 +110,14 @@ public class ControlePessoa {
         Cidade cidade = em.find(Cidade.class, body.cidade().id());
         if (cidade == null) return badRequest("Cidade não encontrada.");
 
+        Perfil perfilUsuario = perfilRepository.findAll().stream()
+            .filter(p -> p.getNome().equals("ROLE_USER"))
+            .findFirst()
+            .orElseThrow(() -> new IllegalStateException("Perfil ROLE_USER não encontrado."));
+
         Pessoa p = new Pessoa();
         p.setUsuario(body.usuario().trim());
-        p.setSenha(body.senha()); // ideal: aplicar hash antes de persistir
+        p.setSenha(passwordEncoder.encode(body.senha())); // Criptografa a senha
         p.setNome(body.nome().trim());
         p.setEmail(body.email().trim());
         p.setTelefone(isBlank(body.telefone()) ? null : body.telefone().trim());
@@ -115,6 +132,7 @@ public class ControlePessoa {
         }
 
         p.setCidade(cidade);
+        p.setPerfis(Set.of(perfilUsuario)); // Atribui o perfil de usuário
         if (p.getDataCadastro() == null) {
             p.setDataCadastro(LocalDateTime.now());
         }

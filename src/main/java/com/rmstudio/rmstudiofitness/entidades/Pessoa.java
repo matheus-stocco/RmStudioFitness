@@ -6,7 +6,6 @@ import com.fasterxml.jackson.annotation.JsonProperty;
 import com.fasterxml.jackson.annotation.JsonIgnore;
 import jakarta.persistence.*;
 
-import java.io.Serializable;
 import java.time.LocalDateTime;
 import java.time.format.DateTimeFormatter;
 import java.time.LocalDate;
@@ -15,11 +14,16 @@ import java.util.Objects;
 import java.util.regex.Pattern;
 import java.util.List;
 import java.util.ArrayList;
+import java.util.Collection;
+import java.util.Set;
+
+import org.springframework.security.core.GrantedAuthority;
+import org.springframework.security.core.userdetails.UserDetails;
 
 @Entity
 @Table(name = "pessoa")
 @JsonIgnoreProperties({"hibernateLazyInitializer", "handler"})
-public class Pessoa implements Serializable {
+public class Pessoa implements UserDetails {
     private static final long serialVersionUID = 1L;
 
     @Id @GeneratedValue(strategy = GenerationType.IDENTITY)
@@ -63,6 +67,12 @@ public class Pessoa implements Serializable {
     @JoinColumn(name = "cidade_id", nullable = false)
     @JsonIgnoreProperties({"hibernateLazyInitializer", "handler"})
     private Cidade cidade;
+    
+    @ManyToMany(fetch = FetchType.EAGER)
+    @JoinTable(name = "pessoa_perfil",
+        joinColumns = @JoinColumn(name = "pessoa_id"),
+        inverseJoinColumns = @JoinColumn(name = "perfil_id"))
+    private Set<Perfil> perfis;
 
     @JsonIgnore
     @OneToMany(mappedBy = "pessoa", cascade = CascadeType.ALL, orphanRemoval = true, fetch = FetchType.LAZY)
@@ -137,6 +147,50 @@ public class Pessoa implements Serializable {
 
     public List<PlanoDeAula> getPlanosDeAula() { return planosDeAula; }
     public void setPlanosDeAula(List<PlanoDeAula> planosDeAula) { this.planosDeAula = planosDeAula; }
+
+    public Set<Perfil> getPerfis() {
+        return perfis;
+    }
+
+    public void setPerfis(Set<Perfil> perfis) {
+        this.perfis = perfis;
+    }
+
+    // Métodos do UserDetails
+    @Override
+    public Collection<? extends GrantedAuthority> getAuthorities() {
+        return this.perfis;
+    }
+
+    @Override
+    public String getPassword() {
+        return this.senha;
+    }
+
+    @Override
+    public String getUsername() {
+        return this.usuario;
+    }
+
+    @Override
+    public boolean isAccountNonExpired() {
+        return true;
+    }
+
+    @Override
+    public boolean isAccountNonLocked() {
+        return true;
+    }
+
+    @Override
+    public boolean isCredentialsNonExpired() {
+        return true;
+    }
+
+    @Override
+    public boolean isEnabled() {
+        return this.ativo;
+    }
 
     // Auxiliares (mantidos como no seu modelo)
     @Transient

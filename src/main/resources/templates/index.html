@@ -1,0 +1,143 @@
+<!DOCTYPE html>
+<html lang="pt-BR" xmlns:th="http://www.thymeleaf.org" xmlns:sec="http://www.thymeleaf.org/extras/spring-security">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>RMStudio Fitness - Sua Academia Completa</title>
+  <link rel="stylesheet" href="/css/style.css">
+  <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
+</head>
+<body>
+  <header class="header" th:fragment="header">
+    <div class="container">
+      <nav class="navbar">
+        <div class="navbar-left">
+          <a class="brand" th:href="@{/}">
+            <i class="fas fa-dumbbell"></i>
+            <span>RM</span>Studio
+          </a>
+          <!-- Links que aparecem para todos -->
+          <div class="nav-links">
+            <a th:href="@{/}">Home</a>
+            <a th:href="@{/planos}">Planos</a>
+            <!-- Links que aparecem apenas quando logado -->
+            <a sec:authorize="isAuthenticated()" th:href="@{/membros}">Membros</a>
+            <a sec:authorize="hasRole('ROLE_ADMIN')" th:href="@{/tipos-plano}">Gestão de Planos</a>
+          </div>
+        </div>
+
+        <!-- Botão de Login / Menu do Usuário -->
+        <div class="navbar-right">
+          <!-- Visível apenas para visitantes -->
+          <div sec:authorize="!isAuthenticated()">
+            <a th:href="@{/login}" class="btn btn-primary">Login / Cadastre-se</a>
+          </div>
+          <!-- Visível apenas para usuários logados -->
+          <div sec:authorize="isAuthenticated()" class="user-menu">
+            <span class="user-info">Olá, <span sec:authentication="name"></span></span>
+            <form th:action="@{/logout}" method="post">
+              <button type="submit" class="btn-logout" title="Sair">
+                <i class="fas fa-sign-out-alt"></i>
+              </button>
+            </form>
+          </div>
+        </div>
+        
+        <button class="nav-toggle" aria-label="Abrir menu">
+          <i class="fas fa-bars"></i>
+        </button>
+      </nav>
+    </div>
+  </header>
+
+  <main>
+    <section class="hero">
+      <div class="hero-content">
+        <h1 class="hero-title">
+          Treine em uma <br>
+          <span class="highlight">Academia Completa</span>
+        </h1>
+        <p class="hero-subtitle">Sem taxa de matrícula e sem multa. Comece a transformar seu corpo hoje mesmo!</p>
+        <a href="#planos" class="btn btn-primary btn-lg">Conheça os Planos</a>
+      </div>
+    </section>
+
+    <section id="planos" class="section">
+      <div class="container">
+        <h2 class="section-title">Escolha seu plano</h2>
+        <div class="cards-grid" id="planos-grid">
+          <!-- Os cards de planos serão inseridos aqui dinamicamente -->
+        </div>
+      </div>
+    </section>
+  </main>
+
+  <footer class="footer" th:fragment="footer">
+    <div class="container">
+      <div class="footer-bottom">
+        <p>&copy; 2025 RMStudio Fitness. Todos os direitos reservados.</p>
+      </div>
+    </div>
+  </footer>
+
+  <script>
+    // Mobile nav toggle
+    const navToggle = document.querySelector('.nav-toggle');
+    const navLinks = document.querySelector('.nav-links');
+    if (navToggle) {
+        navToggle.addEventListener('click', () => {
+            navLinks.classList.toggle('open');
+        });
+    }
+
+    document.addEventListener('DOMContentLoaded', async () => {
+      const planosGrid = document.getElementById('planos-grid');
+      
+      try {
+        const response = await fetch('/api/tipos-plano');
+        if (!response.ok) throw new Error('Erro ao buscar planos.');
+        
+        const planos = await response.json();
+        
+        if (planos.length === 0) {
+          planosGrid.innerHTML = '<p style="text-align: center; color: var(--color-text-muted);">Nenhum plano cadastrado no momento.</p>';
+          return;
+        }
+
+        // Limpa o conteúdo estático
+        planosGrid.innerHTML = '';
+
+        planos.forEach((plano, index) => {
+          const card = document.createElement('div');
+          card.className = 'card plan-card';
+
+          // Adiciona a classe 'popular' e o badge para o segundo plano, como exemplo
+          if (index === 1) {
+            card.classList.add('popular');
+            card.innerHTML += '<div class="plan-badge">Melhor Escolha</div>';
+          }
+          
+          const valorFormatado = new Intl.NumberFormat('pt-BR', { style: 'currency', currency: 'BRL' }).format(plano.valor);
+          const [reais, centavos] = valorFormatado.replace('R$', '').trim().split(',');
+
+          card.innerHTML += `
+            <h3 class="card-title">${plano.nome}</h3>
+            <div class="plan-price">
+              <span>R$</span> ${reais}<span class="price-cents">,${centavos}</span><span class="price-period">/mês</span>
+            </div>
+            <ul class="plan-features">
+              ${plano.descricao.split(';').map(item => `<li><i class="fas fa-check"></i> ${item.trim()}</li>`).join('')}
+            </ul>
+            <a href="/autocadastro" class="btn ${index === 1 ? 'btn-primary' : 'btn-secondary'}">Matricule-se</a>
+          `;
+          planosGrid.appendChild(card);
+        });
+
+      } catch (error) {
+        console.error('Erro ao carregar planos:', error);
+        planosGrid.innerHTML = '<p style="text-align: center; color: var(--color-primary);">Não foi possível carregar os planos. Tente novamente mais tarde.</p>';
+      }
+    });
+  </script>
+</body>
+</html>

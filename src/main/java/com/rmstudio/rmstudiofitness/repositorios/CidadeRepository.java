@@ -44,4 +44,7 @@ public interface CidadeRepository extends JpaRepository<Cidade, Long> {
      */
     @Query("SELECT c FROM Cidade c JOIN FETCH c.estado e WHERE e.uf = :uf ORDER BY c.nome")
     List<Cidade> findByEstadoUf(@Param("uf") String uf);
+
+    List<Cidade> findByNome(String nome);
+    List<Cidade> findByEstadoId(Long estadoId);
 }

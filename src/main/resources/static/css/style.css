@@ -120,6 +120,47 @@ p { margin-bottom: calc(var(--spacing-unit) * 2); }
   width: 100%;
 }
 
+.navbar-left {
+  display: flex;
+  align-items: center;
+  gap: calc(var(--spacing-unit) * 4);
+}
+
+.navbar-right {
+  margin-left: auto; /* Empurra para a direita */
+  flex-shrink: 0; /* Impede que o elemento encolha */
+}
+
+.navbar-right .btn {
+  padding: calc(var(--spacing-unit) * 1) calc(var(--spacing-unit) * 2.5);
+  font-size: 0.9rem;
+}
+
+.user-menu {
+  display: flex;
+  align-items: center;
+  gap: var(--spacing-unit);
+}
+
+.user-info {
+  font-weight: 500;
+}
+
+.btn-logout {
+  background: transparent;
+  border: none;
+  color: var(--color-text);
+  cursor: pointer;
+  padding: var(--spacing-unit);
+  transition: color 0.3s ease;
+  font-size: 1.2rem; /* Tamanho do ícone */
+}
+
+.btn-logout:hover {
+  color: var(--color-primary);
+}
+
+
 .brand {
   font-size: 1.5rem;
   font-weight: 900;

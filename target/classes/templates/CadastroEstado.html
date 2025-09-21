@@ -1,0 +1,172 @@
+<!DOCTYPE html>
+<html lang="pt-BR" xmlns:th="http://www.thymeleaf.org" xmlns:sec="http://www.thymeleaf.org/extras/spring-security">
+<head>
+  <meta charset="UTF-8"/>
+  <meta name="viewport" content="width=device-width, initial-scale=1"/>
+  <title>Gestão de Estados - RMStudio Fitness</title>
+  <link rel="stylesheet" href="/css/style.css"/>
+  <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
+</head>
+<body>
+  <header class="header" th:replace="~{index :: header}"></header>
+
+  <main class="main-content form-page-container">
+    <div class="container">
+      <h1 class="page-title"><i class="fas fa-map-marker-alt"></i> Gestão de Estados</h1>
+
+      <div class="card form-card">
+        <h3 class="card-title">Adicionar / Editar Estado</h3>
+        <form id="form-estado">
+          <input type="hidden" id="id" name="id">
+          <div class="form-group">
+            <label for="nome" class="form-label">Nome do Estado</label>
+            <input type="text" id="nome" name="nome" class="form-control" required placeholder="Ex: São Paulo">
+          </div>
+          <div class="form-group">
+            <label for="uf" class="form-label">Sigla (UF)</label>
+            <input type="text" id="uf" name="uf" class="form-control" required maxlength="2" placeholder="Ex: SP">
+          </div>
+          <div class="form-actions">
+            <button type="submit" class="btn btn-primary"><i class="fas fa-save"></i> Salvar</button>
+            <button type="button" class="btn btn-secondary" onclick="resetForm()"><i class="fas fa-plus"></i> Novo</button>
+          </div>
+        </form>
+      </div>
+
+      <div class="card" style="margin-top: 32px;">
+        <h3 class="card-title">Estados Cadastrados</h3>
+        <div class="table-responsive">
+          <table class="table" id="tabela-estados">
+          <thead>
+            <tr>
+                <th>Nome</th>
+                <th>Sigla</th>
+                <th>Ações</th>
+            </tr>
+          </thead>
+            <tbody>
+              <!-- Dados inseridos via JS -->
+          </tbody>
+        </table>
+      </div>
+      </div>
+    </div>
+  </main>
+
+  <footer class="footer" th:replace="~{index :: footer}"></footer>
+
+  <script>
+    const API_URL = '/api/estados';
+    const form = document.getElementById('form-estado');
+    const tableBody = document.querySelector('#tabela-estados tbody');
+
+    async function fetchData() {
+      try {
+        const response = await fetch(API_URL);
+        if (!response.ok) throw new Error('Erro ao buscar dados');
+        const data = await response.json();
+        renderTable(data);
+      } catch (error) {
+        console.error('Falha na requisição:', error);
+        tableBody.innerHTML = `<tr><td colspan="3">Erro ao carregar dados.</td></tr>`;
+      }
+    }
+
+    function renderTable(data) {
+      tableBody.innerHTML = '';
+      if (data.length === 0) {
+        tableBody.innerHTML = `<tr><td colspan="3" style="text-align:center;">Nenhum estado cadastrado.</td></tr>`;
+        return;
+      }
+      data.forEach(item => {
+        const tr = document.createElement('tr');
+        tr.innerHTML = `
+          <td>${item.nome}</td>
+          <td>${item.uf}</td>
+          <td class="cell-actions">
+            <button class="btn btn-secondary" onclick="editItem('${item.id}')"><i class="fas fa-edit"></i></button>
+            <button class="btn btn-secondary" onclick="deleteItem('${item.id}')"><i class="fas fa-trash"></i></button>
+          </td>
+        `;
+        tableBody.appendChild(tr);
+      });
+    }
+
+    async function handleSubmit(event) {
+      event.preventDefault();
+      const formData = new FormData(form);
+      const data = Object.fromEntries(formData.entries());
+      const id = data.id;
+
+      const payload = {
+        id: data.id || null,
+        nome: data.nome,
+        uf: data.uf
+      };
+
+      const method = id ? 'PUT' : 'POST';
+      const url = id ? `${API_URL}/${id}` : API_URL;
+
+      try {
+        const response = await fetch(url, {
+          method,
+          headers: { 'Content-Type': 'application/json' },
+          body: JSON.stringify(payload),
+        });
+        if (!response.ok) throw new Error('Erro ao salvar');
+        resetForm();
+        fetchData();
+      } catch (error) {
+        console.error('Falha ao salvar:', error);
+      }
+    }
+
+    async function editItem(id) {
+        try {
+            const response = await fetch(`${API_URL}/${id}`);
+            if (!response.ok) throw new Error('Item não encontrado');
+            const item = await response.json();
+            document.getElementById('id').value = item.id;
+            document.getElementById('nome').value = item.nome;
+            document.getElementById('uf').value = item.uf;
+            window.scrollTo(0, 0);
+        } catch (error) {
+            console.error('Falha ao carregar para edição:', error);
+        }
+    }
+
+    async function deleteItem(id) {
+      if (!confirm('Tem certeza que deseja excluir este estado?')) return;
+      try {
+        const response = await fetch(`${API_URL}/${id}`, { method: 'DELETE' });
+        if (!response.ok) {
+            const errorText = await response.text();
+            throw new Error(errorText || 'Erro ao excluir');
+        }
+        fetchData();
+      } catch (error) {
+        console.error('Falha ao excluir:', error);
+        alert(`Não foi possível excluir: ${error.message}`);
+      }
+    }
+
+    function resetForm() {
+      form.reset();
+      document.getElementById('id').value = '';
+    }
+
+    form.addEventListener('submit', handleSubmit);
+    document.addEventListener('DOMContentLoaded', fetchData);
+    
+    // Mobile nav toggle
+    const navToggle = document.querySelector('.nav-toggle');
+    const navLinks = document.querySelector('.nav-links');
+    if (navToggle) {
+        navToggle.addEventListener('click', () => {
+            navLinks.classList.toggle('open');
+        });
+    }
+  </script>
+</body>
+</html>
+

@@ -1,0 +1,77 @@
+<!DOCTYPE html>
+<html lang="pt-BR" xmlns:th="http://www.thymeleaf.org" xmlns:sec="http://www.thymeleaf.org/extras/spring-security">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Nossos Planos - RMStudio Fitness</title>
+  <link rel="stylesheet" href="/css/style.css">
+  <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
+</head>
+<body>
+
+  <!-- Cabeçalho Dinâmico Reutilizado -->
+  <header class="header" th:replace="~{index :: header}"></header>
+
+  <main class="main-content form-page-container">
+    <section id="planos" class="section">
+      <div class="container">
+        <h2 class="section-title">Escolha seu <span>Plano</span></h2>
+        <div class="cards-grid" id="planos-grid">
+          <!-- Os cards de planos serão inseridos aqui dinamicamente -->
+        </div>
+      </div>
+    </section>
+  </main>
+
+  <footer class="footer">
+    <div class="container">
+      <div class="footer-bottom">
+        <p>&copy; 2025 RMStudio Fitness. Todos os direitos reservados.</p>
+      </div>
+    </div>
+  </footer>
+
+  <script>
+    // Script para carregar os planos
+    document.addEventListener('DOMContentLoaded', async () => {
+      const planosGrid = document.getElementById('planos-grid');
+      try {
+        const response = await fetch('/api/tipos-plano');
+        if (!response.ok) throw new Error('Erro ao buscar planos.');
+        const planos = await response.json();
+        if (planos.length === 0) {
+          planosGrid.innerHTML = '<p style="text-align: center; color: var(--color-text-muted);">Nenhum plano cadastrado no momento.</p>';
+          return;
+        }
+        let planoDestaque = planos.reduce((max, p) => p.valor > max.valor ? p : max, planos[0]);
+        planosGrid.innerHTML = '';
+        planos.forEach(plano => {
+          const card = document.createElement('div');
+          card.className = 'card plan-card';
+          const isDestaque = plano.id === planoDestaque.id;
+          if (isDestaque) {
+            card.classList.add('popular');
+            card.innerHTML += '<div class="plan-badge">Melhor Custo-Benefício</div>';
+          }
+          const valorFormatado = new Intl.NumberFormat('pt-BR', { style: 'currency', currency: 'BRL' }).format(plano.valor);
+          const [reais, centavos] = valorFormatado.replace('R$', '').trim().split(',');
+          card.innerHTML += `
+            <h3 class="card-title">${plano.nome}</h3>
+            <div class="plan-price">
+              <span>R$</span> ${reais}<span class="price-cents">,${centavos}</span><span class="price-period">/mês</span>
+            </div>
+            <ul class="plan-features">
+              ${plano.descricao.split(';').map(item => `<li><i class="fas fa-check"></i> ${item.trim()}</li>`).join('')}
+            </ul>
+            <a href="/autocadastro" class="btn ${isDestaque ? 'btn-primary' : 'btn-secondary'}">Matricule-se</a>
+          `;
+          planosGrid.appendChild(card);
+        });
+      } catch (error) {
+        console.error('Erro ao carregar planos:', error);
+        planosGrid.innerHTML = '<p style="text-align: center; color: var(--color-primary);">Não foi possível carregar os planos. Tente novamente mais tarde.</p>';
+      }
+    });
+  </script>
+</body>
+</html>

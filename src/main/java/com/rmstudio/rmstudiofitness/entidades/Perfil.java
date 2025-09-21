@@ -1,17 +1,41 @@
 package com.rmstudio.rmstudiofitness.entidades;
 
-public enum Perfil {
-    ALUNO("Aluno"),
-    PERSONAL("Personal"),
-    GERENTE("Gerente");
+import org.springframework.security.core.GrantedAuthority;
 
-    private final String label;
+import jakarta.persistence.Entity;
+import jakarta.persistence.GeneratedValue;
+import jakarta.persistence.GenerationType;
+import jakarta.persistence.Id;
+import jakarta.persistence.Table;
 
-    Perfil(String label) {
-        this.label = label;
+@Entity
+@Table(name = "perfil")
+public class Perfil implements GrantedAuthority {
+    
+    @Id
+    @GeneratedValue(strategy = GenerationType.IDENTITY)
+    private Long id;
+
+    private String nome;
+
+    public Long getId() {
+        return id;
     }
 
-    public String getLabel() {
-        return label;
+    public void setId(Long id) {
+        this.id = id;
+    }
+
+    public String getNome() {
+        return nome;
+    }
+
+    public void setNome(String nome) {
+        this.nome = nome;
+    }
+
+    @Override
+    public String getAuthority() {
+        return nome;
     }
 }

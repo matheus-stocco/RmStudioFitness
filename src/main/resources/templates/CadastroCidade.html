@@ -1,0 +1,192 @@
+<!DOCTYPE html>
+<html lang="pt-BR" xmlns:th="http://www.thymeleaf.org" xmlns:sec="http://www.thymeleaf.org/extras/spring-security">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Gestão de Cidades - RMStudio Fitness</title>
+  <link rel="stylesheet" href="/css/style.css">
+  <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
+</head>
+<body>
+  <header class="header" th:replace="~{index :: header}"></header>
+
+  <main class="main-content form-page-container">
+    <div class="container">
+      <h1 class="page-title"><i class="fas fa-city"></i> Gestão de Cidades</h1>
+
+      <div class="card form-card">
+        <h3 class="card-title">Adicionar / Editar Cidade</h3>
+        <form id="form-cidade">
+          <input type="hidden" id="id" name="id">
+          <div class="form-group">
+            <label for="estadoId" class="form-label">Estado</label>
+            <select id="estadoId" name="estadoId" class="form-control" required>
+              <option value="">Carregando estados...</option>
+            </select>
+          </div>
+          <div class="form-group">
+            <label for="nome" class="form-label">Nome da Cidade</label>
+            <input type="text" id="nome" name="nome" class="form-control" required placeholder="Ex: Campinas">
+          </div>
+          <div class="form-actions">
+            <button type="submit" class="btn btn-primary"><i class="fas fa-save"></i> Salvar</button>
+            <button type="button" class="btn btn-secondary" onclick="resetForm()"><i class="fas fa-plus"></i> Nova</button>
+          </div>
+        </form>
+      </div>
+
+      <div class="card" style="margin-top: 32px;">
+        <h3 class="card-title">Cidades Cadastradas</h3>
+        <div class="table-responsive">
+          <table class="table" id="tabela-cidades">
+            <thead>
+              <tr>
+                <th>Cidade</th>
+                <th>Estado</th>
+                <th>Ações</th>
+              </tr>
+            </thead>
+            <tbody>
+              <!-- Dados inseridos via JS -->
+            </tbody>
+          </table>
+        </div>
+      </div>
+    </div>
+  </main>
+
+  <footer class="footer" th:replace="~{index :: footer}"></footer>
+
+  <script>
+    const API_CIDADES_URL = '/api/cidades';
+    const API_ESTADOS_URL = '/api/estados';
+    const form = document.getElementById('form-cidade');
+    const tableBody = document.querySelector('#tabela-cidades tbody');
+    const estadoSelect = document.getElementById('estadoId');
+
+    async function getEstados() {
+      try {
+        const response = await fetch(API_ESTADOS_URL);
+        if (!response.ok) throw new Error('Erro ao buscar estados');
+        const estados = await response.json();
+        estadoSelect.innerHTML = '<option value="">Selecione um estado</option>';
+        estados.forEach(estado => {
+          const option = document.createElement('option');
+          option.value = estado.id;
+          option.textContent = `${estado.uf} - ${estado.nome}`;
+          estadoSelect.appendChild(option);
+        });
+      } catch (error) {
+        console.error(error);
+        estadoSelect.innerHTML = '<option value="">Falha ao carregar</option>';
+      }
+    }
+
+    async function getCidades() {
+      try {
+        const response = await fetch(API_CIDADES_URL);
+        if (!response.ok) throw new Error('Erro ao buscar cidades');
+        const cidades = await response.json();
+        renderTable(cidades);
+      } catch (error) {
+        console.error(error);
+        tableBody.innerHTML = '<tr><td colspan="3">Erro ao carregar cidades.</td></tr>';
+      }
+    }
+
+    function renderTable(cidades) {
+      tableBody.innerHTML = '';
+      if (cidades.length === 0) {
+        tableBody.innerHTML = '<tr><td colspan="3" style="text-align:center;">Nenhuma cidade cadastrada.</td></tr>';
+        return;
+      }
+      cidades.forEach(cidade => {
+        const tr = document.createElement('tr');
+        tr.innerHTML = `
+          <td>${cidade.nome}</td>
+          <td>${cidade.estado ? `${cidade.estado.uf} - ${cidade.estado.nome}` : 'N/A'}</td>
+          <td class="cell-actions">
+            <button class="btn btn-secondary" onclick="editCidade('${cidade.id}')"><i class="fas fa-edit"></i></button>
+            <button class="btn btn-secondary" onclick="deleteCidade('${cidade.id}')"><i class="fas fa-trash"></i></button>
+          </td>
+        `;
+        tableBody.appendChild(tr);
+      });
+    }
+
+    form.addEventListener('submit', async (e) => {
+      e.preventDefault();
+      const formData = new FormData(form);
+      const id = formData.get('id');
+      const payload = {
+        nome: formData.get('nome'),
+        estadoId: formData.get('estadoId') 
+      };
+
+      const method = id ? 'PUT' : 'POST';
+      const url = id ? `${API_CIDADES_URL}/${id}` : API_CIDADES_URL;
+
+      try {
+        const response = await fetch(url, {
+          method,
+          headers: { 'Content-Type': 'application/json' },
+          body: JSON.stringify(payload),
+        });
+        if (!response.ok) throw new Error('Erro ao salvar cidade');
+        resetForm();
+        getCidades();
+        location.reload();
+      } catch (error) {
+        console.error(error);
+      }
+    });
+
+    async function editCidade(id) {
+        try {
+            const response = await fetch(`${API_CIDADES_URL}/${id}`);
+            if (!response.ok) throw new Error('Cidade não encontrada');
+            const cidade = await response.json();
+            document.getElementById('id').value = cidade.id;
+            document.getElementById('nome').value = cidade.nome;
+            if (cidade.estado) {
+                document.getElementById('estadoId').value = cidade.estado.id;
+            }
+            window.scrollTo(0, 0);
+        } catch (error) {
+            console.error('Falha ao carregar cidade para edição:', error);
+        }
+    }
+    
+    async function deleteCidade(id) {
+      if (!confirm('Tem certeza que deseja excluir esta cidade?')) return;
+      try {
+        const response = await fetch(`${API_CIDADES_URL}/${id}`, { method: 'DELETE' });
+        if (!response.ok) throw new Error('Erro ao excluir cidade');
+        getCidades();
+      } catch (error) {
+        console.error(error);
+      }
+    }
+
+    function resetForm() {
+      form.reset();
+      document.getElementById('id').value = '';
+    }
+
+    document.addEventListener('DOMContentLoaded', () => {
+      getEstados();
+      getCidades();
+    });
+
+    // Mobile nav toggle
+    const navToggle = document.querySelector('.nav-toggle');
+    const navLinks = document.querySelector('.nav-links');
+    if (navToggle) {
+        navToggle.addEventListener('click', () => {
+            navLinks.classList.toggle('open');
+        });
+    }
+  </script>
+</body>
+</html>
+
