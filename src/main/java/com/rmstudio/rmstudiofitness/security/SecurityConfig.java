@@ -52,7 +52,7 @@ public class SecurityConfig {
             .formLogin(formLogin ->
                 formLogin
                     .loginPage("/login") // Página de login customizada
-                    .defaultSuccessUrl("/", true) // Redireciona para a home após o login
+                    .defaultSuccessUrl("/perfil", true) // Redireciona para a home após o login
                     .permitAll()
             )
             .logout(logout ->

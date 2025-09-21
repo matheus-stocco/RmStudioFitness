@@ -16,6 +16,7 @@ import java.util.List;
 import java.util.ArrayList;
 import java.util.Collection;
 import java.util.Set;
+import java.util.HashSet;
 
 import org.springframework.security.core.GrantedAuthority;
 import org.springframework.security.core.userdetails.UserDetails;
@@ -63,7 +64,7 @@ public class Pessoa implements UserDetails {
     private String observacoes;
 
     // Muitas pessoas para uma cidade
-    @ManyToOne(fetch = FetchType.LAZY, optional = false)
+    @ManyToOne(fetch = FetchType.EAGER, optional = false)
     @JoinColumn(name = "cidade_id", nullable = false)
     @JsonIgnoreProperties({"hibernateLazyInitializer", "handler"})
     private Cidade cidade;
@@ -72,7 +73,7 @@ public class Pessoa implements UserDetails {
     @JoinTable(name = "pessoa_perfil",
         joinColumns = @JoinColumn(name = "pessoa_id"),
         inverseJoinColumns = @JoinColumn(name = "perfil_id"))
-    private Set<Perfil> perfis;
+    private Set<Perfil> perfis = new HashSet<>();
 
     @JsonIgnore
     @OneToMany(mappedBy = "pessoa", cascade = CascadeType.ALL, orphanRemoval = true, fetch = FetchType.LAZY)

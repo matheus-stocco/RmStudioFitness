@@ -1,0 +1,61 @@
+<!DOCTYPE html>
+<html lang="pt-BR" xmlns:th="http://www.thymeleaf.org" xmlns:sec="http://www.thymeleaf.org/extras/spring-security">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Meu Perfil - RMStudio Fitness</title>
+    <link rel="stylesheet" href="/css/style.css">
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
+</head>
+<body>
+    <header class="header" th:replace="~{index :: header}"></header>
+
+    <main class="main-content form-page-container">
+        <div class="container">
+            <h1 class="page-title"><i class="fas fa-user-circle"></i> Meu Perfil</h1>
+
+            <div class="card form-card" th:if="${pessoa != null}">
+                <div class="profile-info">
+                    <div class="info-item">
+                        <span class="info-label">Nome Completo:</span>
+                        <span class="info-value" th:text="${pessoa.nome}"></span>
+                    </div>
+                    <div class="info-item">
+                        <span class="info-label">Usuário:</span>
+                        <span class="info-value" th:text="${pessoa.usuario}"></span>
+                    </div>
+                    <div class="info-item">
+                        <span class="info-label">E-mail:</span>
+                        <span class="info-value" th:text="${pessoa.email}"></span>
+                    </div>
+                    <div class="info-item">
+                        <span class="info-label">Telefone:</span>
+                        <span class="info-value" th:text="${pessoa.telefone ?: 'Não informado'}"></span>
+                    </div>
+                    <div class="info-item">
+                        <span class="info-label">Gênero:</span>
+                        <span class="info-value" th:text="${pessoa.generoDescricao}"></span>
+                    </div>
+                    <div class="info-item">
+                        <span class="info-label">Data de Nascimento:</span>
+                        <span class="info-value" th:text="${pessoa.dataNascimentoFormatada ?: 'Não informada'}"></span>
+                    </div>
+                    <div class="info-item">
+                        <span class="info-label">CPF:</span>
+                        <span class="info-value" th:text="${pessoa.cpfFormatado ?: 'Não informado'}"></span>
+                    </div>
+                    <div class="info-item">
+                        <span class="info-label">Localização:</span>
+                        <span class="info-value" th:text="${pessoa.localizacaoCompleta}"></span>
+                    </div>
+                </div>
+                <div class="form-actions" style="justify-content: center; margin-top: 24px;">
+                    <a href="#" class="btn btn-primary"><i class="fas fa-edit"></i> Editar Informações</a>
+                </div>
+            </div>
+        </div>
+    </main>
+
+    <footer class="footer" th:replace="~{index :: footer}"></footer>
+</body>
+</html>

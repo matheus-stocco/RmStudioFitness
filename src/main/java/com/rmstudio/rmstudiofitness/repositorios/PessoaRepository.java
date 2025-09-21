@@ -58,4 +58,7 @@ public interface PessoaRepository extends JpaRepository<Pessoa, Long> {
     /** Busca pessoas com JOIN FETCH da cidade e estado */
     @Query("SELECT p FROM Pessoa p JOIN FETCH p.cidade c JOIN FETCH c.estado ORDER BY p.nome")
     List<Pessoa> findAllWithCidadeAndEstado();
+
+    @Query("SELECT p FROM Pessoa p LEFT JOIN FETCH p.cidade c LEFT JOIN FETCH c.estado WHERE p.id = :id")
+    Optional<Pessoa> findByIdWithCidadeAndEstado(@Param("id") Long id);
 }

@@ -1,10 +1,20 @@
 package com.rmstudio.rmstudiofitness.controladores;
 
+import com.rmstudio.rmstudiofitness.entidades.Pessoa;
+import com.rmstudio.rmstudiofitness.repositorios.PessoaRepository;
+import org.springframework.security.core.Authentication;
 import org.springframework.stereotype.Controller;
+import org.springframework.ui.Model;
 import org.springframework.web.bind.annotation.GetMapping;
 
 @Controller
 public class ControleNavegacao {
+
+    private final PessoaRepository pessoaRepository;
+
+    public ControleNavegacao(PessoaRepository pessoaRepository) {
+        this.pessoaRepository = pessoaRepository;
+    }
     
     @GetMapping("/login")
     public String login() {
@@ -64,5 +74,17 @@ public class ControleNavegacao {
     @GetMapping({"/tipos-plano", "/CadastroTipoPlano.html"})
     public String cadastroTipoPlano() {
         return "CadastroTipoPlano";
+    }
+
+    @GetMapping("/perfil")
+    public String perfil(Model model, Authentication authentication) {
+        if (authentication != null && authentication.isAuthenticated()) {
+            Pessoa principal = (Pessoa) authentication.getPrincipal();
+            
+            // Recarrega a pessoa do banco de dados com a cidade e o estado
+            pessoaRepository.findByIdWithCidadeAndEstado(principal.getId())
+                .ifPresent(pessoaCompleta -> model.addAttribute("pessoa", pessoaCompleta));
+        }
+        return "perfil";
     }
 }

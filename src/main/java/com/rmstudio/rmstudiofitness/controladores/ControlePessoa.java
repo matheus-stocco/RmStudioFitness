@@ -3,12 +3,11 @@ package com.rmstudio.rmstudiofitness.controladores;
 import com.rmstudio.rmstudiofitness.entidades.Pessoa;
 import com.rmstudio.rmstudiofitness.entidades.Cidade;
 import com.rmstudio.rmstudiofitness.entidades.Perfil;
+import com.rmstudio.rmstudiofitness.repositorios.CidadeRepository;
 import com.rmstudio.rmstudiofitness.repositorios.PerfilRepository;
+import com.rmstudio.rmstudiofitness.repositorios.PessoaRepository;
 
-import jakarta.persistence.EntityManager;
-import jakarta.persistence.PersistenceContext;
-import jakarta.persistence.TypedQuery;
-import jakarta.transaction.Transactional;
+import org.springframework.transaction.annotation.Transactional;
 
 import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
@@ -18,9 +17,11 @@ import org.springframework.web.bind.annotation.*;
 import java.net.URI;
 import java.time.LocalDateTime;
 import java.time.LocalDate;
+import java.util.HashSet;
 import java.util.Set;
 
 import java.util.List;
+import org.springframework.web.server.ResponseStatusException;
 
 /**
  * API REST para Pessoas.
@@ -36,15 +37,16 @@ import java.util.List;
 @RequestMapping("/api/pessoas")
 public class ControlePessoa {
 
-    @PersistenceContext
-    private EntityManager em;
-
     private final PasswordEncoder passwordEncoder;
     private final PerfilRepository perfilRepository;
+    private final PessoaRepository pessoaRepository;
+    private final CidadeRepository cidadeRepository;
 
-    public ControlePessoa(PasswordEncoder passwordEncoder, PerfilRepository perfilRepository) {
+    public ControlePessoa(PasswordEncoder passwordEncoder, PerfilRepository perfilRepository, PessoaRepository pessoaRepository, CidadeRepository cidadeRepository) {
         this.passwordEncoder = passwordEncoder;
         this.perfilRepository = perfilRepository;
+        this.pessoaRepository = pessoaRepository;
+        this.cidadeRepository = cidadeRepository;
     }
 
     /** Payload para criação/atualização. */
@@ -69,46 +71,42 @@ public class ControlePessoa {
             @RequestParam(name = "cidadeId", required = false) Long cidadeId,
             @RequestParam(name = "estadoId", required = false) Long estadoId
     ) {
-        StringBuilder jpql = new StringBuilder(
-                "SELECT DISTINCT p FROM Pessoa p " +
-                "LEFT JOIN FETCH p.cidade c " +
-                "LEFT JOIN FETCH c.estado e " +
-                "WHERE 1=1 "
-        );
-
-        if (!isBlank(q))         jpql.append("AND (LOWER(p.nome) LIKE :q OR LOWER(p.usuario) LIKE :q OR LOWER(p.email) LIKE :q) ");
-        if (cidadeId != null)    jpql.append("AND c.id = :cidadeId ");
-        if (estadoId != null)    jpql.append("AND e.id = :estadoId ");
-        jpql.append("ORDER BY p.nome");
-
-        TypedQuery<Pessoa> query = em.createQuery(jpql.toString(), Pessoa.class);
-        if (!isBlank(q)) query.setParameter("q", "%" + q.trim().toLowerCase() + "%");
-        if (cidadeId != null) query.setParameter("cidadeId", cidadeId);
-        if (estadoId != null) query.setParameter("estadoId", estadoId);
-        return query.getResultList();
+        // Esta é uma implementação simplificada usando repositórios.
+        // Para filtros complexos, uma abordagem com Criteria API ou Querydsl seria mais robusta.
+        if (cidadeId != null) {
+            return pessoaRepository.findByCidadeIdOrderByNome(cidadeId);
+        }
+        if (estadoId != null) {
+            return pessoaRepository.findByEstadoId(estadoId);
+        }
+        if (!isBlank(q)) {
+            return pessoaRepository.findByNomeContainingIgnoreCase(q.trim());
+        }
+        return pessoaRepository.findAllByOrderByNome();
     }
 
     // ===== DETALHE =====
     @GetMapping("/{id}")
     public ResponseEntity<Pessoa> buscar(@PathVariable Long id) {
-        List<Pessoa> res = em.createQuery(
-                "SELECT p FROM Pessoa p " +
-                "LEFT JOIN FETCH p.cidade c " +
-                "LEFT JOIN FETCH c.estado " +
-                "WHERE p.id = :id", Pessoa.class)
-                .setParameter("id", id)
-                .getResultList();
-
-        return res.isEmpty() ? ResponseEntity.notFound().build() : ResponseEntity.ok(res.get(0));
+        return pessoaRepository.findByIdWithCidadeAndEstado(id)
+                .map(ResponseEntity::ok)
+                .orElse(ResponseEntity.notFound().build());
     }
 
     // ===== CRIAR =====
     @PostMapping
     @Transactional
     public ResponseEntity<?> criar(@RequestBody PessoaPayload body) {
-        
-        Cidade cidade = em.find(Cidade.class, body.cidade().id());
-        if (cidade == null) return badRequest("Cidade não encontrada.");
+
+        if (pessoaRepository.existsByUsuario(body.usuario().trim())) {
+            return ResponseEntity.status(HttpStatus.BAD_REQUEST).body("Este nome de usuário já está em uso.");
+        }
+        if (body.email() != null && pessoaRepository.existsByEmail(body.email().trim())) {
+            return ResponseEntity.status(HttpStatus.BAD_REQUEST).body("Este e-mail já está cadastrado.");
+        }
+
+        Cidade cidade = cidadeRepository.findById(body.cidade().id())
+            .orElseThrow(() -> new ResponseStatusException(HttpStatus.BAD_REQUEST, "Cidade não encontrada."));
 
         Perfil perfilUsuario = perfilRepository.findAll().stream()
             .filter(p -> p.getNome().equals("ROLE_USER"))
@@ -123,7 +121,7 @@ public class ControlePessoa {
         p.setTelefone(isBlank(body.telefone()) ? null : body.telefone().trim());
         p.setDataNascimento(body.dataNascimento());
         p.setCpf(isBlank(body.cpf()) ? null : body.cpf().trim());
-        
+
         // Converte o gênero para o formato do banco de dados (primeira letra)
         if (!isBlank(body.genero())) {
             p.setGenero(body.genero().trim().substring(0, 1).toUpperCase());
@@ -132,36 +130,36 @@ public class ControlePessoa {
         }
 
         p.setCidade(cidade);
-        p.setPerfis(Set.of(perfilUsuario)); // Atribui o perfil de usuário
+
+        Set<Perfil> perfis = new HashSet<>();
+        perfis.add(perfilUsuario);
+        p.setPerfis(perfis);
+
         if (p.getDataCadastro() == null) {
             p.setDataCadastro(LocalDateTime.now());
         }
 
-        em.persist(p);
-        em.flush();
+        Pessoa pessoaSalva = pessoaRepository.save(p);
 
-        // Força a inicialização do proxy do Estado antes de fechar a sessão
-        p.getCidade().getEstado().getUf(); 
-
-        return ResponseEntity.created(URI.create("/api/pessoas/" + p.getId())).body(p);
+        return ResponseEntity.created(URI.create("/api/pessoas/" + pessoaSalva.getId())).body(pessoaSalva);
     }
 
     // ===== ATUALIZAR =====
     @PutMapping("/{id}")
     @Transactional
     public ResponseEntity<?> atualizar(@PathVariable Long id, @RequestBody PessoaPayload body) {
-        Pessoa existente = em.find(Pessoa.class, id);
-        if (existente == null) return ResponseEntity.notFound().build();
+        Pessoa existente = pessoaRepository.findById(id)
+                .orElseThrow(() -> new ResponseStatusException(HttpStatus.NOT_FOUND, "Pessoa não encontrada"));
 
         if (!isBlank(body.usuario())) existente.setUsuario(body.usuario().trim());
-        if (!isBlank(body.senha()))   existente.setSenha(body.senha());
-        if (!isBlank(body.nome()))    existente.setNome(body.nome().trim());
-        if (!isBlank(body.email()))   existente.setEmail(body.email().trim());
-        if (body.telefone() != null)  existente.setTelefone(isBlank(body.telefone()) ? null : body.telefone().trim());
+        if (!isBlank(body.senha())) existente.setSenha(passwordEncoder.encode(body.senha())); // Senha é criptografada
+        if (!isBlank(body.nome())) existente.setNome(body.nome().trim());
+        if (!isBlank(body.email())) existente.setEmail(body.email().trim());
+        if (body.telefone() != null) existente.setTelefone(isBlank(body.telefone()) ? null : body.telefone().trim());
         if (body.dataNascimento() != null) existente.setDataNascimento(body.dataNascimento());
         if (body.cpf() != null) existente.setCpf(isBlank(body.cpf()) ? null : body.cpf().trim());
-        
-        // Converte o gênero para o formato do banco de dados (primeira letra)
+
+        // Converte o gênero
         if (body.genero() != null) {
             if (isBlank(body.genero())) {
                 existente.setGenero(null);
@@ -171,27 +169,23 @@ public class ControlePessoa {
         }
 
         if (body.cidade() != null && body.cidade().id() != null) {
-            Cidade cidade = em.find(Cidade.class, body.cidade().id());
-            if (cidade == null) return badRequest("Cidade não encontrada.");
+            Cidade cidade = cidadeRepository.findById(body.cidade().id())
+                .orElseThrow(() -> new ResponseStatusException(HttpStatus.BAD_REQUEST, "Cidade não encontrada."));
             existente.setCidade(cidade);
         }
 
-        em.flush();
-        
-        // Força a inicialização do proxy do Estado antes de fechar a sessão
-        existente.getCidade().getEstado().getUf();
-
-        return ResponseEntity.ok(existente);
+        Pessoa pessoaAtualizada = pessoaRepository.save(existente);
+        return ResponseEntity.ok(pessoaAtualizada);
     }
 
     // ===== EXCLUIR =====
     @DeleteMapping("/{id}")
     @Transactional
     public ResponseEntity<?> excluir(@PathVariable Long id) {
-        Pessoa p = em.find(Pessoa.class, id);
-        if (p == null) return ResponseEntity.notFound().build();
-        em.remove(p);
-        em.flush();
+        if (!pessoaRepository.existsById(id)) {
+            return ResponseEntity.notFound().build();
+        }
+        pessoaRepository.deleteById(id);
         return ResponseEntity.noContent().build();
     }
 

@@ -12,6 +12,7 @@ import com.rmstudio.rmstudiofitness.entidades.Cidade;
 import org.springframework.boot.CommandLineRunner;
 import org.springframework.security.crypto.password.PasswordEncoder;
 import org.springframework.stereotype.Component;
+import org.springframework.transaction.annotation.Transactional;
 
 import java.util.Set;
 
@@ -33,6 +34,7 @@ public class DataInitializer implements CommandLineRunner {
     }
 
     @Override
+    @Transactional
     public void run(String... args) throws Exception {
         if (perfilRepository.count() == 0) {
             Perfil adminPerfil = new Perfil();
