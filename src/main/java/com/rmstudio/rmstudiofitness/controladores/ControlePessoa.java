@@ -104,6 +104,9 @@ public class ControlePessoa {
         if (body.email() != null && pessoaRepository.existsByEmail(body.email().trim())) {
             return ResponseEntity.status(HttpStatus.BAD_REQUEST).body("Este e-mail já está cadastrado.");
         }
+        if (!isBlank(body.cpf()) && pessoaRepository.existsByCpf(body.cpf().trim())) {
+            return ResponseEntity.status(HttpStatus.BAD_REQUEST).body("Este CPF já está cadastrado.");
+        }
 
         Cidade cidade = cidadeRepository.findById(body.cidade().id())
             .orElseThrow(() -> new ResponseStatusException(HttpStatus.BAD_REQUEST, "Cidade não encontrada."));
