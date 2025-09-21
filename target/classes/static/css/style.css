@@ -717,6 +717,7 @@ p { margin-bottom: calc(var(--spacing-unit) * 2); }
 .form-card input[type="email"],
 .form-card input[type="password"],
 .form-card input[type="date"],
+.form-card input[type="tel"],
 .form-card select {
     width: 100%;
     padding: calc(var(--spacing-unit) * 1.5);
@@ -733,6 +734,7 @@ p { margin-bottom: calc(var(--spacing-unit) * 2); }
 .form-card input[type="email"]:focus,
 .form-card input[type="password"]:focus,
 .form-card input[type="date"]:focus,
+.form-card input[type="tel"]:focus,
 .form-card select:focus {
     outline: none;
     border-color: var(--color-primary);
