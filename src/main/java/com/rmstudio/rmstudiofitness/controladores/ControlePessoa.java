@@ -15,6 +15,7 @@ import org.springframework.web.bind.annotation.*;
 
 import java.net.URI;
 import java.time.LocalDateTime;
+import java.time.LocalDate;
 import java.util.List;
 
 /**
@@ -42,6 +43,8 @@ public class ControlePessoa {
             String email,
             String telefone,
             String genero,
+            LocalDate dataNascimento,
+            String cpf,
             CidadePayload cidade
     ) {
         public record CidadePayload(Long id){}
@@ -101,6 +104,8 @@ public class ControlePessoa {
         p.setNome(body.nome().trim());
         p.setEmail(body.email().trim());
         p.setTelefone(isBlank(body.telefone()) ? null : body.telefone().trim());
+        p.setDataNascimento(body.dataNascimento());
+        p.setCpf(isBlank(body.cpf()) ? null : body.cpf().trim());
         
         // Converte o gênero para o formato do banco de dados (primeira letra)
         if (!isBlank(body.genero())) {
@@ -135,6 +140,8 @@ public class ControlePessoa {
         if (!isBlank(body.nome()))    existente.setNome(body.nome().trim());
         if (!isBlank(body.email()))   existente.setEmail(body.email().trim());
         if (body.telefone() != null)  existente.setTelefone(isBlank(body.telefone()) ? null : body.telefone().trim());
+        if (body.dataNascimento() != null) existente.setDataNascimento(body.dataNascimento());
+        if (body.cpf() != null) existente.setCpf(isBlank(body.cpf()) ? null : body.cpf().trim());
         
         // Converte o gênero para o formato do banco de dados (primeira letra)
         if (body.genero() != null) {

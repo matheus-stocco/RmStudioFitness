@@ -3,6 +3,7 @@ package com.rmstudio.rmstudiofitness.entidades;
 
 import com.fasterxml.jackson.annotation.JsonIgnoreProperties;
 import com.fasterxml.jackson.annotation.JsonProperty;
+import com.fasterxml.jackson.annotation.JsonIgnore;
 import jakarta.persistence.*;
 
 import java.io.Serializable;
@@ -12,6 +13,8 @@ import java.time.LocalDate;
 import java.time.Period;
 import java.util.Objects;
 import java.util.regex.Pattern;
+import java.util.List;
+import java.util.ArrayList;
 
 @Entity
 @Table(name = "pessoa")
@@ -60,6 +63,14 @@ public class Pessoa implements Serializable {
     @JoinColumn(name = "cidade_id", nullable = false)
     @JsonIgnoreProperties({"hibernateLazyInitializer", "handler"})
     private Cidade cidade;
+
+    @JsonIgnore
+    @OneToMany(mappedBy = "pessoa", cascade = CascadeType.ALL, orphanRemoval = true, fetch = FetchType.LAZY)
+    private List<AvaliacaoFisica> avaliacoes = new ArrayList<>();
+
+    @JsonIgnore
+    @OneToMany(mappedBy = "aluno", cascade = CascadeType.ALL, orphanRemoval = true, fetch = FetchType.LAZY)
+    private List<PlanoDeAula> planosDeAula = new ArrayList<>();
 
     // Construtores
     public Pessoa() {
@@ -120,6 +131,12 @@ public class Pessoa implements Serializable {
 
     public Cidade getCidade() { return cidade; }
     public void setCidade(Cidade cidade) { this.cidade = cidade; }
+
+    public List<AvaliacaoFisica> getAvaliacoes() { return avaliacoes; }
+    public void setAvaliacoes(List<AvaliacaoFisica> avaliacoes) { this.avaliacoes = avaliacoes; }
+
+    public List<PlanoDeAula> getPlanosDeAula() { return planosDeAula; }
+    public void setPlanosDeAula(List<PlanoDeAula> planosDeAula) { this.planosDeAula = planosDeAula; }
 
     // Auxiliares (mantidos como no seu modelo)
     @Transient
