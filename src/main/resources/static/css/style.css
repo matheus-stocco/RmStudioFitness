@@ -562,6 +562,27 @@ p { margin-bottom: calc(var(--spacing-unit) * 2); }
   margin-bottom: calc(var(--spacing-unit) * 2);
 }
 
+/* Estilos para a página Meus Planos de Aula */
+.plano-aula-card {
+  margin-bottom: calc(var(--spacing-unit) * 3);
+}
+
+.plano-aula-card .exercicios-list {
+  list-style: none;
+  padding-left: calc(var(--spacing-unit) * 2);
+  margin-top: calc(var(--spacing-unit) * 2);
+  border-left: 3px solid var(--color-primary);
+}
+
+.plano-aula-card .exercicios-list li {
+  margin-bottom: var(--spacing-unit);
+  color: var(--color-text-muted);
+}
+
+.plano-aula-card .exercicios-list strong {
+  color: var(--color-text);
+}
+
 /* --- RESPONSIVIDADE --- */
 @media (max-width: 992px) {
   h1 { font-size: 2.5rem; }
@@ -700,6 +721,12 @@ p { margin-bottom: calc(var(--spacing-unit) * 2); }
     outline: none;
     border-color: var(--color-primary);
     box-shadow: 0 0 0 3px rgba(255, 107, 53, 0.25);
+}
+
+/* Melhora a visibilidade do ícone do calendário no input de data em navegadores WebKit (Chrome, Safari, Edge) */
+.form-card input[type="date"]::-webkit-calendar-picker-indicator {
+    filter: invert(0.8) brightness(1.2);
+    cursor: pointer;
 }
 
 /* Placeholder text color */

@@ -98,8 +98,22 @@
                     <form id="form-plano-aula">
                         <input type="hidden" id="id" name="id">
                         <div class="form-group">
+                            <label for="nome" class="form-label">Nome do Plano</label>
+                            <input type="text" id="nome" name="nome" class="form-control" required placeholder="Ex: Treino de Hipertrofia A/B">
+                        </div>
+                        <div class="form-group">
                             <label for="descricao" class="form-label">Descrição do Plano</label>
-                            <input type="text" id="descricao" name="descricao" class="form-control" required placeholder="Ex: Treino de Hipertrofia A/B">
+                            <input type="text" id="descricao" name="descricao" class="form-control" required placeholder="Ex: Foco em membros superiores...">
+                        </div>
+                        <div class="form-grid-double">
+                            <div class="form-group">
+                                <label for="dataInicio" class="form-label">Data Início</label>
+                                <input type="date" id="dataInicio" name="dataInicio" class="form-control" required>
+                            </div>
+                            <div class="form-group">
+                                <label for="dataFim" class="form-label">Data Fim</label>
+                                <input type="date" id="dataFim" name="dataFim" class="form-control" required>
+                            </div>
                         </div>
                         <div class="form-group">
                             <label for="alunoId" class="form-label">Aluno</label>
@@ -120,7 +134,8 @@
                         <table class="table" id="tabela-planos">
                             <thead>
                                 <tr>
-                                    <th>Descrição</th>
+                                    <th>Nome</th>
+                                    <th>Período</th>
                                     <th>Aluno</th>
                                     <th>Ações</th>
                                 </tr>
@@ -162,7 +177,7 @@
                 renderTable(planos);
             } catch (error) {
                 console.error('Falha:', error);
-                tableBody.innerHTML = `<tr><td colspan="3">Erro ao carregar planos.</td></tr>`;
+                tableBody.innerHTML = `<tr><td colspan="4">Erro ao carregar planos.</td></tr>`;
             }
         }
 
@@ -186,13 +201,16 @@
         function renderTable(planos) {
             tableBody.innerHTML = '';
              if (planos.length === 0) {
-                tableBody.innerHTML = `<tr><td colspan="3" style="text-align:center;">Nenhum plano cadastrado.</td></tr>`;
+                tableBody.innerHTML = `<tr><td colspan="4" style="text-align:center;">Nenhum plano cadastrado.</td></tr>`;
                 return;
             }
             planos.forEach(plano => {
+                const dataInicioFmt = new Date(plano.dataInicio).toLocaleDateString('pt-BR');
+                const dataFimFmt = new Date(plano.dataFim).toLocaleDateString('pt-BR');
                 const tr = document.createElement('tr');
                 tr.innerHTML = `
-                    <td>${plano.descricao}</td>
+                    <td>${plano.nome}</td>
+                    <td>${dataInicioFmt} - ${dataFimFmt}</td>
                     <td>${plano.aluno ? plano.aluno.nome : 'N/A'}</td>
                     <td class="cell-actions">
                         <a href="/CadastroItensPlano.html?planoId=${plano.id}" class="btn btn-secondary"><i class="fas fa-plus"></i> Itens</a>
@@ -210,7 +228,10 @@
             const id = formData.get('id');
 
             const payload = {
+                nome: formData.get('nome'),
                 descricao: formData.get('descricao'),
+                dataInicio: formData.get('dataInicio') ? (formData.get('dataInicio') + 'T00:00:00') : null,
+                dataFim: formData.get('dataFim') ? (formData.get('dataFim') + 'T23:59:59') : null,
                 alunoId: parseInt(formData.get('alunoId'), 10),
                 itens: [] // Itens são gerenciados em outra tela, enviamos uma lista vazia.
             };
@@ -251,7 +272,11 @@
                 const plano = await response.json();
                 
                 document.getElementById('id').value = plano.id;
+                document.getElementById('nome').value = plano.nome;
                 document.getElementById('descricao').value = plano.descricao;
+                // A data vem como 'YYYY-MM-DDTHH:mm:ss', precisamos apenas de 'YYYY-MM-DD' para o input date.
+                document.getElementById('dataInicio').value = plano.dataInicio ? plano.dataInicio.split('T')[0] : '';
+                document.getElementById('dataFim').value = plano.dataFim ? plano.dataFim.split('T')[0] : '';
                 if(plano.aluno) {
                     document.getElementById('alunoId').value = plano.aluno.id;
                 }

@@ -103,4 +103,15 @@ public class ControleNavegacao {
         }
         return "minhas-avaliacoes";
     }
+ 
+    @GetMapping("/meus-planos-aula")
+    public String meusPlanosAula(Model model, Authentication authentication) {
+        if (authentication != null && authentication.isAuthenticated()) {
+            String username = authentication.getName();
+            pessoaRepository.findByUsuarioWithPlanosDeAula(username).ifPresent(pessoaCompleta -> {
+                model.addAttribute("planosDeAula", pessoaCompleta.getPlanosDeAula());
+            });
+        }
+        return "meus-planos-aula";
+    }
 }

@@ -41,6 +41,7 @@
             <a th:href="@{/planos}">Planos</a>
             <!-- Link visível apenas para usuários autenticados (logados) -->
             <a sec:authorize="isAuthenticated()" th:href="@{/minhas-avaliacoes}">Minhas Avaliações</a>
+            <a sec:authorize="isAuthenticated()" th:href="@{/meus-planos-aula}">Meus Planos</a>
             <a sec:authorize="isAuthenticated()" th:href="@{/perfil}">Perfil</a>
             <!-- Link visível apenas para administradores -->
             <a sec:authorize="hasRole('ADMIN')" th:href="@{/tipos-plano}">Gestão de Planos</a>

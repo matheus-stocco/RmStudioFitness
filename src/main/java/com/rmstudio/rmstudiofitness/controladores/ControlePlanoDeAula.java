@@ -11,6 +11,7 @@ import org.springframework.http.ResponseEntity;
 import org.springframework.web.bind.annotation.*;
 
 import java.net.URI;
+import java.time.LocalDateTime;
 import java.util.List;
 import java.util.stream.Collectors;
 
@@ -35,10 +36,10 @@ public class ControlePlanoDeAula {
     public record ItemPlanoDTO(Long id, Long exercicioId, String exercicioNome, Integer series, String repeticoes, String diaSemana) {}
     
     /** DTO para a resposta de um plano de aula completo, incluindo todos os seus itens (exercícios). */
-    public record PlanoDeAulaDetalhadoDTO(Long id, String descricao, AlunoDTO aluno, List<ItemPlanoDTO> itens) {}
+    public record PlanoDeAulaDetalhadoDTO(Long id, String nome, String descricao, LocalDateTime dataInicio, LocalDateTime dataFim, AlunoDTO aluno, List<ItemPlanoDTO> itens) {}
     
     /** DTO para a resposta de um plano de aula em uma lista (versão simplificada, sem os exercícios). */
-    public record PlanoDeAulaDTO(Long id, String descricao, AlunoDTO aluno) {}
+    public record PlanoDeAulaDTO(Long id, String nome, String descricao, LocalDateTime dataInicio, LocalDateTime dataFim, AlunoDTO aluno) {}
     
     /** DTO para representar o aluno de forma simplificada. */
     public record AlunoDTO(Long id, String nome) {}
@@ -50,7 +51,7 @@ public class ControlePlanoDeAula {
     public record ItemPlanoPayload(Long exercicioId, String diaSemana, Integer series, String repeticoes) {}
     
     /** Payload para a criação ou atualização de um Plano de Aula completo. */
-    public record PlanoDeAulaPayload(String descricao, Long alunoId, List<ItemPlanoPayload> itens) {}
+    public record PlanoDeAulaPayload(String nome, String descricao, LocalDateTime dataInicio, LocalDateTime dataFim, Long alunoId, List<ItemPlanoPayload> itens) {}
 
     /**
      * Endpoint para CRIAR um novo plano de aula.
@@ -73,7 +74,10 @@ public class ControlePlanoDeAula {
 
         // Cria uma nova instância da entidade PlanoDeAula.
         PlanoDeAula plano = new PlanoDeAula();
+        plano.setNome(payload.nome());
         plano.setDescricao(payload.descricao());
+        plano.setDataInicio(payload.dataInicio());
+        plano.setDataFim(payload.dataFim());
         plano.setAluno(aluno);
 
         // Se houver itens (exercícios) no payload, percorre a lista e os adiciona ao plano.
@@ -101,7 +105,10 @@ public class ControlePlanoDeAula {
         // Cria um DTO de resposta para evitar problemas de serialização da entidade completa.
         PlanoDeAulaDTO dto = new PlanoDeAulaDTO(
             plano.getId(),
+            plano.getNome(),
             plano.getDescricao(),
+            plano.getDataInicio(),
+            plano.getDataFim(),
             new AlunoDTO(aluno.getId(), aluno.getNome())
         );
 
@@ -132,7 +139,10 @@ public class ControlePlanoDeAula {
         }
 
         // Atualiza os dados básicos do plano.
+        plano.setNome(payload.nome());
         plano.setDescricao(payload.descricao());
+        plano.setDataInicio(payload.dataInicio());
+        plano.setDataFim(payload.dataFim());
         plano.setAluno(aluno);
         
         // A estratégia aqui é limpar os itens antigos e adicionar os novos que vieram na requisição.
@@ -159,7 +169,10 @@ public class ControlePlanoDeAula {
         // Cria o DTO de resposta.
         PlanoDeAulaDTO dto = new PlanoDeAulaDTO(
             plano.getId(),
+            plano.getNome(),
             plano.getDescricao(),
+            plano.getDataInicio(),
+            plano.getDataFim(),
             new AlunoDTO(aluno.getId(), aluno.getNome())
         );
 
@@ -243,7 +256,10 @@ public class ControlePlanoDeAula {
         // Cria o DTO de resposta com todos os detalhes.
         PlanoDeAulaDetalhadoDTO dto = new PlanoDeAulaDetalhadoDTO(
             plano.getId(),
+            plano.getNome(),
             plano.getDescricao(),
+            plano.getDataInicio(),
+            plano.getDataFim(),
             new AlunoDTO(plano.getAluno().getId(), plano.getAluno().getNome()),
             itensDTO
         );
@@ -263,7 +279,7 @@ public class ControlePlanoDeAula {
         // Esta é uma query JPQL que constrói o DTO diretamente no banco de dados.
         // É uma abordagem muito eficiente pois evita o tráfego excessivo de dados
         // e previne erros de lazy loading.
-        String jpql = "SELECT new com.rmstudio.rmstudiofitness.controladores.ControlePlanoDeAula$PlanoDeAulaDTO(p.id, p.descricao, new com.rmstudio.rmstudiofitness.controladores.ControlePlanoDeAula$AlunoDTO(p.aluno.id, p.aluno.nome)) FROM PlanoDeAula p";
+        String jpql = "SELECT new com.rmstudio.rmstudiofitness.controladores.ControlePlanoDeAula$PlanoDeAulaDTO(p.id, p.nome, p.descricao, p.dataInicio, p.dataFim, new com.rmstudio.rmstudiofitness.controladores.ControlePlanoDeAula$AlunoDTO(p.aluno.id, p.aluno.nome)) FROM PlanoDeAula p";
         
         // Se um ID de aluno for fornecido, adiciona a cláusula WHERE na query.
         if (alunoId != null) {
