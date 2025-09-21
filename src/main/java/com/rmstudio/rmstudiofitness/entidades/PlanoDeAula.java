@@ -3,7 +3,6 @@ package com.rmstudio.rmstudiofitness.entidades;
 import jakarta.persistence.*;
 import java.io.Serializable;
 import java.time.LocalDateTime;
-import java.util.ArrayList;
 import java.util.Arrays;
 import java.util.Collections;
 import java.util.Comparator;

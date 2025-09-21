@@ -53,6 +53,8 @@ public class SecurityConfig {
                     ).hasRole("ADMIN")
                     // Apenas ADMINs podem realizar operações de escrita (POST, PUT, DELETE) na API.
                     .requestMatchers(HttpMethod.POST, "/api/**").hasRole("ADMIN")
+                    // Permite que usuários autenticados atualizem seus próprios dados, mas restringe outras rotas PUT para ADMIN
+                    .requestMatchers(HttpMethod.PUT, "/api/pessoas/{id}").authenticated()
                     .requestMatchers(HttpMethod.PUT, "/api/**").hasRole("ADMIN")
                     .requestMatchers(HttpMethod.DELETE, "/api/**").hasRole("ADMIN")
  

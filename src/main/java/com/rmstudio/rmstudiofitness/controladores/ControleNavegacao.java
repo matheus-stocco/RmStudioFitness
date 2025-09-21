@@ -1,6 +1,7 @@
 package com.rmstudio.rmstudiofitness.controladores;
 
 import com.rmstudio.rmstudiofitness.entidades.Pessoa;
+import com.rmstudio.rmstudiofitness.repositorios.EstadoRepository;
 import com.rmstudio.rmstudiofitness.repositorios.PessoaRepository;
 import java.util.Collections;
 import org.springframework.security.core.Authentication;
@@ -12,9 +13,11 @@ import org.springframework.web.bind.annotation.GetMapping;
 public class ControleNavegacao {
 
     private final PessoaRepository pessoaRepository;
+    private final EstadoRepository estadoRepository;
 
-    public ControleNavegacao(PessoaRepository pessoaRepository) {
+    public ControleNavegacao(PessoaRepository pessoaRepository, EstadoRepository estadoRepository) {
         this.pessoaRepository = pessoaRepository;
+        this.estadoRepository = estadoRepository;
     }
     
     @GetMapping("/login")
@@ -86,6 +89,7 @@ public class ControleNavegacao {
             pessoaRepository.findByIdWithCidadeAndEstado(principal.getId())
                 .ifPresent(pessoaCompleta -> model.addAttribute("pessoa", pessoaCompleta));
         }
+        model.addAttribute("estados", estadoRepository.findAllByOrderByNome());
         return "perfil";
     }
  
