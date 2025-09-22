@@ -210,6 +210,42 @@ p { margin-bottom: calc(var(--spacing-unit) * 2); }
 }
 
 /* --- RELATÓRIOS --- */
+.summary-cards {
+    display: grid;
+    grid-template-columns: repeat(auto-fit, minmax(280px, 1fr));
+    gap: calc(var(--spacing-unit) * 3);
+    margin-bottom: calc(var(--spacing-unit) * 3);
+}
+
+.summary-card {
+    background-color: var(--color-secondary);
+    border: 1px solid var(--color-border);
+    border-radius: var(--border-radius);
+    padding: calc(var(--spacing-unit) * 2.5);
+    display: flex;
+    align-items: center;
+    gap: calc(var(--spacing-unit) * 2.5);
+}
+
+.summary-card .card-icon {
+    font-size: 2.5rem;
+    color: var(--color-primary);
+}
+
+.summary-card .card-content .card-title {
+    display: block;
+    font-size: 0.9rem;
+    color: var(--color-text-muted);
+    margin-bottom: var(--spacing-unit);
+}
+
+.summary-card .card-content .card-value {
+    display: block;
+    font-size: 1.75rem;
+    font-weight: 700;
+    color: var(--color-text);
+}
+
 .report-filters {
     display: flex;
     gap: calc(var(--spacing-unit) * 2);

@@ -21,6 +21,8 @@ import org.slf4j.LoggerFactory;
 
 import java.util.List;
 import java.util.stream.Collectors;
+import java.math.BigDecimal;
+import java.util.Map;
 
 
 @Service
@@ -131,6 +133,35 @@ public class PagamentoService {
         return todasMensalidades.stream()
             .filter(m -> status.equalsIgnoreCase(m.getStatus()))
             .collect(Collectors.toList());
+    }
+
+    @Transactional(readOnly = true)
+    public Map<String, BigDecimal> calcularTotaisMesCorrente() {
+        LocalDate hoje = LocalDate.now();
+        LocalDate inicioDoMes = hoje.withDayOfMonth(1);
+        LocalDate fimDoMes = hoje.withDayOfMonth(hoje.lengthOfMonth());
+
+        List<Mensalidade> todasMensalidades = mensalidadeRepository.findAllWithDetails();
+
+        BigDecimal totalArrecadado = todasMensalidades.stream()
+            .filter(m -> "PAGO".equals(m.getStatus()) &&
+                         m.getDataPagamento() != null &&
+                         !m.getDataPagamento().isBefore(inicioDoMes) &&
+                         !m.getDataPagamento().isAfter(fimDoMes))
+            .map(Mensalidade::getValor)
+            .reduce(BigDecimal.ZERO, BigDecimal::add);
+
+        BigDecimal previsaoArrecadacao = todasMensalidades.stream()
+            .filter(m -> "PENDENTE".equals(m.getStatus()) &&
+                         !m.getDataVencimento().isBefore(inicioDoMes) &&
+                         !m.getDataVencimento().isAfter(fimDoMes))
+            .map(Mensalidade::getValor)
+            .reduce(BigDecimal.ZERO, BigDecimal::add);
+
+        return Map.of(
+            "totalArrecadado", totalArrecadado,
+            "previsaoArrecadacao", previsaoArrecadacao
+        );
     }
 
     @Transactional
