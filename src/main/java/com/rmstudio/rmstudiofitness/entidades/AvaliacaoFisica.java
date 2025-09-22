@@ -1,5 +1,6 @@
 package com.rmstudio.rmstudiofitness.entidades;
 
+import com.fasterxml.jackson.annotation.JsonProperty;
 import jakarta.persistence.*;
 import java.io.Serializable;
 import java.math.BigDecimal;
@@ -154,6 +155,7 @@ public class AvaliacaoFisica implements Serializable {
     // Utilitários
     /** Calcula o IMC = peso / (altura^2). */
     @Transient // Garante que o JPA não tente mapear este método como uma coluna no banco
+    @JsonProperty("imc")
     public BigDecimal getImc() {
         if (peso != null && altura != null && altura.compareTo(BigDecimal.ZERO) > 0) {
             return peso.divide(altura.multiply(altura), 2, RoundingMode.HALF_UP);
@@ -163,6 +165,7 @@ public class AvaliacaoFisica implements Serializable {
 
     /** Classificação textual do IMC. */
     @Transient
+    @JsonProperty("classificacaoImc")
     public String getClassificacaoImc() {
         BigDecimal imc = getImc();
         if (imc == null) return "N/A";

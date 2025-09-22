@@ -6,6 +6,26 @@
     <title>Gestão de Avaliações Físicas - RMStudio Fitness</title>
     <link rel="stylesheet" href="/css/style.css">
     <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
+    <style>
+        .table-responsive {
+            width: 100%;
+            overflow-x: auto;
+            -webkit-overflow-scrolling: touch;
+        }
+        .table th, .table td {
+            white-space: nowrap;
+            padding: 12px 15px;
+            text-align: center;
+            vertical-align: middle;
+        }
+        .table th:first-child, .table td:first-child {
+            text-align: left;
+            min-width: 200px;
+        }
+        .table .cell-actions {
+            min-width: 100px;
+        }
+    </style>
 </head>
 <body>
     <header class="header" th:replace="~{index :: header}"></header>
@@ -136,6 +156,10 @@
                                 <th>Pescoço</th>
                                 <th>Cintura</th>
                                 <th>Quadril</th>
+                                <th>Braço D.</th>
+                                <th>Braço E.</th>
+                                <th>Perna D.</th>
+                                <th>Perna E.</th>
                                 <th>Ações</th>
                             </tr>
                         </thead>
@@ -189,6 +213,34 @@
         }
 
         // --- Funções de Formatação ---
+        function getGeneroDescricao(genero) {
+            if (!genero) return 'N/A';
+            switch (genero.toUpperCase()) {
+                case 'M': return 'Masculino';
+                case 'F': return 'Feminino';
+                case 'O': return 'Outro';
+                default: return 'N/A';
+            }
+        }
+
+        function calcularIMC(peso, altura) {
+            if (!peso || !altura || altura <= 0) return null;
+            const pesoNum = parseFloat(peso);
+            const alturaNum = parseFloat(altura);
+            if (isNaN(pesoNum) || isNaN(alturaNum)) return null;
+            return pesoNum / (alturaNum * alturaNum);
+        }
+
+        function classificarIMC(imc) {
+            if (imc === null || imc === undefined) return 'N/A';
+            if (imc < 18.5) return "Abaixo do peso";
+            if (imc < 25) return "Peso normal";
+            if (imc < 30) return "Sobrepeso";
+            if (imc < 35) return "Obesidade grau I";
+            if (imc < 40) return "Obesidade grau II";
+            return "Obesidade grau III";
+        }
+
         function formatValue(value, { unit = '', decimals = -1, fallback = 'N/A' } = {}) {
             if (value === null || value === undefined || value === '') return fallback;
             const number = parseFloat(value);
@@ -215,12 +267,15 @@
                 console.log(`Avaliação ${index}:`, av);
                 console.log(`Pessoa da avaliação ${index}:`, av.pessoa);
 
+                const imc = calcularIMC(av.peso, av.altura);
+                const classificacaoImc = classificarIMC(imc);
+
                 const tr = document.createElement('tr');
                 tr.innerHTML = `
                     <td>${av.pessoa ? av.pessoa.nome : 'N/A'}</td>
                     <td>${new Date(av.dataAvaliacao).toLocaleDateString()}</td>
-                    <td>${av.pessoa ? av.pessoa.generoDescricao : 'N/A'}</td>
-                    <td>${av.calcularIMC ? `${formatValue(av.calcularIMC, { decimals: 1 })} (${av.classificarIMC})` : 'N/A'}</td>
+                    <td>${av.pessoa ? getGeneroDescricao(av.pessoa.genero) : 'N/A'}</td>
+                    <td>${imc ? `${formatValue(imc, { decimals: 1 })} (${classificacaoImc})` : 'N/A'}</td>
                     <td>${formatValue(av.peso, { unit: 'kg', decimals: 1 })}</td>
                     <td>${formatValue(av.altura, { unit: 'm', decimals: 2 })}</td>
                     <td>${formatValue(av.gorduraCorporal, { unit: '%', decimals: 1 })}</td>
@@ -233,6 +288,10 @@
                     <td>${formatValue(av.medidaPescoco, { unit: 'cm', decimals: 1 })}</td>
                     <td>${formatValue(av.medidaCintura, { unit: 'cm', decimals: 1 })}</td>
                     <td>${formatValue(av.medidaQuadril, { unit: 'cm', decimals: 1 })}</td>
+                    <td>${formatValue(av.medidaBracoDireito, { unit: 'cm', decimals: 1 })}</td>
+                    <td>${formatValue(av.medidaBracoEsquerdo, { unit: 'cm', decimals: 1 })}</td>
+                    <td>${formatValue(av.medidaPernaDireita, { unit: 'cm', decimals: 1 })}</td>
+                    <td>${formatValue(av.medidaPernaEsquerda, { unit: 'cm', decimals: 1 })}</td>
                     <td class="cell-actions">
                         <button class="btn btn-secondary" onclick="editAvaliacao('${av.id}')"><i class="fas fa-edit"></i></button>
                         <button class="btn btn-secondary" onclick="deleteAvaliacao('${av.id}')"><i class="fas fa-trash"></i></button>
@@ -288,30 +347,52 @@
         async function editAvaliacao(id) {
             try {
                 const response = await fetch(`${API_URL}/${id}`);
+                if (!response.ok) throw new Error('Avaliação não encontrada');
                 const av = await response.json();
-                document.getElementById('id').value = av.id;
-                document.getElementById('pessoaId').value = av.pessoa.id;
-                document.getElementById('dataAvaliacao').value = av.dataAvaliacao.split('T')[0];
-                document.getElementById('peso').value = av.peso;
-                document.getElementById('altura').value = av.altura;
-                document.getElementById('gorduraCorporal').value = av.gorduraCorporal;
-                document.getElementById('massaMagra').value = av.massaMagra;
-                document.getElementById('massaMuscular').value = av.massaMuscular;
-                document.getElementById('hidratacao').value = av.hidratacao;
-                document.getElementById('taxaMetabolismoBasal').value = av.taxaMetabolismoBasal;
-                document.getElementById('densidadeOssea').value = av.densidadeOssea;
-                document.getElementById('gorduraVisceral').value = av.gorduraVisceral;
-                document.getElementById('medidaPescoco').value = av.medidaPescoco;
-                document.getElementById('medidaCintura').value = av.medidaCintura;
-                document.getElementById('medidaQuadril').value = av.medidaQuadril;
-                document.getElementById('medidaBracoDireito').value = av.medidaBracoDireito;
-                document.getElementById('medidaBracoEsquerdo').value = av.medidaBracoEsquerdo;
-                document.getElementById('medidaPernaDireita').value = av.medidaPernaDireita;
-                document.getElementById('medidaPernaEsquerda').value = av.medidaPernaEsquerda;
-                document.getElementById('observacoes').value = av.observacoes;
-                window.scrollTo(0, 0);
+
+                // Função auxiliar para definir valor ou string vazia se for nulo/undefined
+                const setValue = (elementId, value) => {
+                    const element = document.getElementById(elementId);
+                    if (element) {
+                        element.value = value !== null && value !== undefined ? value : '';
+                    }
+                };
+                
+                setValue('id', av.id);
+                setValue('pessoaId', av.pessoa ? av.pessoa.id : '');
+                
+                // Formata a data corretamente para o input type="date"
+                if (av.dataAvaliacao) {
+                    // Garante que a data esteja no formato YYYY-MM-DD
+                    const date = new Date(av.dataAvaliacao);
+                    const formattedDate = date.toISOString().split('T')[0];
+                    setValue('dataAvaliacao', formattedDate);
+                } else {
+                    setValue('dataAvaliacao', '');
+                }
+
+                setValue('peso', av.peso);
+                setValue('altura', av.altura);
+                setValue('gorduraCorporal', av.gorduraCorporal);
+                setValue('massaMagra', av.massaMagra);
+                setValue('massaMuscular', av.massaMuscular);
+                setValue('hidratacao', av.hidratacao);
+                setValue('taxaMetabolismoBasal', av.taxaMetabolismoBasal);
+                setValue('densidadeOssea', av.densidadeOssea);
+                setValue('gorduraVisceral', av.gorduraVisceral);
+                setValue('medidaPescoco', av.medidaPescoco);
+                setValue('medidaCintura', av.medidaCintura);
+                setValue('medidaQuadril', av.medidaQuadril);
+                setValue('medidaBracoDireito', av.medidaBracoDireito);
+                setValue('medidaBracoEsquerdo', av.medidaBracoEsquerdo);
+                setValue('medidaPernaDireita', av.medidaPernaDireita);
+                setValue('medidaPernaEsquerda', av.medidaPernaEsquerda);
+                setValue('observacoes', av.observacoes);
+                
+                window.scrollTo(0, 0); // Rola a página para o topo para mostrar o formulário
             } catch (error) {
                 console.error('Erro ao carregar avaliação para edição:', error);
+                alert('Não foi possível carregar os dados da avaliação. Verifique o console para mais detalhes.');
             }
         }
 
