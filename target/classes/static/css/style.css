@@ -135,6 +135,8 @@ p { margin-bottom: calc(var(--spacing-unit) * 2); }
 
 .navbar-right {
   flex-shrink: 0; /* Impede que o elemento encolha */
+  display: flex;
+  align-items: center;
 }
 
 .navbar-right .btn {
@@ -199,6 +201,9 @@ p { margin-bottom: calc(var(--spacing-unit) * 2); }
   font-weight: 900;
   text-transform: uppercase;
   color: var(--color-text);
+  display: flex;
+  align-items: center;
+  gap: calc(var(--spacing-unit) * 0.5);
 }
 
 .brand span {
@@ -207,7 +212,8 @@ p { margin-bottom: calc(var(--spacing-unit) * 2); }
 
 .nav-links {
   display: flex; /* Garante que os links fiquem na mesma linha */
-  gap: calc(var(--spacing-unit) * 3); /* Espaçamento entre os links */
+  align-items: center;
+  gap: calc(var(--spacing-unit) * 2.5); /* Espaçamento entre os links */
 }
 
 .nav-links a {
@@ -218,6 +224,7 @@ p { margin-bottom: calc(var(--spacing-unit) * 2); }
   font-size: 0.9rem;
   position: relative;
   letter-spacing: 0.05em;
+  white-space: nowrap; /* Impede que o texto quebre em várias linhas */
 }
 
 .nav-links a::after {
@@ -1053,6 +1060,8 @@ p { margin-bottom: calc(var(--spacing-unit) * 2); }
     flex-direction: column;
     min-height: 100vh;
     padding-top: var(--header-height);
+    background: linear-gradient(rgba(0, 0, 0, 0.8), rgba(0, 0, 0, 0.9)), url('https://images.unsplash.com/photo-1571902943202-507ec2618e8f?q=80&w=1975&auto=format&fit=crop') no-repeat center center/cover;
+    background-attachment: fixed; /* Mantém o fundo fixo ao rolar a página */
 }
 
 .plan-main-content {
@@ -1081,7 +1090,8 @@ p { margin-bottom: calc(var(--spacing-unit) * 2); }
     margin-bottom: calc(var(--spacing-unit) * 5);
     color: var(--color-text);
     text-transform: uppercase;
-    letter-spacing: 0.1em;
+    letter-spacing: 0.15em; /* Aumenta o espaçamento entre as letras */
+    text-shadow: 0 3px 10px rgba(0,0,0,0.5); /* Adiciona uma sombra sutil */
 }
 
 /* Grid dos Planos */

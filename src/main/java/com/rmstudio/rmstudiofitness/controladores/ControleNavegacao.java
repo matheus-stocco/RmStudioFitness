@@ -3,7 +3,6 @@ package com.rmstudio.rmstudiofitness.controladores;
 import com.rmstudio.rmstudiofitness.entidades.Pessoa;
 import com.rmstudio.rmstudiofitness.repositorios.EstadoRepository;
 import com.rmstudio.rmstudiofitness.repositorios.PessoaRepository;
-import com.rmstudio.rmstudiofitness.repositorios.MensalidadeRepository;
 import com.rmstudio.rmstudiofitness.repositorios.TipoPlanoRepository;
 import com.rmstudio.rmstudiofitness.servicos.PagamentoService;
 import com.rmstudio.rmstudiofitness.entidades.Mensalidade;
@@ -27,19 +26,16 @@ public class ControleNavegacao {
 
     private final PessoaRepository pessoaRepository;
     private final EstadoRepository estadoRepository;
-    private final MensalidadeRepository mensalidadeRepository;
     private final TipoPlanoRepository tipoPlanoRepository;
     private final PagamentoService pagamentoService;
 
     @Autowired
     public ControleNavegacao(PessoaRepository pessoaRepository,
                              EstadoRepository estadoRepository,
-                             MensalidadeRepository mensalidadeRepository,
                              TipoPlanoRepository tipoPlanoRepository,
                              PagamentoService pagamentoService) {
         this.pessoaRepository = pessoaRepository;
         this.estadoRepository = estadoRepository;
-        this.mensalidadeRepository = mensalidadeRepository;
         this.tipoPlanoRepository = tipoPlanoRepository;
         this.pagamentoService = pagamentoService;
     }
