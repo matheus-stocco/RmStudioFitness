@@ -1044,3 +1044,200 @@ p { margin-bottom: calc(var(--spacing-unit) * 2); }
 .nav-dropdown-menu a::after {
     display: none; /* Remove o sublinhado animado dos links do dropdown */
 }
+
+/* === NOVA PÁGINA DE PLANOS === */
+
+/* Layout Geral da Página */
+.plan-body {
+    display: flex;
+    flex-direction: column;
+    min-height: 100vh;
+    padding-top: var(--header-height);
+}
+
+.plan-main-content {
+    flex: 1;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    width: 100%;
+}
+
+.plan-section {
+    width: 100%;
+    padding: calc(var(--spacing-unit) * 4) 0;
+}
+
+.plan-container {
+    max-width: 900px;
+    margin: 0 auto;
+    padding: 0 calc(var(--spacing-unit) * 2);
+}
+
+.plan-title {
+    text-align: center;
+    font-size: 2.5rem;
+    font-weight: 900;
+    margin-bottom: calc(var(--spacing-unit) * 5);
+    color: var(--color-text);
+    text-transform: uppercase;
+    letter-spacing: 0.1em;
+}
+
+/* Grid dos Planos */
+.plan-grid {
+    display: grid;
+    grid-template-columns: repeat(auto-fit, minmax(320px, 1fr));
+    gap: calc(var(--spacing-unit) * 4);
+    justify-content: center;
+}
+
+/* Card de Plano Individual */
+.plan-card {
+    background-color: var(--color-secondary);
+    border: 2px solid var(--color-border);
+    border-radius: var(--border-radius);
+    padding: calc(var(--spacing-unit) * 4);
+    text-align: left;
+    display: flex;
+    flex-direction: column;
+    position: relative;
+    overflow: hidden;
+    transition: transform 0.3s ease, border-color 0.3s ease;
+}
+
+.plan-card:hover {
+    transform: translateY(-5px);
+    border-color: var(--color-primary);
+}
+
+/* Card em Destaque */
+.plan-card--highlighted {
+    border-color: var(--color-primary);
+    transform: scale(1.05); /* Efeito de zoom sutil */
+}
+
+/* Faixa "Melhor Escolha" */
+.best-choice-badge {
+    position: absolute;
+    top: -1px;
+    right: -1px;
+    width: 120px;
+    height: 120px;
+    overflow: hidden;
+}
+
+.best-choice-badge span {
+    position: absolute;
+    display: block;
+    width: 180px;
+    padding: 8px 0;
+    background-color: var(--color-primary);
+    color: var(--color-background);
+    font-size: 0.8rem;
+    font-weight: 700;
+    text-align: center;
+    text-transform: uppercase;
+    transform: rotate(45deg) translate(20px, -25px);
+    transform-origin: center;
+    box-shadow: 0 5px 10px rgba(0,0,0,0.3);
+}
+
+/* Conteúdo do Card */
+.plan-header {
+    margin-bottom: calc(var(--spacing-unit) * 2);
+}
+
+.plan-card-title {
+    font-size: 1.25rem;
+    font-weight: 700;
+    color: var(--color-text);
+    margin-bottom: 0;
+}
+
+.plan-price {
+    margin-bottom: calc(var(--spacing-unit) * 3);
+    color: var(--color-text);
+    display: flex;
+    align-items: baseline;
+}
+
+.price-currency {
+    font-size: 1.5rem;
+    font-weight: 700;
+    margin-right: calc(var(--spacing-unit) * 0.5);
+    color: var(--color-primary);
+}
+
+.price-value {
+    font-size: 3rem;
+    font-weight: 900;
+    color: var(--color-primary);
+    line-height: 1;
+}
+
+.price-cents {
+    font-size: 1.5rem;
+    font-weight: 700;
+    color: var(--color-primary);
+}
+
+.price-period {
+    font-size: 1.5rem;
+    font-weight: 700;
+    color: var(--color-text-muted);
+    align-self: baseline;
+    padding-left: 5px;
+}
+
+.plan-benefits {
+    list-style: none;
+    padding: 0;
+    margin-bottom: calc(var(--spacing-unit) * 4);
+    flex-grow: 1; /* Faz a lista ocupar o espaço restante */
+}
+
+.plan-benefits li {
+    margin-bottom: var(--spacing-unit);
+    color: var(--color-text-muted);
+    display: flex;
+    align-items: center;
+}
+
+.plan-benefits i {
+    color: var(--color-primary);
+    margin-right: var(--spacing-unit);
+}
+
+/* Botão do Plano */
+.plan-button {
+    display: block;
+    width: 100%;
+    padding: calc(var(--spacing-unit) * 1.5);
+    background-color: transparent;
+    color: var(--color-primary);
+    border: 2px solid var(--color-border);
+    border-radius: var(--border-radius);
+    text-align: center;
+    text-transform: uppercase;
+    font-weight: 700;
+    cursor: pointer;
+    transition: all 0.3s ease;
+}
+
+.plan-button:hover {
+    background-color: var(--color-primary);
+    border-color: var(--color-primary);
+    color: var(--color-background);
+}
+
+.plan-card--highlighted .plan-button {
+    background-color: var(--color-primary);
+    border-color: var(--color-primary);
+    color: var(--color-background);
+}
+
+.plan-card--highlighted .plan-button:hover {
+    background-color: var(--color-primary-dark);
+    border-color: var(--color-primary-dark);
+}

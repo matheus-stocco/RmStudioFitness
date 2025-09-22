@@ -7,9 +7,13 @@ import com.rmstudio.rmstudiofitness.repositorios.MensalidadeRepository;
 import com.rmstudio.rmstudiofitness.repositorios.TipoPlanoRepository;
 import com.rmstudio.rmstudiofitness.servicos.PagamentoService;
 import com.rmstudio.rmstudiofitness.entidades.Mensalidade;
+import com.rmstudio.rmstudiofitness.entidades.TipoPlano;
 
+import java.util.Arrays;
 import java.util.Collections;
 import java.util.List;
+import java.util.stream.Collectors;
+
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.security.core.Authentication;
 import org.springframework.stereotype.Controller;
@@ -65,7 +69,23 @@ public class ControleNavegacao {
 
     @GetMapping("/planos")
     public String planos(Model model, Authentication authentication) {
-        model.addAttribute("planos", tipoPlanoRepository.findAll());
+        List<TipoPlano> planos = tipoPlanoRepository.findAll();
+
+        // Processa a descrição de cada plano para criar uma lista de benefícios
+        planos.forEach(plano -> {
+            if (plano.getDescricao() != null && !plano.getDescricao().isEmpty()) {
+                List<String> beneficios = Arrays.stream(plano.getDescricao().split("\\r?\\n|;"))
+                                                .map(String::trim)
+                                                .filter(s -> !s.isEmpty())
+                                                .collect(Collectors.toList());
+                plano.setBeneficios(beneficios);
+            } else {
+                plano.setBeneficios(Collections.emptyList());
+            }
+        });
+        
+        model.addAttribute("planos", planos);
+
         if (authentication != null && authentication.isAuthenticated()) {
             String username = authentication.getName();
             // A busca já carrega o planoAtivo por causa do JOIN FETCH no repositório

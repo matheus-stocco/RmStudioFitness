@@ -9,6 +9,7 @@ import java.math.BigDecimal;
 import java.math.RoundingMode;
 import java.text.NumberFormat;
 import java.time.LocalDateTime;
+import java.util.List;
 import java.util.Locale;
 import java.util.Objects;
 
@@ -48,9 +49,8 @@ public class TipoPlano implements Serializable {
     @Column(name = "data_modificacao")
     private LocalDateTime dataModificacao;
 
-    @Size(max = 500)
-    @Column(name = "beneficios", length = 500)
-    private String beneficios;
+    @Transient
+    private List<String> beneficios;
 
     @Positive
     @Column(name = "limite_avaliacoes")
@@ -121,8 +121,8 @@ public class TipoPlano implements Serializable {
     public LocalDateTime getDataModificacao() { return dataModificacao; }
     public void setDataModificacao(LocalDateTime dataModificacao) { this.dataModificacao = dataModificacao; }
 
-    public String getBeneficios() { return beneficios; }
-    public void setBeneficios(String beneficios) { this.beneficios = beneficios; }
+    public List<String> getBeneficios() { return beneficios; }
+    public void setBeneficios(List<String> beneficios) { this.beneficios = beneficios; }
 
     public Integer getLimiteAvaliacoes() { return limiteAvaliacoes; }
     public void setLimiteAvaliacoes(Integer limiteAvaliacoes) { this.limiteAvaliacoes = limiteAvaliacoes; }
@@ -215,7 +215,7 @@ public class TipoPlano implements Serializable {
         n.setDescricao(this.descricao);
         n.setValor(this.valor);
         n.setDuracaoMeses(this.duracaoMeses);
-        n.setBeneficios(this.beneficios);
+        // Não copiamos os benefícios transientes aqui
         n.setLimiteAvaliacoes(this.limiteAvaliacoes);
         n.setAcessoPlanosAula(this.acessoPlanosAula);
         n.setCategoria(this.categoria);
