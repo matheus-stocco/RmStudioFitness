@@ -12,7 +12,7 @@
     <link rel="stylesheet" href="/css/style.css">
     <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
 </head>
-<body>
+<body class="plan-body">
     <!-- Inclui o cabeçalho reutilizável -->
     <header class="header" th:replace="~{index :: header}"></header>
 
@@ -25,7 +25,7 @@
                 - th:if="${pessoa != null}": Garante que o conteúdo só será renderizado se o objeto "pessoa"
                   tiver sido enviado pelo controlador.
             -->
-            <div class="card form-card" th:if="${pessoa != null}">
+            <div th:if="${pessoa != null}">
                 <div class="profile-info">
                     <!-- 
                       Exibição dos dados da pessoa.
