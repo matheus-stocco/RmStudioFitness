@@ -20,6 +20,7 @@ import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
 import java.util.List;
+import java.util.stream.Collectors;
 
 
 @Service
@@ -111,6 +112,25 @@ public class PagamentoService {
     @Transactional(readOnly = true)
     public List<Mensalidade> findMensalidadesByPessoaId(Long pessoaId) {
         return mensalidadeRepository.findByPessoaIdWithTipoPlano(pessoaId);
+    }
+
+    @Transactional(readOnly = true)
+    public List<Mensalidade> buscarMensalidadesParaRelatorio(String status) {
+        List<Mensalidade> todasMensalidades = mensalidadeRepository.findAllWithDetails();
+
+        if (status == null || status.trim().isEmpty() || "TODAS".equalsIgnoreCase(status)) {
+            return todasMensalidades;
+        }
+
+        if ("ATRASADA".equalsIgnoreCase(status)) {
+            return todasMensalidades.stream()
+                .filter(m -> "PENDENTE".equals(m.getStatus()) && m.getDataVencimento().isBefore(LocalDate.now()))
+                .collect(Collectors.toList());
+        }
+
+        return todasMensalidades.stream()
+            .filter(m -> status.equalsIgnoreCase(m.getStatus()))
+            .collect(Collectors.toList());
     }
 
     @Transactional

@@ -41,4 +41,11 @@ public interface MensalidadeRepository extends JpaRepository<Mensalidade, Long> 
      */
     Optional<Mensalidade> findByTransactionId(String transactionId);
 
+    /**
+     * Busca todas as mensalidades, já carregando os dados da Pessoa e do TipoPlano.
+     * @return Uma lista de mensalidades com as associações carregadas.
+     */
+    @Query("SELECT m FROM Mensalidade m JOIN FETCH m.pessoa p JOIN FETCH m.tipoPlano tp ORDER BY m.dataVencimento DESC")
+    List<Mensalidade> findAllWithDetails();
+
 }

@@ -209,6 +209,37 @@ p { margin-bottom: calc(var(--spacing-unit) * 2); }
     flex: 1;
 }
 
+/* --- RELATÓRIOS --- */
+.report-filters {
+    display: flex;
+    gap: calc(var(--spacing-unit) * 2);
+    margin-bottom: calc(var(--spacing-unit) * 3);
+    flex-wrap: wrap; /* Garante que os botões quebrem a linha em telas menores */
+}
+
+.status-badge {
+    padding: calc(var(--spacing-unit) * 0.5) var(--spacing-unit);
+    border-radius: var(--border-radius);
+    font-size: 0.8rem;
+    font-weight: 700;
+    text-transform: uppercase;
+    color: var(--color-background);
+}
+
+.status--pago { background-color: #2ecc71; } /* Verde */
+.status--pendente { background-color: #f1c40f; } /* Amarelo */
+.status--cancelado { background-color: var(--color-text-muted); } /* Cinza */
+
+/* Para o status 'atrasada' que não existe no banco, mas é usado no filtro */
+.table td.status-atrasada .status-badge {
+    background-color: #e74c3c; /* Vermelho */
+}
+
+.text-center {
+    text-align: center;
+}
+
+
 .brand {
   font-size: 1.5rem;
   font-weight: 900;

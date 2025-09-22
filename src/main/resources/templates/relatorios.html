@@ -1,0 +1,64 @@
+<!DOCTYPE html>
+<html lang="pt-BR" xmlns:th="http://www.thymeleaf.org">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Relatórios - RMStudio Fitness</title>
+    <link rel="stylesheet" href="/css/style.css">
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
+</head>
+<body class="plan-body">
+    
+    <header class="header" th:replace="~{index :: header}"></header>
+
+    <main class="main-content form-page-container">
+        <div class="container-fluid">
+            <h1 class="page-title"><i class="fas fa-chart-line"></i> Relatório de Mensalidades</h1>
+
+            <div class="card form-card card--wide">
+                <!-- Filtros -->
+                <div class="report-filters">
+                    <a th:href="@{/relatorios(status='TODAS')}" class="btn" th:classappend="${filtroAtual == 'TODAS'} ? 'btn-primary' : 'btn-secondary'">Todas</a>
+                    <a th:href="@{/relatorios(status='PAGO')}" class="btn" th:classappend="${filtroAtual == 'PAGO'} ? 'btn-primary' : 'btn-secondary'">Pagas</a>
+                    <a th:href="@{/relatorios(status='PENDENTE')}" class="btn" th:classappend="${filtroAtual == 'PENDENTE'} ? 'btn-primary' : 'btn-secondary'">Pendentes</a>
+                    <a th:href="@{/relatorios(status='ATRASADA')}" class="btn" th:classappend="${filtroAtual == 'ATRASADA'} ? 'btn-primary' : 'btn-secondary'">Atrasadas</a>
+                </div>
+
+                <!-- Tabela de Resultados -->
+                <div class="table-responsive">
+                    <table class="table">
+                        <thead>
+                            <tr>
+                                <th>Aluno</th>
+                                <th>Plano</th>
+                                <th>Valor</th>
+                                <th>Vencimento</th>
+                                <th>Data Pagamento</th>
+                                <th>Status</th>
+                            </tr>
+                        </thead>
+                        <tbody>
+                            <tr th:each="m : ${mensalidades}">
+                                <td th:text="${m.pessoa.nome}"></td>
+                                <td th:text="${m.tipoPlano.nome}"></td>
+                                <td th:text="${'R$ ' + #numbers.formatDecimal(m.valor, 1, 'POINT', 2, 'COMMA')}"></td>
+                                <td th:text="${#temporals.format(m.dataVencimento, 'dd/MM/yyyy')}"></td>
+                                <td th:text="${m.dataPagamento != null ? #temporals.format(m.dataPagamento, 'dd/MM/yyyy') : '---'}"></td>
+                                <td>
+                                    <span class="status-badge" th:classappend="'status--' + ${m.status.toLowerCase()}" th:text="${m.status}"></span>
+                                </td>
+                            </tr>
+                            <tr th:if="${#lists.isEmpty(mensalidades)}">
+                                <td colspan="6" class="text-center">Nenhuma mensalidade encontrada para este filtro.</td>
+                            </tr>
+                        </tbody>
+                    </table>
+                </div>
+            </div>
+        </div>
+    </main>
+
+    <footer class="footer" th:replace="~{index :: footer}"></footer>
+
+</body>
+</html>
