@@ -79,6 +79,23 @@
             </button>
           </div>
         </form>
+        
+        <!-- Seção de Gerenciamento de Plano (visível apenas na edição) -->
+        <div id="secao-plano" style="display: none; margin-top: 32px; border-top: 1px solid var(--color-border); padding-top: 24px;">
+            <h3 class="card-title">Gerenciamento de Plano</h3>
+            <p>Plano Atual: <strong id="plano-ativo-nome" style="color: var(--color-primary);">Nenhum</strong></p>
+            <div class="form-grid-double" style="align-items: end;">
+                <div class="form-group">
+                    <label for="planoId-select" class="form-label">Selecionar Novo Plano:</label>
+                    <select id="planoId-select" class="form-control"></select>
+                </div>
+                <div class="form-group">
+                    <button type="button" id="btn-atribuir-plano" class="btn btn-primary" style="width: 100%;">
+                        <i class="fas fa-check"></i> Atribuir Plano e Gerar Cobrança
+                    </button>
+                </div>
+            </div>
+        </div>
       </div>
 
       <!-- Lista de Pessoas -->
@@ -115,6 +132,10 @@
     const telefoneInput = document.getElementById('telefone');
     const senhaInput = document.getElementById('senha');
     const idInput = document.getElementById('id');
+    const secaoPlano = document.getElementById('secao-plano');
+    const planoAtivoNome = document.getElementById('plano-ativo-nome');
+    const planoIdSelect = document.getElementById('planoId-select');
+    const btnAtribuirPlano = document.getElementById('btn-atribuir-plano');
 
     // --- MÁSCARAS DE INPUT ---
     cpfInput.addEventListener('input', (e) => {
@@ -150,6 +171,22 @@
         if (rev == 10 || rev == 11) rev = 0;
         if (rev != parseInt(cpf.charAt(10))) return false;
         return true;
+    }
+    
+    // --- LÓGICA DE PLANOS ---
+    async function fetchPlanos() {
+        try {
+            const response = await fetch('/api/tipos-plano');
+            if (!response.ok) throw new Error('Erro ao buscar planos');
+            const planos = await response.json();
+            planoIdSelect.innerHTML = '<option value="">Selecione um plano</option>';
+            planos.forEach(plano => {
+                planoIdSelect.innerHTML += `<option value="${plano.id}">${plano.nome} - R$ ${plano.valor}</option>`;
+            });
+        } catch (error) {
+            console.error(error);
+            planoIdSelect.innerHTML = '<option value="">Erro ao carregar planos</option>';
+        }
     }
 
     // Funções de interação com a API
@@ -227,6 +264,10 @@
                 cidadeSelect.value = pessoa.cidade.id;
             }
             
+            // Exibe e popula a seção de plano
+            planoAtivoNome.textContent = pessoa.planoAtivo ? pessoa.planoAtivo.nome : 'Nenhum';
+            secaoPlano.style.display = 'block';
+
             window.scrollTo(0, 0); // Rola para o topo para editar
         } catch (error) {
             console.error(error);
@@ -238,6 +279,10 @@
         document.getElementById('id').value = '';
         document.getElementById('cidadeId').innerHTML = '<option value="">Selecione um estado</option>';
         document.getElementById('cidadeId').disabled = true;
+        
+        // Esconde a seção de plano
+        secaoPlano.style.display = 'none';
+        planoAtivoNome.textContent = 'Nenhum';
     }
 
     // Carregamento de Estados e Cidades
@@ -359,6 +404,7 @@
     document.addEventListener('DOMContentLoaded', () => {
         getPessoas();
         getEstados();
+        fetchPlanos();
     });
     
     // Mobile nav toggle
@@ -369,6 +415,44 @@
             navLinks.classList.toggle('open');
         });
     }
+
+    // --- LÓGICA DO BOTÃO ATRIBUIR PLANO ---
+    btnAtribuirPlano.addEventListener('click', async () => {
+        const pessoaId = idInput.value;
+        const tipoPlanoId = planoIdSelect.value;
+
+        if (!pessoaId || !tipoPlanoId) {
+            alert('Por favor, selecione um membro e um plano.');
+            return;
+        }
+
+        if (!confirm('Tem certeza que deseja atribuir este plano ao membro? Uma nova cobrança será gerada.')) {
+            return;
+        }
+
+        try {
+            const response = await fetch('/api/pagamentos/atribuir-plano', {
+                method: 'POST',
+                headers: { 'Content-Type': 'application/json' },
+                body: JSON.stringify({ pessoaId, tipoPlanoId })
+            });
+
+            if (!response.ok) {
+                const errorData = await response.json();
+                throw new Error(errorData.message || 'Erro ao atribuir plano.');
+            }
+
+            const novaMensalidade = await response.json();
+            alert(`Plano atribuído com sucesso! Nova mensalidade gerada com vencimento em ${new Date(novaMensalidade.dataVencimento).toLocaleDateString()}.`);
+            
+            // Atualiza a interface
+            planoAtivoNome.textContent = planoIdSelect.options[planoIdSelect.selectedIndex].text.split(' - ')[0];
+
+        } catch (error) {
+            console.error('Erro ao atribuir plano:', error);
+            alert(`Falha ao atribuir plano: ${error.message}`);
+        }
+    });
   </script>
 </body>
 </html>

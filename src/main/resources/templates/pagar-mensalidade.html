@@ -1,0 +1,78 @@
+<!DOCTYPE html>
+<html lang="pt-BR" xmlns:th="http://www.thymeleaf.org">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Pagamento de Mensalidade - RMStudio Fitness</title>
+    <link rel="stylesheet" href="/css/style.css">
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
+    <style>
+        .payment-card {
+            text-align: center;
+        }
+        .qr-code-image {
+            max-width: 250px;
+            margin: 20px auto;
+            border: 5px solid var(--color-border);
+            border-radius: var(--border-radius);
+            padding: 10px;
+            background-color: white;
+        }
+        .pix-code-input {
+            width: 100%;
+            padding: 15px;
+            background-color: var(--color-background);
+            border: 1px solid var(--color-border);
+            color: var(--color-text-muted);
+            font-family: monospace;
+            font-size: 0.9rem;
+            border-radius: var(--border-radius);
+            margin-bottom: 10px;
+        }
+        .copy-button {
+            width: 100%;
+        }
+    </style>
+</head>
+<body>
+    <header class="header" th:replace="~{index :: header}"></header>
+
+    <main class="main-content form-page-container">
+        <div class="container">
+            <h1 class="page-title"><i class="fas fa-qrcode"></i> Pagar com PIX</h1>
+
+            <div class="card form-card payment-card" th:if="${mensalidade}">
+                <h3 class="card-title" th:text="|Pagamento para ${mensalidade.tipoPlano.nome}|"></h3>
+                <p style="color: var(--color-text-muted);" th:text="|Vencimento em: ${#temporals.format(mensalidade.dataVencimento, 'dd/MM/yyyy')}|"></p>
+                <h4 style="font-size: 1.8rem; color: var(--color-primary); margin: 16px 0;" th:text="|Valor: R$ ${#numbers.formatDecimal(mensalidade.valor, 1, 'POINT', 2, 'COMMA')}|"></h4>
+
+                <p>Use o aplicativo do seu banco para pagar com o QR Code ou o código Copia e Cola.</p>
+
+                <img th:src="${mensalidade.pixQrCodeUrl}" alt="PIX QR Code" class="qr-code-image"/>
+
+                <div>
+                    <label for="pix-copia-cola" class="form-label" style="text-align: left;">PIX Copia e Cola:</label>
+                    <textarea id="pix-copia-cola" class="pix-code-input" th:text="${mensalidade.pixCopiaECola}" rows="3" readonly></textarea>
+                    <button id="copy-btn" class="btn btn-secondary copy-button">
+                        <i class="fas fa-copy"></i> Copiar Código
+                    </button>
+                </div>
+                 <div class="form-actions" style="margin-top: 24px;">
+                     <a href="/minhas-mensalidades" class="btn btn-secondary"><i class="fas fa-arrow-left"></i> Voltar</a>
+                </div>
+            </div>
+            <div th:if="${error}" class="form-message error-message" th:text="${error}"></div>
+        </div>
+    </main>
+
+    <footer class="footer" th:replace="~{index :: footer}"></footer>
+    <script>
+        document.getElementById('copy-btn').addEventListener('click', () => {
+            const textarea = document.getElementById('pix-copia-cola');
+            textarea.select();
+            document.execCommand('copy');
+            alert('Código PIX copiado para a área de transferência!');
+        });
+    </script>
+</body>
+</html>

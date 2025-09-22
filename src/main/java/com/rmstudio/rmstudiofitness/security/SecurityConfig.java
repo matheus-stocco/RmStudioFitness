@@ -12,6 +12,7 @@ import org.springframework.security.crypto.bcrypt.BCryptPasswordEncoder;
 import org.springframework.security.crypto.password.PasswordEncoder;
 import org.springframework.security.web.SecurityFilterChain;
 
+
 @Configuration
 @EnableWebSecurity
 public class SecurityConfig {
@@ -36,57 +37,55 @@ public class SecurityConfig {
     @Bean
     public SecurityFilterChain securityFilterChain(HttpSecurity http) throws Exception {
         http
-            .authorizeHttpRequests(authorizeRequests ->
-                authorizeRequests
-                    // ===============================================================================================
-                    // REGRAS PÚBLICAS (EXECUTADAS PRIMEIRO)
-                    // Liberar acesso a recursos estáticos (CSS, JS, Imagens) para todos.
-                    .requestMatchers("/css/**", "/js/**", "/images/**", "/webjars/**").permitAll()
-                    // Liberar acesso às páginas públicas principais.
-                    .requestMatchers("/", "/index.html", "/planos", "/TiposDePlanos.html", "/quem-somos").permitAll()
-                    // Liberar acesso às páginas de login e autocadastro.
-                    .requestMatchers("/login", "/error", "/autocadastro", "/FormularioAutoCadastro.html").permitAll()
-                    // Liberar acesso às APIs públicas necessárias para o frontend.
-                    .requestMatchers(HttpMethod.GET, "/api/tipos-plano", "/api/estados/**", "/api/cidades/**").permitAll()
-                    .requestMatchers(HttpMethod.POST, "/api/pessoas").permitAll() // API de autocadastro
- 
-                    // ===============================================================================================
-                    // REGRAS DE ADMIN (Páginas e APIs de escrita)
-                    // Apenas usuários com perfil ADMIN podem acessar estas páginas de gerenciamento.
-                    .requestMatchers(
-                        "/membros", "/tipos-plano", "/avaliacoes", "/cidades",
-                        "/estados", "/exercicios", "/itens-plano", "/planos-aula"
-                    ).hasRole("ADMIN")
-                    // Apenas ADMINs podem realizar operações de escrita (POST, PUT, DELETE) na API.
-                    .requestMatchers(HttpMethod.POST, "/api/**").hasRole("ADMIN")
-                    // Permite que usuários autenticados atualizem seus próprios dados, mas restringe outras rotas PUT para ADMIN
-                    .requestMatchers(HttpMethod.PUT, "/api/pessoas/{id}").authenticated()
-                    .requestMatchers(HttpMethod.PUT, "/api/**").hasRole("ADMIN")
-                    .requestMatchers(HttpMethod.DELETE, "/api/**").hasRole("ADMIN")
- 
-                    // ===============================================================================================
-                    // REGRAS PARA USUÁRIOS AUTENTICADOS
-                    // Qualquer outra requisição que não se encaixou nas regras acima exige que o usuário esteja autenticado.
-                    // Isso inclui páginas como /perfil e /minhas-avaliacoes.
-                    .anyRequest().authenticated()
-            )
-            .formLogin(formLogin ->
-                formLogin
+                .csrf(csrf -> csrf
+                    .ignoringRequestMatchers("/api/**") // Desabilita CSRF para todas as rotas de API
+                )
+                .authorizeHttpRequests(authorize -> authorize
+                        // --- Permissões Públicas ---
+                        .requestMatchers(
+                                "/css/**", "/js/**", "/img/**", "/", "/login", "/autocadastro",
+                                "/planos", "/quem-somos", "/error",
+                                "/api/pagamentos/notificacao" // Webhook
+                        ).permitAll()
+                        .requestMatchers(HttpMethod.GET, "/api/tipos-plano", "/api/estados/**", "/api/cidades/**").permitAll()
+                        .requestMatchers(HttpMethod.POST, "/api/pessoas").permitAll() // Autocadastro
+
+                        // --- Permissões para Usuários Autenticados (Regras Específicas Primeiro) ---
+                        .requestMatchers(HttpMethod.POST, "/planos/inscrever/**").authenticated()
+                        .requestMatchers(HttpMethod.POST, "/api/pagamentos/gerar-pix/**").authenticated()
+                        .requestMatchers(HttpMethod.GET, "/api/pagamentos/pagar/**").authenticated()
+
+                        // --- Permissões de Administrador (Regras Genéricas Depois) ---
+                        .requestMatchers(
+                            "/membros", "/tipos-plano", "/avaliacoes", "/cidades",
+                            "/estados", "/exercicios", "/itens-plano", "/planos-aula", "/CadastroPessoas.html",
+                            "/CadastroTipoPlano.html", "/CadastroAvaliacaoFisica.html", "/CadastroCidade.html",
+                            "/CadastroEstado.html", "/CadastroExercicios.html", "/CadastroItensPlano.html",
+                            "/CadastroPlanoAula.html"
+                        ).hasRole("ADMIN")
+                        .requestMatchers(HttpMethod.POST, "/api/**").hasRole("ADMIN")
+                        .requestMatchers(HttpMethod.PUT, "/api/**").hasRole("ADMIN")
+                        .requestMatchers(HttpMethod.DELETE, "/api/**").hasRole("ADMIN")
+                        
+                        // --- Permissões Gerais para Usuários Autenticados ---
+                        .requestMatchers("/perfil", "/minhas-avaliacoes", "/meus-planos-aula", "/minhas-mensalidades").authenticated()
+                        .anyRequest().authenticated()
+                )
+                .formLogin(form -> form
                     .loginPage("/login") // Página de login customizada
                     .defaultSuccessUrl("/", true) // Redireciona para a home após o login
                     .permitAll()
-            )
-            .logout(logout ->
-                logout
-                    .logoutSuccessUrl("/login?logout") // Redireciona para a página de login com parâmetro
-                    .permitAll()
-            )
-            .rememberMe(rememberMe ->
-                rememberMe
-                    .key("umaChaveMuitoSecreta") // Deve ser uma chave secreta e única
-                    .tokenValiditySeconds(86400)  // Validade de 1 dia (em segundos)
-            )
-            .csrf(csrf -> csrf.disable()); // Desabilitar CSRF para simplificar, mas não recomendado em produção
+                )
+                .logout(logout ->
+                    logout
+                        .logoutSuccessUrl("/login?logout") // Redireciona para a página de login com parâmetro
+                        .permitAll()
+                )
+                .rememberMe(rememberMe ->
+                    rememberMe
+                        .key("umaChaveMuitoSecreta") // Deve ser uma chave secreta e única
+                        .tokenValiditySeconds(86400)  // Validade de 1 dia (em segundos)
+                );
 
         return http.build();
     }

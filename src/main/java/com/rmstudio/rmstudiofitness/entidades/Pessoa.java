@@ -17,9 +17,9 @@ import java.util.ArrayList;
 import java.util.Collection;
 import java.util.Set;
 import java.util.HashSet;
-
 import org.springframework.security.core.GrantedAuthority;
 import org.springframework.security.core.userdetails.UserDetails;
+import com.fasterxml.jackson.annotation.JsonManagedReference;
 
 @Entity
 @Table(name = "pessoa")
@@ -75,13 +75,21 @@ public class Pessoa implements UserDetails {
         inverseJoinColumns = @JoinColumn(name = "perfil_id"))
     private Set<Perfil> perfis = new HashSet<>();
 
-    @JsonIgnore
+    @JsonManagedReference
     @OneToMany(mappedBy = "pessoa", cascade = CascadeType.ALL, orphanRemoval = true, fetch = FetchType.LAZY)
     private List<AvaliacaoFisica> avaliacoes = new ArrayList<>();
 
     @JsonIgnore
-    @OneToMany(mappedBy = "aluno", cascade = CascadeType.ALL, orphanRemoval = true, fetch = FetchType.LAZY)
+    @OneToMany(mappedBy = "aluno", cascade = CascadeType.ALL, orphanRemoval = true)
     private Set<PlanoDeAula> planosDeAula = new HashSet<>();
+
+    @ManyToOne(fetch = FetchType.LAZY)
+    @JoinColumn(name = "plano_ativo_id")
+    private TipoPlano planoAtivo;
+
+    @JsonIgnore
+    @OneToMany(mappedBy = "pessoa", cascade = CascadeType.ALL, orphanRemoval = true)
+    private List<Mensalidade> mensalidades = new ArrayList<>();
 
     // Construtores
     public Pessoa() {
@@ -146,8 +154,29 @@ public class Pessoa implements UserDetails {
     public List<AvaliacaoFisica> getAvaliacoes() { return avaliacoes; }
     public void setAvaliacoes(List<AvaliacaoFisica> avaliacoes) { this.avaliacoes = avaliacoes; }
 
-    public Set<PlanoDeAula> getPlanosDeAula() { return planosDeAula; }
-    public void setPlanosDeAula(Set<PlanoDeAula> planosDeAula) { this.planosDeAula = planosDeAula; }
+    public Set<PlanoDeAula> getPlanosDeAula() {
+        return planosDeAula;
+    }
+
+    public void setPlanosDeAula(Set<PlanoDeAula> planosDeAula) {
+        this.planosDeAula = planosDeAula;
+    }
+
+    public TipoPlano getPlanoAtivo() {
+        return planoAtivo;
+    }
+
+    public void setPlanoAtivo(TipoPlano planoAtivo) {
+        this.planoAtivo = planoAtivo;
+    }
+
+    public List<Mensalidade> getMensalidades() {
+        return mensalidades;
+    }
+
+    public void setMensalidades(List<Mensalidade> mensalidades) {
+        this.mensalidades = mensalidades;
+    }
 
     public Set<Perfil> getPerfis() {
         return perfis;

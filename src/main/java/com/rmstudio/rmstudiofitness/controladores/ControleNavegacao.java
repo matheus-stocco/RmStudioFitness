@@ -3,21 +3,41 @@ package com.rmstudio.rmstudiofitness.controladores;
 import com.rmstudio.rmstudiofitness.entidades.Pessoa;
 import com.rmstudio.rmstudiofitness.repositorios.EstadoRepository;
 import com.rmstudio.rmstudiofitness.repositorios.PessoaRepository;
+import com.rmstudio.rmstudiofitness.repositorios.MensalidadeRepository;
+import com.rmstudio.rmstudiofitness.repositorios.TipoPlanoRepository;
+import com.rmstudio.rmstudiofitness.servicos.PagamentoService;
+import com.rmstudio.rmstudiofitness.entidades.Mensalidade;
+
 import java.util.Collections;
+import java.util.List;
+import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.security.core.Authentication;
 import org.springframework.stereotype.Controller;
 import org.springframework.ui.Model;
 import org.springframework.web.bind.annotation.GetMapping;
+import org.springframework.web.server.ResponseStatusException;
+import org.springframework.http.HttpStatus;
 
 @Controller
 public class ControleNavegacao {
 
     private final PessoaRepository pessoaRepository;
     private final EstadoRepository estadoRepository;
+    private final MensalidadeRepository mensalidadeRepository;
+    private final TipoPlanoRepository tipoPlanoRepository;
+    private final PagamentoService pagamentoService;
 
-    public ControleNavegacao(PessoaRepository pessoaRepository, EstadoRepository estadoRepository) {
+    @Autowired
+    public ControleNavegacao(PessoaRepository pessoaRepository,
+                             EstadoRepository estadoRepository,
+                             MensalidadeRepository mensalidadeRepository,
+                             TipoPlanoRepository tipoPlanoRepository,
+                             PagamentoService pagamentoService) {
         this.pessoaRepository = pessoaRepository;
         this.estadoRepository = estadoRepository;
+        this.mensalidadeRepository = mensalidadeRepository;
+        this.tipoPlanoRepository = tipoPlanoRepository;
+        this.pagamentoService = pagamentoService;
     }
     
     /**
@@ -43,8 +63,18 @@ public class ControleNavegacao {
         return "index";
     }
 
-    @GetMapping({"/planos", "/TiposDePlanos.html"})
-    public String planos() {
+    @GetMapping("/planos")
+    public String planos(Model model, Authentication authentication) {
+        model.addAttribute("planos", tipoPlanoRepository.findAll());
+        if (authentication != null && authentication.isAuthenticated()) {
+            String username = authentication.getName();
+            // A busca já carrega o planoAtivo por causa do JOIN FETCH no repositório
+            Pessoa pessoa = pessoaRepository.findByUsuario(username)
+                .orElseThrow(() -> new ResponseStatusException(HttpStatus.NOT_FOUND, "Usuário não encontrado"));
+            model.addAttribute("planoAtivo", pessoa.getPlanoAtivo());
+        } else {
+            model.addAttribute("planoAtivo", null);
+        }
         return "TiposDePlanos";
     }
 
@@ -91,6 +121,28 @@ public class ControleNavegacao {
     @GetMapping({"/tipos-plano", "/CadastroTipoPlano.html"})
     public String cadastroTipoPlano() {
         return "CadastroTipoPlano";
+    }
+
+    /**
+     * Mapeia a URL /minhas-mensalidades para a página de mensalidades do usuário.
+     */
+    @GetMapping("/minhas-mensalidades")
+    public String minhasMensalidades(Model model, Authentication authentication) {
+        if (authentication == null || !authentication.isAuthenticated()) {
+            return "redirect:/login";
+        }
+        String username = authentication.getName();
+        Pessoa pessoa = pessoaRepository.findByUsuario(username)
+            .orElseThrow(() -> new ResponseStatusException(HttpStatus.NOT_FOUND, "Usuário não encontrado."));
+
+        model.addAttribute("pessoa", pessoa);
+        model.addAttribute("planoAtivo", pessoa.getPlanoAtivo());
+        
+        List<Mensalidade> mensalidades = pagamentoService.findMensalidadesByPessoaId(pessoa.getId());
+        model.addAttribute("mensalidades", mensalidades);
+
+        model.addAttribute("pageTitle", "Minhas Mensalidades");
+        return "minhas-mensalidades";
     }
 
     @GetMapping("/perfil")

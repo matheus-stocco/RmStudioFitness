@@ -1,0 +1,105 @@
+<!DOCTYPE html>
+<html lang="pt-BR" xmlns:th="http://www.thymeleaf.org">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Minhas Mensalidades - RMStudio Fitness</title>
+    <link rel="stylesheet" href="/css/style.css">
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
+    <style>
+        .status-badge {
+            padding: 5px 10px;
+            border-radius: 15px;
+            font-size: 0.8rem;
+            font-weight: 700;
+            text-transform: uppercase;
+            color: #fff;
+        }
+        .status-pendente { background-color: #f0ad4e; }
+        .status-pago { background-color: #5cb85c; }
+        .status-atrasado { background-color: #d9534f; }
+    </style>
+</head>
+<body>
+    <header class="header" th:replace="~{index :: header}"></header>
+
+    <main class="main-content form-page-container">
+        <div class="container">
+            <h1 class="page-title"><i class="fas fa-file-invoice-dollar"></i> Minhas Mensalidades</h1>
+
+            <!-- Seção do Plano Ativo -->
+            <div class="card" th:if="${planoAtivo}">
+                <h3 class="card-title">Meu Plano Ativo</h3>
+                <p style="color: var(--color-primary); font-weight: bold; font-size: 1.2rem;" th:text="${planoAtivo.nome}"></p>
+                <p style="color: var(--color-text-muted);" th:text="${planoAtivo.descricao}"></p>
+                <p><strong>VALOR MENSAL:</strong> <span th:text="|R$ ${#numbers.formatDecimal(planoAtivo.valor, 1, 'POINT', 2, 'COMMA')}|"></span></p>
+
+                <div class="form-actions" style="margin-top: 24px;">
+                    <a th:href="@{/planos}" class="btn btn-secondary"><i class="fas fa-exchange-alt"></i> Trocar de Plano</a>
+                </div>
+            </div>
+
+            <div class="card" th:if="${planoAtivo == null}">
+                <h3 class="card-title">Nenhum Plano Ativo</h3>
+                <div class="empty-state">
+                    <p>Você ainda não possui um plano ativo.</p>
+                    <a href="/planos" class="btn btn-primary">Ver Planos</a>
+                </div>
+            </div>
+
+            <!-- Tabela de Histórico de Mensalidades -->
+            <div class="card">
+                <h3 class="card-title">Histórico de Cobranças</h3>
+                <div class="table-responsive">
+                    <table class="table">
+                        <thead>
+                            <tr>
+                                <th>Vencimento</th>
+                                <th>Valor</th>
+                                <th>Status</th>
+                                <th>Data de Pagamento</th>
+                                <th>Ação</th>
+                            </tr>
+                        </thead>
+                        <tbody>
+                            <tr th:each="m : ${mensalidades}">
+                                <td th:text="${#temporals.format(m.dataVencimento, 'dd/MM/yyyy')}"></td>
+                                <td th:text="|R$ ${#numbers.formatDecimal(m.valor, 1, 'POINT', 2, 'COMMA')}|"></td>
+                                <td>
+                                    <span class="status-badge"
+                                          th:classappend="${#strings.toLowerCase(m.status) == 'pendente' ? 'status-pendente' : (#strings.toLowerCase(m.status) == 'pago' ? 'status-pago' : 'status-atrasado')}"
+                                          th:text="${m.status}">
+                                    </span>
+                                </td>
+                                <td th:text="${m.dataPagamento != null ? #temporals.format(m.dataPagamento, 'dd/MM/yyyy') : '---'}"></td>
+                                <td>
+                                    <!-- Se o PIX já foi GERADO, mostra o link para pagar -->
+                                    <a th:if="${m.status == 'PENDENTE' and m.transactionId != null}" 
+                                       th:href="@{/api/pagamentos/pagar/{id}(id=${m.id})}" class="btn btn-primary">
+                                        <i class="fas fa-qrcode"></i> Pagar com PIX
+                                    </a>
+
+                                    <!-- Se o PIX ainda NÃO foi gerado, mostra o botão para gerar -->
+                                    <form th:if="${m.status == 'PENDENTE' and m.transactionId == null}"
+                                          th:action="@{/api/pagamentos/gerar-pix/{id}(id=${m.id})}" 
+                                          method="post" style="display: inline;">
+                                        <input type="hidden" th:name="${_csrf.parameterName}" th:value="${_csrf.token}"/>
+                                        <button type="submit" class="btn btn-secondary">
+                                            <i class="fas fa-plus-circle"></i> Gerar PIX
+                                        </button>
+                                    </form>
+                                </td>
+                            </tr>
+                            <tr th:if="${#lists.isEmpty(mensalidades)}">
+                                <td colspan="5" style="text-align: center;">Nenhuma cobrança encontrada.</td>
+                            </tr>
+                        </tbody>
+                    </table>
+                </div>
+            </div>
+        </div>
+    </main>
+
+    <footer class="footer" th:replace="~{index :: footer}"></footer>
+</body>
+</html>

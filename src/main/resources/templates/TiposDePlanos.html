@@ -20,68 +20,62 @@
   <main class="main-content form-page-container">
     <section id="planos" class="section">
       <div class="container">
-        <h2 class="section-title">Escolha seu <span>Plano</span></h2>
-        <!-- Contêiner onde os cards dos planos serão inseridos via JavaScript -->
-        <div class="cards-grid" id="planos-grid">
-          <!-- Os cards de planos serão inseridos aqui dinamicamente -->
-        </div>
-      </div>
-    </section>
-  </main>
+        <h1 class="page-title">Nossos Planos</h1>
+        <p class="page-subtitle">Escolha o plano que melhor se adapta a você.</p>
+        
+        <div class="planos-grid">
+            <!-- Loop sobre os planos passados pelo controller -->
+            <div th:each="plano, iterStat : ${planos}" th:classappend="${iterStat.index == 1} ? 'destaque' : ''" class="plano-card">
+                
+                <span th:if="${iterStat.index == 1}" class="destaque-badge">Mais Popular</span>
+                
+                <h3 class="plano-titulo" th:text="${plano.nome}"></h3>
+                <p class="plano-preco">R$ <span th:text="${#numbers.formatDecimal(plano.valor, 1, 'POINT', 2, 'COMMA')}"></span> /mês</p>
+                
+                <ul class="plano-beneficios">
+                    <li th:each="item : ${plano.descricao.split(';')}">
+                        <i class="fas fa-check"></i> <span th:text="${item.trim()}"></span>
+                    </li>
+                </ul>
 
-  <!-- Reutiliza o fragmento "footer" definido em index.html -->
-  <footer class="footer" th:replace="~{index :: footer}"></footer>
+                <!-- Botão para NÃO LOGADOS -->
+                <div sec:authorize="!isAuthenticated()">
+                    <a th:href="@{/autocadastro}" class="btn btn-primary">Matricule-se Já</a>
+                </div>
 
-  <script>
-    // --- LÓGICA PARA CARREGAR OS PLANOS DINAMICAMENTE ---
-    // Este script é praticamente idêntico ao da página inicial.
-    document.addEventListener('DOMContentLoaded', async () => {
-      const planosGrid = document.getElementById('planos-grid');
-      try {
-        // 1. Busca os dados dos planos na API pública.
-        const response = await fetch('/api/tipos-plano');
-        if (!response.ok) throw new Error('Erro ao buscar planos.');
-        const planos = await response.json();
-
-        // 2. Trata o caso de não haver planos cadastrados.
-        if (planos.length === 0) {
-          planosGrid.innerHTML = '<p style="text-align: center; color: var(--color-text-muted);">Nenhum plano cadastrado no momento.</p>';
-          return;
-        }
-
-        // 3. Lógica para destacar um plano (neste caso, o de maior valor).
-        let planoDestaque = planos.reduce((max, p) => p.valor > max.valor ? p : max, planos[0]);
-        planosGrid.innerHTML = ''; // Limpa a área
-
-        // 4. Itera sobre cada plano e cria o HTML correspondente.
-        planos.forEach(plano => {
-          const card = document.createElement('div');
-          card.className = 'card plan-card';
-          const isDestaque = plano.id === planoDestaque.id;
-          if (isDestaque) {
-            card.classList.add('popular');
-            card.innerHTML += '<div class="plan-badge">Melhor Custo-Benefício</div>';
-          }
-          const valorFormatado = new Intl.NumberFormat('pt-BR', { style: 'currency', currency: 'BRL' }).format(plano.valor);
-          const [reais, centavos] = valorFormatado.replace('R$', '').trim().split(',');
-          card.innerHTML += `
-            <h3 class="card-title">${plano.nome}</h3>
-            <div class="plan-price">
-              <span>R$</span> ${reais}<span class="price-cents">,${centavos}</span><span class="price-period">/mês</span>
+                <!-- Botão para LOGADOS -->
+                <div sec:authorize="isAuthenticated()">
+                    <form th:action="@{/planos/inscrever/{planoId}(planoId=${plano.id})}" method="post" class="form-contratar-plano"
+                          th:attr="data-confirm-troca='Tem certeza que deseja trocar seu plano? As cobranças pendentes do plano atual serão canceladas. Uma nova cobrança será gerada.', 
+                                   data-confirm-novo='Tem certeza que deseja contratar este plano? Uma nova cobrança será gerada.', 
+                                   data-plano-ativo=${planoAtivo != null}">
+                        <input type="hidden" th:name="${_csrf.parameterName}" th:value="${_csrf.token}" />
+                        <button type="submit" class="btn btn-primary">Contratar Plano</button>
+                    </form>
+                </div>
             </div>
-            <ul class="plan-features">
-              ${plano.descricao.split(';').map(item => `<li><i class="fas fa-check"></i> ${item.trim()}</li>`).join('')}
-            </ul>
-            <a href="/autocadastro" class="btn ${isDestaque ? 'btn-primary' : 'btn-secondary'}">Matricule-se</a>
-          `;
-          planosGrid.appendChild(card); // Adiciona o card à página
+        </div>
+    </div>
+</main>
+
+<footer class="footer" th:replace="~{index :: footer}"></footer>
+<script>
+document.addEventListener('DOMContentLoaded', () => {
+    const forms = document.querySelectorAll('.form-contratar-plano');
+    forms.forEach(form => {
+        form.addEventListener('submit', (event) => {
+            const planoAtivo = form.getAttribute('data-plano-ativo') === 'true';
+            const msgTroca = form.getAttribute('data-confirm-troca');
+            const msgNovo = form.getAttribute('data-confirm-novo');
+            
+            const mensagem = planoAtivo ? msgTroca : msgNovo;
+            
+            if (!confirm(mensagem)) {
+                event.preventDefault(); // Cancela o envio do formulário se o usuário clicar em "Cancelar"
+            }
         });
-      } catch (error) {
-        // 5. Exibe uma mensagem de erro se a busca falhar.
-        console.error('Erro ao carregar planos:', error);
-        planosGrid.innerHTML = '<p style="text-align: center; color: var(--color-primary);">Não foi possível carregar os planos. Tente novamente mais tarde.</p>';
-      }
     });
-  </script>
+});
+</script>
 </body>
 </html>
