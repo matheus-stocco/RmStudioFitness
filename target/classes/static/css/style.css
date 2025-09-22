@@ -741,6 +741,7 @@ p { margin-bottom: calc(var(--spacing-unit) * 2); }
 .form-page-container {
     padding-top: calc(var(--header-height) + var(--spacing-unit) * 4);
     padding-bottom: calc(var(--spacing-unit) * 4);
+    flex: 1; /* Garante que o container principal ocupe o espaço disponível */
 }
 
 .form-card {
