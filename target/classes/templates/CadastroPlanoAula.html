@@ -205,12 +205,10 @@
                 return;
             }
             planos.forEach(plano => {
-                const dataInicioFmt = new Date(plano.dataInicio).toLocaleDateString('pt-BR');
-                const dataFimFmt = new Date(plano.dataFim).toLocaleDateString('pt-BR');
                 const tr = document.createElement('tr');
                 tr.innerHTML = `
                     <td>${plano.nome}</td>
-                    <td>${dataInicioFmt} - ${dataFimFmt}</td>
+                    <td>${plano.dataInicio} - ${plano.dataFim}</td>
                     <td>${plano.aluno ? plano.aluno.nome : 'N/A'}</td>
                     <td class="cell-actions">
                         <a href="/CadastroItensPlano.html?planoId=${plano.id}" class="btn btn-secondary"><i class="fas fa-plus"></i> Itens</a>

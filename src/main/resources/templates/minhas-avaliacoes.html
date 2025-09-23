@@ -6,6 +6,70 @@
     <title>Minhas Avaliações Físicas - RMStudio Fitness</title>
     <link rel="stylesheet" href="/css/style.css">
     <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
+    <style>
+        .avaliacao-card .card-body {
+            padding: 25px;
+        }
+        .info-grid {
+            display: grid;
+            gap: 15px;
+            margin-bottom: 20px;
+        }
+        .info-grid.main-metrics {
+            grid-template-columns: repeat(auto-fit, minmax(130px, 1fr));
+        }
+        .info-grid.body-measures {
+            grid-template-columns: repeat(auto-fit, minmax(120px, 1fr));
+        }
+        .info-item {
+            background-color: #2a2a2a;
+            padding: 15px;
+            border-radius: 8px;
+            text-align: center;
+            display: flex;
+            flex-direction: column;
+            justify-content: center;
+            border: 1px solid #444;
+        }
+        .info-label {
+            font-size: 0.8rem;
+            color: #aaa;
+            margin-bottom: 8px;
+            text-transform: uppercase;
+            font-weight: 600;
+        }
+        .info-value {
+            font-size: 1.25rem;
+            font-weight: 500;
+            color: #fff;
+        }
+        .avaliacao-card h4 {
+            margin-top: 25px;
+            margin-bottom: 15px;
+            font-size: 1rem;
+            color: #ccc;
+            text-transform: uppercase;
+            letter-spacing: 1px;
+            border-bottom: 1px solid #444;
+            padding-bottom: 10px;
+        }
+        .observacoes {
+            margin-top: 25px;
+            padding: 20px;
+            background-color: #2a2a2a;
+            border-radius: 8px;
+            border: 1px solid #444;
+        }
+        .observacoes h4 {
+            border-bottom: none;
+            margin: 0 0 10px 0;
+            padding: 0;
+            font-size: 0.9rem;
+        }
+        .badge-success { background-color: #28a745; color: white; }
+        .badge-warning { background-color: #ffc107; color: #212529; }
+        .badge-danger { background-color: #dc3545; color: white; }
+    </style>
 </head>
 <body class="plan-body">
 
@@ -33,59 +97,83 @@
             <div th:if="${not #lists.isEmpty(avaliacoes)}" th:each="avaliacao : ${avaliacoes}" class="card avaliacao-card">
                 <div class="card-header">
                     <h3 class="card-title">Avaliação de <span th:text="${#temporals.format(avaliacao.dataAvaliacao, 'dd/MM/yyyy')}"></span></h3>
-                    <span class="badge" th:text="${'IMC: ' + #numbers.formatDecimal(avaliacao.imc, 1, 2, 'COMMA')}"></span>
+                    <span class="badge" 
+                          th:text="${'IMC: ' + #numbers.formatDecimal(avaliacao.imc, 1, 2, 'COMMA') + ' (' + avaliacao.classificacaoImc + ')'}"
+                          th:classappend="${avaliacao.classificacaoImc == 'Peso normal' ? 'badge-success' : 
+                                           (avaliacao.classificacaoImc == 'Abaixo do peso' || avaliacao.classificacaoImc == 'Sobrepeso' ? 'badge-warning' : 'badge-danger')}">
+                    </span>
                 </div>
                 <div class="card-body">
-                    <div class="info-grid">
+                    <div class="info-grid main-metrics">
                         <div class="info-item">
                             <span class="info-label">Peso</span>
-                            <span class="info-value" th:text="${#numbers.formatDecimal(avaliacao.peso, 1, 1, 'COMMA') + ' kg'}"></span>
+                            <span class="info-value" th:text="${avaliacao.peso != null ? #numbers.formatDecimal(avaliacao.peso, 1, 1, 'COMMA') + ' kg' : 'N/A'}"></span>
                         </div>
                         <div class="info-item">
                             <span class="info-label">Altura</span>
-                            <span class="info-value" th:text="${#numbers.formatDecimal(avaliacao.altura, 1, 2, 'COMMA') + ' m'}"></span>
+                            <span class="info-value" th:text="${avaliacao.altura != null ? #numbers.formatDecimal(avaliacao.altura, 1, 2, 'COMMA') + ' m' : 'N/A'}"></span>
                         </div>
                         <div class="info-item">
                             <span class="info-label">% Gordura</span>
-                            <span class="info-value" th:text="${#numbers.formatDecimal(avaliacao.gorduraCorporal, 1, 1, 'COMMA') + ' %'}"></span>
+                            <span class="info-value" th:text="${avaliacao.gorduraCorporal != null ? #numbers.formatDecimal(avaliacao.gorduraCorporal, 1, 1, 'COMMA') + ' %' : 'N/A'}"></span>
                         </div>
                         <div class="info-item">
                             <span class="info-label">Massa Magra</span>
-                            <span class="info-value" th:text="${#numbers.formatDecimal(avaliacao.massaMagra, 1, 1, 'COMMA') + ' kg'}"></span>
+                            <span class="info-value" th:text="${avaliacao.massaMagra != null ? #numbers.formatDecimal(avaliacao.massaMagra, 1, 1, 'COMMA') + ' kg' : 'N/A'}"></span>
+                        </div>
+                        <div class="info-item">
+                            <span class="info-label">Massa Muscular</span>
+                            <span class="info-value" th:text="${avaliacao.massaMuscular != null ? #numbers.formatDecimal(avaliacao.massaMuscular, 1, 1, 'COMMA') + ' kg' : 'N/A'}"></span>
+                        </div>
+                        <div class="info-item">
+                            <span class="info-label">Hidratação</span>
+                            <span class="info-value" th:text="${avaliacao.hidratacao != null ? #numbers.formatDecimal(avaliacao.hidratacao, 1, 1, 'COMMA') + ' %' : 'N/A'}"></span>
+                        </div>
+                        <div class="info-item">
+                            <span class="info-label">Metabolismo Basal</span>
+                            <span class="info-value" th:text="${avaliacao.taxaMetabolismoBasal != null ? #numbers.formatDecimal(avaliacao.taxaMetabolismoBasal, 1, 0, 'COMMA') + ' kcal/dia' : 'N/A'}"></span>
+                        </div>
+                         <div class="info-item">
+                            <span class="info-label">Densidade Óssea</span>
+                            <span class="info-value" th:text="${avaliacao.densidadeOssea != null ? #numbers.formatDecimal(avaliacao.densidadeOssea, 1, 1, 'COMMA') + ' %' : 'N/A'}"></span>
+                        </div>
+                        <div class="info-item">
+                            <span class="info-label">Gordura Visceral</span>
+                            <span class="info-value" th:text="${avaliacao.gorduraVisceral != null ? #numbers.formatDecimal(avaliacao.gorduraVisceral, 1, 1, 'COMMA') + ' %' : 'N/A'}"></span>
                         </div>
                     </div>
                     <h4>Medidas Corporais (cm)</h4>
-                    <div class="info-grid">
+                    <div class="info-grid body-measures">
                         <div class="info-item">
                             <span class="info-label">Pescoço</span>
-                            <span class="info-value" th:text="${avaliacao.medidaPescoco}"></span>
+                            <span class="info-value" th:text="${avaliacao.medidaPescoco != null ? #numbers.formatDecimal(avaliacao.medidaPescoco, 1, 2, 'COMMA') : 'N/A'}"></span>
                         </div>
                         <div class="info-item">
                             <span class="info-label">Cintura</span>
-                            <span class="info-value" th:text="${avaliacao.medidaCintura}"></span>
+                            <span class="info-value" th:text="${avaliacao.medidaCintura != null ? #numbers.formatDecimal(avaliacao.medidaCintura, 1, 2, 'COMMA') : 'N/A'}"></span>
                         </div>
                          <div class="info-item">
                             <span class="info-label">Quadril</span>
-                            <span class="info-value" th:text="${avaliacao.medidaQuadril}"></span>
+                            <span class="info-value" th:text="${avaliacao.medidaQuadril != null ? #numbers.formatDecimal(avaliacao.medidaQuadril, 1, 2, 'COMMA') : 'N/A'}"></span>
                         </div>
                         <div class="info-item">
                             <span class="info-label">Braço Direito</span>
-                            <span class="info-value" th:text="${avaliacao.medidaBracoDireito}"></span>
+                            <span class="info-value" th:text="${avaliacao.medidaBracoDireito != null ? #numbers.formatDecimal(avaliacao.medidaBracoDireito, 1, 2, 'COMMA') : 'N/A'}"></span>
                         </div>
                         <div class="info-item">
                             <span class="info-label">Braço Esquerdo</span>
-                            <span class="info-value" th:text="${avaliacao.medidaBracoEsquerdo}"></span>
+                            <span class="info-value" th:text="${avaliacao.medidaBracoEsquerdo != null ? #numbers.formatDecimal(avaliacao.medidaBracoEsquerdo, 1, 2, 'COMMA') : 'N/A'}"></span>
                         </div>
                         <div class="info-item">
                             <span class="info-label">Perna Direita</span>
-                            <span class="info-value" th:text="${avaliacao.medidaPernaDireita}"></span>
+                            <span class="info-value" th:text="${avaliacao.medidaPernaDireita != null ? #numbers.formatDecimal(avaliacao.medidaPernaDireita, 1, 2, 'COMMA') : 'N/A'}"></span>
                         </div>
                          <div class="info-item">
                             <span class="info-label">Perna Esquerda</span>
-                            <span class="info-value" th:text="${avaliacao.medidaPernaEsquerda}"></span>
+                            <span class="info-value" th:text="${avaliacao.medidaPernaEsquerda != null ? #numbers.formatDecimal(avaliacao.medidaPernaEsquerda, 1, 2, 'COMMA') : 'N/A'}"></span>
                         </div>
                     </div>
-                    <div th:if="${avaliacao.observacoes}" class="observacoes">
+                    <div th:if="${avaliacao.observacoes != null and !avaliacao.observacoes.trim().isEmpty()}" class="observacoes">
                         <h4>Observações do Avaliador</h4>
                         <p th:text="${avaliacao.observacoes}"></p>
                     </div>
