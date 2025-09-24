@@ -175,8 +175,8 @@
           const card = document.createElement('div');
           card.className = 'card plan-card';
 
-          // Lógica de exemplo para destacar o segundo plano
-          if (index === 1) {
+          // Lógica de exemplo para destacar o plano com nome "START"
+          if (plano.nome.toUpperCase() === 'START') {
             card.classList.add('popular');
             card.innerHTML += '<div class="plan-badge">Melhor Escolha</div>';
           }
@@ -185,6 +185,9 @@
           const valorFormatado = new Intl.NumberFormat('pt-BR', { style: 'currency', currency: 'BRL' }).format(plano.valor);
           const [reais, centavos] = valorFormatado.replace('R$', '').trim().split(',');
 
+          // Processa a string de descrição para criar uma lista de benefícios
+          const beneficios = plano.descricao ? plano.descricao.split(/\r?\n|;/).map(s => s.trim()).filter(s => s) : [];
+
           // Monta o conteúdo HTML do card com os dados do plano
           card.innerHTML += `
             <h3 class="card-title">${plano.nome}</h3>
@@ -192,9 +195,9 @@
               <span>R$</span> ${reais}<span class="price-cents">,${centavos}</span><span class="price-period">/mês</span>
             </div>
             <ul class="plan-features">
-              ${plano.descricao.split(';').map(item => `<li><i class="fas fa-check"></i> ${item.trim()}</li>`).join('')}
+              ${beneficios.map(beneficio => `<li><i class="fas fa-check"></i> ${beneficio}</li>`).join('')}
             </ul>
-            <a href="/autocadastro" class="btn ${index === 1 ? 'btn-primary' : 'btn-secondary'}">Matricule-se</a>
+            <a href="/autocadastro?planoId=${plano.id}" class="btn ${plano.nome.toUpperCase() === 'START' ? 'btn-primary' : 'btn-secondary'}">Matricule-se</a>
           `;
           // Adiciona o card recém-criado à div na página
           planosGrid.appendChild(card);
