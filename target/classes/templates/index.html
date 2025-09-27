@@ -56,8 +56,13 @@
                 <a th:href="@{/exercicios}">Exercícios</a>
                 <a th:href="@{/cidades}">Cidades</a>
                 <a th:href="@{/estados}">Estados</a>
-                <div class="dropdown-divider"></div>
-                <a th:href="@{/relatorios}">Relatórios</a>
+              </div>
+            </div>
+            <!-- Dropdown de Relatórios para Administradores -->
+            <div sec:authorize="hasRole('ADMIN')" class="nav-dropdown">
+              <a href="#" class="nav-dropdown-toggle">Relatórios <i class="fas fa-caret-down"></i></a>
+              <div class="nav-dropdown-menu">
+                <a th:href="@{/relatorios}">Visualizar Relatórios</a>
               </div>
             </div>
           </div>
