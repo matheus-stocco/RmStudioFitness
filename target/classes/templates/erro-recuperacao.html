@@ -1,0 +1,63 @@
+<!--
+  Página de erro para quando o token de recuperação é inválido ou expirado.
+-->
+<!DOCTYPE html>
+<html lang="pt-BR" xmlns:th="http://www.thymeleaf.org">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Erro na Recuperação - RMStudio Fitness</title>
+    <link rel="stylesheet" href="/css/style.css">
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
+</head>
+<body class="plan-body">
+    
+    <!-- Inclui o cabeçalho definido em index.html -->
+    <header class="header" th:replace="~{index :: header}"></header>
+
+    <main class="main-content form-page-container">
+        <div class="container">
+            <h1 class="page-title"><i class="fas fa-exclamation-triangle"></i> Erro na Recuperação</h1>
+
+            <div class="card form-card">
+                
+                <!-- Mensagem de Erro -->
+                <div class="form-message error-message">
+                    <i class="fas fa-times-circle"></i>
+                    <span th:text="${erro}">Link de recuperação inválido ou expirado.</span>
+                </div>
+
+                <div class="error-details">
+                    <h3><i class="fas fa-info-circle"></i> O que aconteceu?</h3>
+                    <ul>
+                        <li><strong>Link expirado:</strong> Os links de recuperação são válidos por apenas 1 hora</li>
+                        <li><strong>Link já usado:</strong> Cada link só pode ser usado uma única vez</li>
+                        <li><strong>Link inválido:</strong> O link pode ter sido alterado ou corrompido</li>
+                    </ul>
+                </div>
+
+                <div class="form-actions">
+                    <a th:href="@{/esqueceu-senha}" class="btn btn-primary">
+                        <i class="fas fa-redo"></i> Solicitar Nova Recuperação
+                    </a>
+                    <a th:href="@{/login}" class="btn btn-secondary" style="margin-top: 16px;">
+                        <i class="fas fa-arrow-left"></i> Voltar ao Login
+                    </a>
+                </div>
+
+                <div class="form-footer">
+                    <div class="help-text">
+                        <p><strong>Precisa de ajuda?</strong></p>
+                        <p>Se você continuar tendo problemas para recuperar sua senha, 
+                           entre em contato com nossa equipe de suporte.</p>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </main>
+
+    <!-- Inclui o rodapé definido em index.html -->
+    <footer class="footer" th:replace="~{index :: footer}"></footer>
+
+</body>
+</html>

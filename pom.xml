@@ -55,6 +55,12 @@
       <artifactId>spring-boot-starter-thymeleaf</artifactId>
     </dependency>
 
+    <!-- Spring Boot Mail para envio de e-mails -->
+    <dependency>
+      <groupId>org.springframework.boot</groupId>
+      <artifactId>spring-boot-starter-mail</artifactId>
+    </dependency>
+
     <!-- (Opcional) AJAX via WebJars (jQuery/Bootstrap) -->
     <dependency>
       <groupId>org.webjars</groupId>

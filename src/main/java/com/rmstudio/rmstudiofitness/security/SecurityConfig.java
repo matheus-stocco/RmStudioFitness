@@ -45,10 +45,12 @@ public class SecurityConfig {
                         .requestMatchers(
                                 "/css/**", "/js/**", "/img/**", "/", "/login", "/autocadastro",
                                 "/planos", "/quem-somos", "/error",
-                                "/api/pagamentos/notificacao" // Webhook
+                                "/api/pagamentos/notificacao", // Webhook
+                                "/esqueceu-senha", "/recuperar-senha" // Recuperação de senha
                         ).permitAll()
                         .requestMatchers(HttpMethod.GET, "/api/tipos-plano", "/api/estados/**", "/api/cidades/**").permitAll()
                         .requestMatchers(HttpMethod.POST, "/api/pessoas").permitAll() // Autocadastro
+                        .requestMatchers(HttpMethod.POST, "/esqueceu-senha", "/recuperar-senha").permitAll() // Recuperação de senha
 
                         // --- Permissões para Usuários Autenticados (Regras Específicas Primeiro) ---
                         .requestMatchers(HttpMethod.POST, "/planos/inscrever/**").authenticated()

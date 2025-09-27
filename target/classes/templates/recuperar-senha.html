@@ -1,0 +1,103 @@
+<!--
+  Página para redefinir a senha usando o token de recuperação.
+  O usuário acessa esta página através do link enviado por e-mail.
+-->
+<!DOCTYPE html>
+<html lang="pt-BR" xmlns:th="http://www.thymeleaf.org">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Nova Senha - RMStudio Fitness</title>
+    <link rel="stylesheet" href="/css/style.css">
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
+</head>
+<body class="plan-body">
+    
+    <!-- Inclui o cabeçalho definido em index.html -->
+    <header class="header" th:replace="~{index :: header}"></header>
+
+    <main class="main-content form-page-container">
+        <div class="container">
+            <h1 class="page-title"><i class="fas fa-lock"></i> Criar Nova Senha</h1>
+
+            <form th:action="@{/recuperar-senha}" method="post" class="card form-card">
+                <input type="hidden" name="token" th:value="${token}">
+                
+                <!-- Mensagem de Erro -->
+                <div th:if="${erro}" class="form-message error-message">
+                    <i class="fas fa-exclamation-triangle"></i>
+                    <span th:text="${erro}"></span>
+                </div>
+
+                <div class="form-info">
+                    <p><i class="fas fa-info-circle"></i> 
+                       Criando nova senha para: <strong th:text="${email}"></strong></p>
+                </div>
+
+                <!-- Campo Nova Senha -->
+                <div class="form-group">
+                    <label for="novaSenha">Nova Senha</label>
+                    <input type="password" 
+                           id="novaSenha" 
+                           name="novaSenha" 
+                           placeholder="Digite sua nova senha" 
+                           required 
+                           autofocus
+                           minlength="6"
+                           maxlength="50">
+                    <small class="form-help">A senha deve ter pelo menos 6 caracteres.</small>
+                </div>
+
+                <!-- Campo Confirmar Senha -->
+                <div class="form-group">
+                    <label for="confirmarSenha">Confirmar Nova Senha</label>
+                    <input type="password" 
+                           id="confirmarSenha" 
+                           name="confirmarSenha" 
+                           placeholder="Digite novamente sua nova senha" 
+                           required
+                           minlength="6"
+                           maxlength="50">
+                </div>
+
+                <!-- Ações do Formulário -->
+                <div class="form-actions">
+                    <button type="submit" class="btn btn-primary">
+                        <i class="fas fa-save"></i> Alterar Senha
+                    </button>
+                </div>
+
+                <div class="form-footer">
+                    <div class="security-info">
+                        <p><i class="fas fa-shield-alt"></i> <strong>Dicas de Segurança:</strong></p>
+                        <ul>
+                            <li>Use uma senha diferente de outras contas</li>
+                            <li>Combine letras, números e símbolos</li>
+                            <li>Evite informações pessoais óbvias</li>
+                            <li>Mantenha sua senha em segredo</li>
+                        </ul>
+                    </div>
+                </div>
+            </form>
+        </div>
+    </main>
+
+    <!-- Inclui o rodapé definido em index.html -->
+    <footer class="footer" th:replace="~{index :: footer}"></footer>
+
+    <script>
+        // Validação de confirmação de senha em tempo real
+        document.getElementById('confirmarSenha').addEventListener('input', function() {
+            const novaSenha = document.getElementById('novaSenha').value;
+            const confirmarSenha = this.value;
+            
+            if (novaSenha && confirmarSenha && novaSenha !== confirmarSenha) {
+                this.setCustomValidity('As senhas não coincidem');
+            } else {
+                this.setCustomValidity('');
+            }
+        });
+    </script>
+
+</body>
+</html>

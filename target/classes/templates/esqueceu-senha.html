@@ -1,0 +1,83 @@
+<!--
+  Página para solicitar recuperação de senha.
+  O usuário informa seu e-mail e recebe instruções por e-mail.
+-->
+<!DOCTYPE html>
+<html lang="pt-BR" xmlns:th="http://www.thymeleaf.org">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Recuperar Senha - RMStudio Fitness</title>
+    <link rel="stylesheet" href="/css/style.css">
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
+</head>
+<body class="plan-body">
+    
+    <!-- Inclui o cabeçalho definido em index.html -->
+    <header class="header" th:replace="~{index :: header}"></header>
+
+    <main class="main-content form-page-container">
+        <div class="container">
+            <h1 class="page-title"><i class="fas fa-key"></i> Recuperar Senha</h1>
+
+            <form th:action="@{/esqueceu-senha}" method="post" class="card form-card">
+                
+                <!-- Mensagem de Erro -->
+                <div th:if="${erro}" class="form-message error-message">
+                    <i class="fas fa-exclamation-triangle"></i>
+                    <span th:text="${erro}"></span>
+                </div>
+
+                <!-- Mensagem de Sucesso -->
+                <div th:if="${sucesso}" class="form-message success-message">
+                    <i class="fas fa-check-circle"></i>
+                    <span th:text="${sucesso}"></span>
+                </div>
+
+                <div class="form-info">
+                    <p><i class="fas fa-info-circle"></i> 
+                       Informe seu e-mail cadastrado para receber as instruções de recuperação de senha.</p>
+                </div>
+
+                <!-- Campo de E-mail -->
+                <div class="form-group">
+                    <label for="email">E-mail</label>
+                    <input type="email" 
+                           id="email" 
+                           name="email" 
+                           placeholder="Digite seu e-mail cadastrado" 
+                           required 
+                           autofocus
+                           maxlength="60">
+                </div>
+
+                <!-- Ações do Formulário -->
+                <div class="form-actions">
+                    <button type="submit" class="btn btn-primary">
+                        <i class="fas fa-paper-plane"></i> Enviar Instruções
+                    </button>
+                    <a th:href="@{/login}" class="btn btn-secondary" style="margin-top: 16px;">
+                        <i class="fas fa-arrow-left"></i> Voltar ao Login
+                    </a>
+                </div>
+
+                <div class="form-footer">
+                    <div class="help-text">
+                        <p><strong>Como funciona:</strong></p>
+                        <ul>
+                            <li>Você receberá um e-mail com um link especial</li>
+                            <li>O link é válido por apenas 1 hora</li>
+                            <li>Use o link para criar uma nova senha</li>
+                            <li>Após usar o link, ele se tornará inválido</li>
+                        </ul>
+                    </div>
+                </div>
+            </form>
+        </div>
+    </main>
+
+    <!-- Inclui o rodapé definido em index.html -->
+    <footer class="footer" th:replace="~{index :: footer}"></footer>
+
+</body>
+</html>

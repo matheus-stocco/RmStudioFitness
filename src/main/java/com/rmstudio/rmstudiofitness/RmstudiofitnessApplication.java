@@ -2,6 +2,7 @@ package com.rmstudio.rmstudiofitness;
 
 import org.springframework.boot.SpringApplication;
 import org.springframework.boot.autoconfigure.SpringBootApplication;
+import org.springframework.scheduling.annotation.EnableScheduling;
 import org.springframework.context.annotation.Bean;
 
 import com.fasterxml.jackson.databind.ObjectMapper;
@@ -10,6 +11,7 @@ import com.fasterxml.jackson.datatype.jsr310.JavaTimeModule;
 import com.fasterxml.jackson.databind.DeserializationFeature;
 
 @SpringBootApplication
+@EnableScheduling
 public class RmstudiofitnessApplication {
 
 	public static void main(String[] args) {
