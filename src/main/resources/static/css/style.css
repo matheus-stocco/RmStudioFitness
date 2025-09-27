@@ -127,16 +127,11 @@ p { margin-bottom: calc(var(--spacing-unit) * 2); }
   gap: calc(var(--spacing-unit) * 4);
 }
 
-.navbar-left {
-  display: flex;
-  align-items: center;
-  gap: calc(var(--spacing-unit) * 4);
-}
-
 .navbar-right {
   flex-shrink: 0; /* Impede que o elemento encolha */
   display: flex;
   align-items: center;
+  margin-left: auto; /* Empurra o elemento para a direita */
 }
 
 .navbar-right .btn {
@@ -693,47 +688,177 @@ p { margin-bottom: calc(var(--spacing-unit) * 2); }
 }
 
 /* --- RESPONSIVIDADE --- */
-@media (max-width: 992px) {
-  h1 { font-size: 2.5rem; }
-  .hero-title { font-size: 3.5rem; }
+
+/* Telas grandes (desktops) - acima de 1200px (já é o padrão, sem necessidade de media query) */
+
+/* Telas médias (laptops e tablets em paisagem) - até 1200px */
+@media (max-width: 1200px) {
+  .container {
+    max-width: 960px;
+  }
 }
 
+/* Telas de tablets - até 992px */
+@media (max-width: 992px) {
+  .container {
+    max-width: 720px;
+  }
+
+  h1 { font-size: 2.5rem; }
+  h2 { font-size: 2rem; }
+  .hero-title { font-size: 3.5rem; }
+
+  .navbar-left, .nav-links {
+    gap: calc(var(--spacing-unit) * 2);
+  }
+
+  .cards-grid, .summary-cards, .form-grid-quad, .profile-info {
+    grid-template-columns: repeat(auto-fit, minmax(250px, 1fr));
+    gap: calc(var(--spacing-unit) * 3);
+  }
+}
+
+/* Telas de celulares em paisagem e tablets em retrato - até 768px */
 @media (max-width: 768px) {
+  body {
+    font-size: 15px;
+  }
+  
+  .section {
+    padding: calc(var(--spacing-unit) * 6) 0;
+  }
+
+  .hero-title { 
+    font-size: 2.8rem; 
+    line-height: 1.2;
+  }
+  .hero-subtitle { font-size: 1.1rem; }
+
+  /* --- Menu Mobile --- */
+  .nav-toggle {
+    display: block; /* Mostra o botão do menu hambúrguer */
+    z-index: 1001; /* Garante que fique acima dos links */
+  }
+
+  .navbar {
+    position: relative;
+  }
+  
   .nav-links {
-    display: none;
+    display: none; /* Esconde os links por padrão */
     position: absolute;
-    top: var(--header-height);
+    top: 0;
     left: 0;
     width: 100%;
+    height: 100vh; /* Ocupa a tela inteira */
     background-color: var(--color-background);
     flex-direction: column;
-    padding: var(--spacing-unit);
-    border-bottom: 1px solid var(--color-border);
+    justify-content: center;
+    align-items: center;
+    gap: var(--spacing-unit) * 2;
+    transform: translateY(-100%);
+    transition: transform 0.4s ease-in-out;
   }
 
   .nav-links.open {
     display: flex;
+    transform: translateY(0);
+  }
+  
+  .nav-links a {
+    font-size: 1.2rem;
+    padding: var(--spacing-unit);
   }
 
-  .nav-links a {
-    margin: var(--spacing-unit);
+  /* Ajuste dos dropdowns no menu mobile */
+  .nav-dropdown {
+    width: 100%;
     text-align: center;
   }
 
-  .nav-toggle {
-    display: block;
+  .nav-dropdown-toggle {
+    justify-content: center;
+  }
+
+  .nav-dropdown:hover .nav-dropdown-menu {
+    display: none; /* Desativa o hover no mobile */
   }
   
-  .hero-title { font-size: 2.5rem; }
-  .hero-subtitle { font-size: 1rem; }
+  .nav-dropdown-menu {
+    display: block;
+    position: static; /* Remove o posicionamento absoluto */
+    background-color: transparent;
+    border: none;
+    box-shadow: none;
+    min-width: auto;
+    padding: 0;
+    margin-top: var(--spacing-unit);
+  }
+
+  .nav-dropdown-menu a {
+    font-size: 1rem;
+    color: var(--color-text-muted);
+    font-weight: 400;
+    text-transform: none;
+    padding: calc(var(--spacing-unit) * 0.5) 0;
+  }
+
+  .nav-dropdown-menu a:hover {
+    background-color: transparent;
+    color: var(--color-primary);
+  }
+
+  /* --- Outros Layouts --- */
+  .form-grid-double {
+    grid-template-columns: 1fr; /* Coluna única */
+  }
+
+  .report-filters {
+    flex-direction: column;
+    align-items: stretch;
+  }
+
+  .report-filters .btn {
+    width: 100%;
+    text-align: center;
+  }
 }
 
+/* Telas de celulares em retrato - até 576px */
 @media (max-width: 576px) {
   body {
     font-size: 14px;
   }
-  .section {
-    padding: calc(var(--spacing-unit) * 6) 0;
+
+  .container {
+    padding: 0 var(--spacing-unit);
+  }
+
+  .hero-title { font-size: 2.2rem; }
+  .hero-subtitle { font-size: 1rem; }
+
+  .form-card {
+    padding: calc(var(--spacing-unit) * 3);
+  }
+
+  .summary-cards .summary-card {
+    flex-direction: column;
+    text-align: center;
+    gap: var(--spacing-unit);
+  }
+
+  .plan-grid {
+    grid-template-columns: 1fr;
+  }
+}
+
+/* Remove a regra de hover do dropdown para dispositivos de toque, 
+   o que exigiria dois toques para seguir um link.
+   Isso pode ser combinado com JS para uma melhor experiência de 'clicar para abrir'.
+   Por enquanto, no mobile (pela media query acima), o dropdown já está sempre aberto. */
+@media (hover: none) {
+  .nav-dropdown:hover .nav-dropdown-menu {
+    display: none;
   }
 }
 

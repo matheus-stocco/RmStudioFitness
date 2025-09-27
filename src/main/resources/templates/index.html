@@ -25,45 +25,43 @@
   <header class="header" th:fragment="header">
     <div class="container">
       <nav class="navbar">
-        <div class="navbar-left">
-          <!-- Logo/Marca do site -->
-          <a class="brand" th:href="@{/}">
-            <i class="fas fa-dumbbell"></i>
-            <span>RM</span>Studio
-          </a>
-          <!-- 
-            Links de Navegação 
-            - th:href="@{...}": Cria URLs dinâmicas gerenciadas pelo Spring Boot, garantindo que os links funcionem corretamente.
-            - sec:authorize="...": Atributo do Spring Security. O conteúdo dentro desta tag só será renderizado se a condição for verdadeira.
-          -->
-          <div class="nav-links">
-            <a th:href="@{/}">Home</a>
-            <a th:href="@{/planos}">Planos</a>
-            <a th:href="@{/quem-somos}">Quem Somos</a>
-            <!-- Link visível apenas para usuários autenticados (logados) -->
-            <a sec:authorize="isAuthenticated()" th:href="@{/minhas-avaliacoes}">Minhas Avaliações</a>
-            <a sec:authorize="isAuthenticated()" th:href="@{/meus-planos-aula}">Meus Planos</a>
-            <a sec:authorize="isAuthenticated()" th:href="@{/minhas-mensalidades}">Minhas Mensalidades</a>
-            <a sec:authorize="isAuthenticated()" th:href="@{/perfil}">Perfil</a>
-            <!-- Dropdown de Gestão para Administradores -->
-            <div sec:authorize="hasRole('ADMIN')" class="nav-dropdown">
-              <a href="#" class="nav-dropdown-toggle">Gestão <i class="fas fa-caret-down"></i></a>
-              <div class="nav-dropdown-menu">
-                <a th:href="@{/membros}">Membros</a>
-                <a th:href="@{/avaliacoes}">Avaliações Físicas</a>
-                <a th:href="@{/tipos-plano}">Planos Monetarios</a>
-                <a th:href="@{/planos-aula}">Planos de Aulas</a>
-                <a th:href="@{/exercicios}">Exercícios</a>
-                <a th:href="@{/cidades}">Cidades</a>
-                <a th:href="@{/estados}">Estados</a>
-              </div>
+        <!-- Logo/Marca do site -->
+        <a class="brand" th:href="@{/}">
+          <i class="fas fa-dumbbell"></i>
+          <span>RM</span>Studio
+        </a>
+        <!-- 
+          Links de Navegação 
+          - th:href="@{...}": Cria URLs dinâmicas gerenciadas pelo Spring Boot, garantindo que os links funcionem corretamente.
+          - sec:authorize="...": Atributo do Spring Security. O conteúdo dentro desta tag só será renderizado se a condição for verdadeira.
+        -->
+        <div class="nav-links">
+          <a th:href="@{/}">Home</a>
+          <a th:href="@{/planos}">Planos</a>
+          <a th:href="@{/quem-somos}">Quem Somos</a>
+          <!-- Link visível apenas para usuários autenticados (logados) -->
+          <a sec:authorize="isAuthenticated()" th:href="@{/minhas-avaliacoes}">Minhas Avaliações</a>
+          <a sec:authorize="isAuthenticated()" th:href="@{/meus-planos-aula}">Meus Planos</a>
+          <a sec:authorize="isAuthenticated()" th:href="@{/minhas-mensalidades}">Minhas Mensalidades</a>
+          <a sec:authorize="isAuthenticated()" th:href="@{/perfil}">Perfil</a>
+          <!-- Dropdown de Gestão para Administradores -->
+          <div sec:authorize="hasRole('ADMIN')" class="nav-dropdown">
+            <a href="#" class="nav-dropdown-toggle">Gestão <i class="fas fa-caret-down"></i></a>
+            <div class="nav-dropdown-menu">
+              <a th:href="@{/membros}">Gestão de Membros</a>
+              <a th:href="@{/avaliacoes}">Gestão de Avaliações Físicas</a>
+              <a th:href="@{/tipos-plano}">Gestão de Planos Monetarios</a>
+              <a th:href="@{/planos-aula}">Gestão de Planos de Aulas</a>
+              <a th:href="@{/exercicios}">Gestão de Exercícios</a>
+              <a th:href="@{/cidades}">Gestão de Cidades</a>
+              <a th:href="@{/estados}">Gestão de Estados</a>
             </div>
-            <!-- Dropdown de Relatórios para Administradores -->
-            <div sec:authorize="hasRole('ADMIN')" class="nav-dropdown">
-              <a href="#" class="nav-dropdown-toggle">Relatórios <i class="fas fa-caret-down"></i></a>
-              <div class="nav-dropdown-menu">
-                <a th:href="@{/relatorios}">Visualizar Relatórios</a>
-              </div>
+          </div>
+          <!-- Dropdown de Relatórios para Administradores -->
+          <div sec:authorize="hasRole('ADMIN')" class="nav-dropdown">
+            <a href="#" class="nav-dropdown-toggle">Relatórios <i class="fas fa-caret-down"></i></a>
+            <div class="nav-dropdown-menu">
+              <a th:href="@{/relatorios}">Relatórios de Mensalidades</a>
             </div>
           </div>
         </div>
