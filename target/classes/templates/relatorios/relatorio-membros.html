@@ -16,6 +16,14 @@
             <h1 class="page-title"><i class="fas fa-users"></i> Relatório de Membros Cadastrados</h1>
 
             <div class="card form-card card--wide">
+                <!-- Formulário de Pesquisa -->
+                <div class="report-filters">
+                    <form th:action="@{/relatorios/membros}" method="get" class="search-form">
+                        <input type="text" name="nome" placeholder="Pesquisar por nome..." class="form-control" th:value="${nomePesquisado}">
+                        <button type="submit" class="btn btn-primary"><i class="fas fa-search"></i></button>
+                    </form>
+                </div>
+
                 <div class="table-responsive">
                     <table class="table">
                         <thead>

@@ -243,9 +243,26 @@ p { margin-bottom: calc(var(--spacing-unit) * 2); }
 
 .report-filters {
     display: flex;
+    justify-content: center; /* Adicionado para centralizar */
     gap: calc(var(--spacing-unit) * 2);
     margin-bottom: calc(var(--spacing-unit) * 3);
     flex-wrap: wrap; /* Garante que os botões quebrem a linha em telas menores */
+}
+
+.search-form {
+    display: flex;
+    gap: calc(var(--spacing-unit) * 1.5); /* Espaçamento entre input e botão */
+    width: 100%;
+    max-width: 500px; /* Limita a largura do formulário de busca */
+}
+
+.search-form .form-control {
+    width: auto; /* Sobrescreve o width: 100% padrão */
+    flex-grow: 1; /* Faz o input esticar para preencher o espaço */
+}
+
+.search-form .btn {
+    flex-shrink: 0; /* Garante que o botão não seja espremido */
 }
 
 .status-badge {

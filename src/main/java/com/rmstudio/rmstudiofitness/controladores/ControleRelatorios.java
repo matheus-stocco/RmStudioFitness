@@ -41,9 +41,15 @@ public class ControleRelatorios {
     }
 
     @GetMapping("/relatorios/membros")
-    public String relatorioMembros(Model model) {
-        List<Pessoa> membros = pessoaRepository.findAllByOrderByNome();
+    public String relatorioMembros(@RequestParam(value = "nome", required = false) String nome, Model model) {
+        List<Pessoa> membros;
+        if (nome != null && !nome.trim().isEmpty()) {
+            membros = pessoaRepository.findByNomeContainingIgnoreCase(nome);
+        } else {
+            membros = pessoaRepository.findAllByOrderByNome();
+        }
         model.addAttribute("membros", membros);
+        model.addAttribute("nomePesquisado", nome);
         return "relatorios/relatorio-membros";
     }
 }
