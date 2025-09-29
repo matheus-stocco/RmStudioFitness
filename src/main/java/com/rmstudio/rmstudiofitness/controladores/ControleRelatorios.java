@@ -1,6 +1,8 @@
 package com.rmstudio.rmstudiofitness.controladores;
 
 import com.rmstudio.rmstudiofitness.entidades.Mensalidade;
+import com.rmstudio.rmstudiofitness.entidades.Pessoa;
+import com.rmstudio.rmstudiofitness.repositorios.PessoaRepository;
 import com.rmstudio.rmstudiofitness.servicos.PagamentoService;
 import org.springframework.security.access.prepost.PreAuthorize;
 import org.springframework.stereotype.Controller;
@@ -17,9 +19,11 @@ import java.util.Map;
 public class ControleRelatorios {
 
     private final PagamentoService pagamentoService;
+    private final PessoaRepository pessoaRepository;
 
-    public ControleRelatorios(PagamentoService pagamentoService) {
+    public ControleRelatorios(PagamentoService pagamentoService, PessoaRepository pessoaRepository) {
         this.pagamentoService = pagamentoService;
+        this.pessoaRepository = pessoaRepository;
     }
 
     @GetMapping("/relatorios")
@@ -34,5 +38,12 @@ public class ControleRelatorios {
         model.addAttribute("previsaoArrecadacao", totais.get("previsaoArrecadacao"));
         
         return "relatorios";
+    }
+
+    @GetMapping("/relatorios/membros")
+    public String relatorioMembros(Model model) {
+        List<Pessoa> membros = pessoaRepository.findAllByOrderByNome();
+        model.addAttribute("membros", membros);
+        return "relatorios/relatorio-membros";
     }
 }

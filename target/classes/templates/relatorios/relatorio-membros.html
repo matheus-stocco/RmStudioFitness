@@ -1,0 +1,59 @@
+<!DOCTYPE html>
+<html lang="pt-br" xmlns:th="http://www.thymeleaf.org">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Relatório de Membros - RM Studio Fitness</title>
+    <link rel="stylesheet" href="/css/style.css">
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
+</head>
+<body class="plan-body">
+
+    <header class="header" th:replace="~{index :: header}"></header>
+
+    <main class="main-content form-page-container">
+        <div class="container-fluid">
+            <h1 class="page-title"><i class="fas fa-users"></i> Relatório de Membros Cadastrados</h1>
+
+            <div class="card form-card card--wide">
+                <div class="table-responsive">
+                    <table class="table">
+                        <thead>
+                            <tr>
+                                <th>ID</th>
+                                <th>Nome</th>
+                                <th>Email</th>
+                                <th>CPF</th>
+                                <th>Telefone</th>
+                                <th>Data de Cadastro</th>
+                                <th>Status</th>
+                            </tr>
+                        </thead>
+                        <tbody>
+                            <!-- Os dados dos membros serão inseridos aqui pelo Thymeleaf -->
+                            <tr th:each="membro : ${membros}">
+                                <td th:text="${membro.id}"></td>
+                                <td th:text="${membro.nome}"></td>
+                                <td th:text="${membro.email}"></td>
+                                <td th:text="${membro.cpf}"></td>
+                                <td th:text="${membro.telefone}"></td>
+                                <td th:text="${#temporals.format(membro.dataCadastro, 'dd/MM/yyyy HH:mm')}"></td>
+                                <td>
+                                    <span th:if="${membro.ativo}" class="status-badge status--pago">Ativo</span>
+                                    <span th:unless="${membro.ativo}" class="status-badge status--atrasada">Inativo</span>
+                                </td>
+                            </tr>
+                            <tr th:if="${#lists.isEmpty(membros)}">
+                                <td colspan="7" class="text-center">Nenhum membro encontrado.</td>
+                            </tr>
+                        </tbody>
+                    </table>
+                </div>
+            </div>
+        </div>
+    </main>
+
+    <footer class="footer" th:replace="~{index :: footer}"></footer>
+
+</body>
+</html>
