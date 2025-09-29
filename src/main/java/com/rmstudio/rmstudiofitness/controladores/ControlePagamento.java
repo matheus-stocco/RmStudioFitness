@@ -13,6 +13,7 @@ import com.rmstudio.rmstudiofitness.paghiper.dto.PagHiperNotificationRequest;
 import org.springframework.security.core.Authentication;
 import com.rmstudio.rmstudiofitness.entidades.Pessoa;
 import com.rmstudio.rmstudiofitness.repositorios.PessoaRepository;
+import org.springframework.web.servlet.mvc.support.RedirectAttributes;
 
 @Controller
 public class ControlePagamento {
@@ -107,6 +108,26 @@ public class ControlePagamento {
         pagamentoService.gerarPixParaMensalidade(mensalidadeId);
         
         return "redirect:/api/pagamentos/pagar/" + mensalidadeId;
+    }
+
+    @PostMapping("/api/pagamentos/cancelar-plano")
+    public String cancelarPlano(Authentication authentication, RedirectAttributes redirectAttributes) {
+        if (authentication == null || !authentication.isAuthenticated()) {
+            return "redirect:/login";
+        }
+
+        String username = authentication.getName();
+        Pessoa pessoa = pessoaRepository.findByUsuario(username)
+            .orElseThrow(() -> new ResponseStatusException(HttpStatus.NOT_FOUND, "Usuário não encontrado."));
+
+        try {
+            pagamentoService.cancelarPlano(pessoa.getId());
+            redirectAttributes.addFlashAttribute("successMessage", "Seu plano foi cancelado com sucesso.");
+        } catch (Exception e) {
+            redirectAttributes.addFlashAttribute("errorMessage", "Erro ao cancelar o plano: " + e.getMessage());
+        }
+
+        return "redirect:/minhas-mensalidades";
     }
 
     // DTO para receber os dados da requisição

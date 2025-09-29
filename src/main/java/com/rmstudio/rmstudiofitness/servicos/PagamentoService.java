@@ -205,6 +205,36 @@ public class PagamentoService {
         logger.info("Mensalidade {} atualizada para {} com sucesso.", mensalidade.getId(), novoStatus);
     }
 
+    @Transactional
+    public void cancelarPlano(Long pessoaId) {
+        Pessoa pessoa = pessoaRepository.findById(pessoaId)
+            .orElseThrow(() -> new ResponseStatusException(HttpStatus.NOT_FOUND, "Pessoa não encontrada."));
+
+        if (pessoa.getPlanoAtivo() == null) {
+            throw new IllegalStateException("O usuário não possui um plano ativo para cancelar.");
+        }
+
+        // 1. Cancela todas as mensalidades com status PENDENTE
+        List<Mensalidade> mensalidadesPendentes = pessoa.getMensalidades().stream()
+            .filter(m -> "PENDENTE".equals(m.getStatus()))
+            .collect(Collectors.toList());
+
+        if (mensalidadesPendentes.isEmpty() && pessoa.getPlanoAtivo() != null) {
+             logger.warn("Nenhuma mensalidade pendente encontrada para {}, mas o plano estava ativo. O plano será desativado.", pessoa.getNome());
+        }
+
+        for (Mensalidade m : mensalidadesPendentes) {
+            m.setStatus("CANCELADO");
+            logger.info("Mensalidade {} da pessoa {} cancelada.", m.getId(), pessoa.getNome());
+        }
+
+        // 2. Remove a associação do plano ativo da pessoa
+        pessoa.setPlanoAtivo(null);
+
+        // 3. Salva as alterações
+        pessoaRepository.save(pessoa);
+    }
+
     private PagHiperRequest criarPagHiperRequest(Mensalidade m) {
         return new PagHiperRequest(
             pagHiperService.getApiKey(),
