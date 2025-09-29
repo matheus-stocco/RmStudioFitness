@@ -124,14 +124,15 @@ public class PagamentoService {
             return todasMensalidades;
         }
 
-        if ("ATRASADA".equalsIgnoreCase(status)) {
-            return todasMensalidades.stream()
-                .filter(m -> "PENDENTE".equals(m.getStatus()) && m.getDataVencimento().isBefore(LocalDate.now()))
-                .collect(Collectors.toList());
-        }
-
+        // A lógica de "ATRASADA" agora é tratada na própria entidade ou na camada de visualização.
+        // O filtro deve apenas buscar pelo status literal que está no banco.
         return todasMensalidades.stream()
-            .filter(m -> status.equalsIgnoreCase(m.getStatus()))
+            .filter(m -> {
+                if ("ATRASADA".equalsIgnoreCase(status)) {
+                    return "PENDENTE".equals(m.getStatus()) && m.getDataVencimento().isBefore(LocalDate.now());
+                }
+                return status.equalsIgnoreCase(m.getStatus());
+            })
             .collect(Collectors.toList());
     }
 
@@ -152,9 +153,11 @@ public class PagamentoService {
             .reduce(BigDecimal.ZERO, BigDecimal::add);
 
         BigDecimal previsaoArrecadacao = todasMensalidades.stream()
-            .filter(m -> "PENDENTE".equals(m.getStatus()) &&
-                         !m.getDataVencimento().isBefore(inicioDoMes) &&
-                         !m.getDataVencimento().isAfter(fimDoMes))
+            .filter(m -> {
+                boolean isPendenteOuAtrasada = "PENDENTE".equals(m.getStatus());
+                boolean isNoMesCorrente = !m.getDataVencimento().isBefore(inicioDoMes) && !m.getDataVencimento().isAfter(fimDoMes);
+                return isPendenteOuAtrasada && isNoMesCorrente;
+            })
             .map(Mensalidade::getValor)
             .reduce(BigDecimal.ZERO, BigDecimal::add);
 
@@ -168,27 +171,38 @@ public class PagamentoService {
     public void processarNotificacao(PagHiperNotificationRequest notification) {
         logger.info("Recebendo notificação da PagHiper para a transação: {}", notification.transactionId());
 
-        if (!"paid".equalsIgnoreCase(notification.status()) && !"approved".equalsIgnoreCase(notification.status())) {
-            logger.warn("Status da notificação não é 'pago' ou 'aprovado'. Status: {}", notification.status());
-            return; // Ignora notificações que não sejam de pagamento confirmado
-        }
-
         Mensalidade mensalidade = mensalidadeRepository.findByTransactionId(notification.transactionId())
             .orElseThrow(() -> {
                 logger.error("Mensalidade com transaction_id {} não encontrada.", notification.transactionId());
                 return new ResponseStatusException(HttpStatus.NOT_FOUND, "Mensalidade não encontrada para esta transação.");
             });
 
-        if ("PAGO".equals(mensalidade.getStatus())) {
-            logger.info("Mensalidade {} já estava com status PAGO. Nenhuma alteração feita.", mensalidade.getId());
+        String novoStatus = switch (notification.status().toLowerCase()) {
+            case "paid", "approved" -> "PAGO";
+            case "pending", "reserved" -> "PENDENTE";
+            case "canceled", "refunded" -> "CANCELADO";
+            default -> null;
+        };
+
+        if (novoStatus == null) {
+            logger.warn("Status da notificação '{}' não mapeado. Nenhuma ação será tomada.", notification.status());
+            return;
+        }
+
+        if (novoStatus.equals(mensalidade.getStatus())) {
+            logger.info("Mensalidade {} já estava com status {}. Nenhuma alteração feita.", mensalidade.getId(), novoStatus);
             return; // Evita processamento duplicado
         }
 
-        mensalidade.setStatus("PAGO");
-        mensalidade.setDataPagamento(LocalDate.now());
-        mensalidadeRepository.save(mensalidade);
+        mensalidade.setStatus(novoStatus);
+        if ("PAGO".equals(novoStatus)) {
+            mensalidade.setDataPagamento(LocalDate.now());
+        } else {
+            mensalidade.setDataPagamento(null); // Garante que a data de pagamento seja nula se não estiver pago
+        }
 
-        logger.info("Mensalidade {} atualizada para PAGO com sucesso.", mensalidade.getId());
+        mensalidadeRepository.save(mensalidade);
+        logger.info("Mensalidade {} atualizada para {} com sucesso.", mensalidade.getId(), novoStatus);
     }
 
     private PagHiperRequest criarPagHiperRequest(Mensalidade m) {

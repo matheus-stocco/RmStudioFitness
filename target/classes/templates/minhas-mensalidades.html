@@ -18,6 +18,7 @@
         .status-pendente { background-color: #f0ad4e; }
         .status-pago { background-color: #5cb85c; }
         .status-atrasado { background-color: #d9534f; }
+        .status-cancelado { background-color: #6c757d; }
     </style>
 </head>
 <body class="plan-body">
@@ -66,28 +67,40 @@
                                 <td th:text="${#temporals.format(m.dataVencimento, 'dd/MM/yyyy')}"></td>
                                 <td th:text="|R$ ${#numbers.formatDecimal(m.valor, 1, 'POINT', 2, 'COMMA')}|"></td>
                                 <td>
-                                    <span class="status-badge"
-                                          th:classappend="${#strings.toLowerCase(m.status) == 'pendente' ? 'status-pendente' : (#strings.toLowerCase(m.status) == 'pago' ? 'status-pago' : 'status-atrasado')}"
-                                          th:text="${m.status}">
-                                    </span>
+                                    <th:block th:switch="${m.status}">
+                                        <span th:case="'PENDENTE'">
+                                            <th:block th:if="${m.dataVencimento.isBefore(#temporals.createNow().toLocalDate())}">
+                                                <span class="status-badge status-atrasado">ATRASADO</span>
+                                            </th:block>
+                                            <th:block th:unless="${m.dataVencimento.isBefore(#temporals.createNow().toLocalDate())}">
+                                                <span class="status-badge status-pendente">PENDENTE</span>
+                                            </th:block>
+                                        </span>
+                                        <span th:case="'PAGO'" class="status-badge status-pago">PAGO</span>
+                                        <span th:case="'CANCELADO'" class="status-badge status-cancelado">CANCELADO</span>
+                                        <span th:case="*" class="status-badge" th:text="${m.status}"></span> <!-- Default case -->
+                                    </th:block>
                                 </td>
                                 <td th:text="${m.dataPagamento != null ? #temporals.format(m.dataPagamento, 'dd/MM/yyyy') : '---'}"></td>
                                 <td>
-                                    <!-- Se o PIX já foi GERADO, mostra o link para pagar -->
-                                    <a th:if="${m.status == 'PENDENTE' and m.transactionId != null}" 
-                                       th:href="@{/api/pagamentos/pagar/{id}(id=${m.id})}" class="btn btn-primary">
-                                        <i class="fas fa-qrcode"></i> Pagar com PIX
-                                    </a>
+                                    <!-- Se a mensalidade está PENDENTE ou ATRASADA, oferece a opção de pagar -->
+                                    <th:block th:if="${m.status == 'PENDENTE'}">
+                                        <!-- Se o PIX já foi GERADO, mostra o link para pagar -->
+                                        <a th:if="${m.transactionId != null}"
+                                           th:href="@{/api/pagamentos/pagar/{id}(id=${m.id})}" class="btn btn-primary">
+                                            <i class="fas fa-qrcode"></i> Pagar com PIX
+                                        </a>
 
-                                    <!-- Se o PIX ainda NÃO foi gerado, mostra o botão para gerar -->
-                                    <form th:if="${m.status == 'PENDENTE' and m.transactionId == null}"
-                                          th:action="@{/api/pagamentos/gerar-pix/{id}(id=${m.id})}" 
-                                          method="post" style="display: inline;">
-                                        <input type="hidden" th:name="${_csrf.parameterName}" th:value="${_csrf.token}"/>
-                                        <button type="submit" class="btn btn-secondary">
-                                            <i class="fas fa-plus-circle"></i> Gerar PIX
-                                        </button>
-                                    </form>
+                                        <!-- Se o PIX ainda NÃO foi gerado, mostra o botão para gerar -->
+                                        <form th:if="${m.transactionId == null}"
+                                              th:action="@{/api/pagamentos/gerar-pix/{id}(id=${m.id})}"
+                                              method="post" style="display: inline;">
+                                            <input type="hidden" th:name="${_csrf.parameterName}" th:value="${_csrf.token}"/>
+                                            <button type="submit" class="btn btn-secondary">
+                                                <i class="fas fa-plus-circle"></i> Gerar PIX
+                                            </button>
+                                        </form>
+                                    </th:block>
                                 </td>
                             </tr>
                             <tr th:if="${#lists.isEmpty(mensalidades)}">

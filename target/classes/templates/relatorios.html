@@ -6,6 +6,22 @@
     <title>Relatórios - RMStudio Fitness</title>
     <link rel="stylesheet" href="/css/style.css">
     <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
+    <style>
+        /* Estilos dos badges de status */
+        .status-badge {
+            padding: 5px 10px;
+            border-radius: 15px;
+            font-size: 0.8rem;
+            font-weight: 700;
+            text-transform: uppercase;
+            color: #fff;
+            display: inline-block;
+        }
+        .status-pendente { background-color: #f0ad4e; }
+        .status-pago { background-color: #5cb85c; }
+        .status-atrasado { background-color: #d9534f; }
+        .status-cancelado { background-color: #6c757d; }
+    </style>
 </head>
 <body class="plan-body">
     
@@ -40,6 +56,7 @@
                     <a th:href="@{/relatorios(status='PAGO')}" class="btn" th:classappend="${filtroAtual == 'PAGO'} ? 'btn-primary' : 'btn-secondary'">Pagas</a>
                     <a th:href="@{/relatorios(status='PENDENTE')}" class="btn" th:classappend="${filtroAtual == 'PENDENTE'} ? 'btn-primary' : 'btn-secondary'">Pendentes</a>
                     <a th:href="@{/relatorios(status='ATRASADA')}" class="btn" th:classappend="${filtroAtual == 'ATRASADA'} ? 'btn-primary' : 'btn-secondary'">Atrasadas</a>
+                    <a th:href="@{/relatorios(status='CANCELADO')}" class="btn" th:classappend="${filtroAtual == 'CANCELADO'} ? 'btn-primary' : 'btn-secondary'">Canceladas</a>
                 </div>
 
                 <!-- Tabela de Resultados -->
@@ -63,7 +80,19 @@
                                 <td th:text="${#temporals.format(m.dataVencimento, 'dd/MM/yyyy')}"></td>
                                 <td th:text="${m.dataPagamento != null ? #temporals.format(m.dataPagamento, 'dd/MM/yyyy') : '---'}"></td>
                                 <td>
-                                    <span class="status-badge" th:classappend="'status--' + ${m.status.toLowerCase()}" th:text="${m.status}"></span>
+                                    <th:block th:switch="${m.status}">
+                                        <span th:case="'PENDENTE'">
+                                            <th:block th:if="${m.dataVencimento.isBefore(#temporals.createNow().toLocalDate())}">
+                                                <span class="status-badge status-atrasado">ATRASADO</span>
+                                            </th:block>
+                                            <th:block th:unless="${m.dataVencimento.isBefore(#temporals.createNow().toLocalDate())}">
+                                                <span class="status-badge status-pendente">PENDENTE</span>
+                                            </th:block>
+                                        </span>
+                                        <span th:case="'PAGO'" class="status-badge status-pago">PAGO</span>
+                                        <span th:case="'CANCELADO'" class="status-badge status-cancelado">CANCELADO</span>
+                                        <span th:case="*" class="status-badge" th:text="${m.status}"></span> <!-- Default case -->
+                                    </th:block>
                                 </td>
                             </tr>
                             <tr th:if="${#lists.isEmpty(mensalidades)}">
