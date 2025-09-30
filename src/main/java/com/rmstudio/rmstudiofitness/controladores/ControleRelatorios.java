@@ -13,6 +13,9 @@ import org.springframework.web.bind.annotation.RequestParam;
 import java.util.List;
 import java.math.BigDecimal;
 import java.util.Map;
+import java.util.stream.Collectors;
+import java.util.stream.IntStream;
+import java.time.LocalDate;
 
 @Controller
 @PreAuthorize("hasRole('ADMIN')") // Garante que apenas administradores podem acessar
@@ -27,15 +30,24 @@ public class ControleRelatorios {
     }
 
     @GetMapping("/relatorios")
-    public String relatorioMensalidades(@RequestParam(value = "status", required = false) String status, Model model) {
+    public String relatorioMensalidades(@RequestParam(value = "status", required = false) String status,
+                                        @RequestParam(value = "ano", required = false) Integer ano,
+                                        @RequestParam(value = "mes", required = false) Integer mes,
+                                        Model model) {
         
-        List<Mensalidade> mensalidades = pagamentoService.buscarMensalidadesParaRelatorio(status);
-        Map<String, BigDecimal> totais = pagamentoService.calcularTotaisMesCorrente();
+        List<Mensalidade> mensalidades = pagamentoService.buscarMensalidadesParaRelatorio(status, ano, mes);
+        Map<String, BigDecimal> totais = pagamentoService.calcularTotais(ano, mes);
         
         model.addAttribute("mensalidades", mensalidades);
         model.addAttribute("filtroAtual", status != null ? status.toUpperCase() : "TODAS");
         model.addAttribute("totalArrecadado", totais.get("totalArrecadado"));
         model.addAttribute("previsaoArrecadacao", totais.get("previsaoArrecadacao"));
+        model.addAttribute("anoSelecionado", ano != null ? ano : LocalDate.now().getYear());
+        model.addAttribute("mesSelecionado", mes != null ? mes : LocalDate.now().getMonthValue());
+
+        // Para popular os filtros de ano e mês na view
+        List<Integer> anos = IntStream.rangeClosed(2023, LocalDate.now().getYear() + 1).boxed().collect(Collectors.toList());
+        model.addAttribute("anos", anos);
         
         return "relatorios";
     }

@@ -117,16 +117,23 @@ public class PagamentoService {
     }
 
     @Transactional(readOnly = true)
-    public List<Mensalidade> buscarMensalidadesParaRelatorio(String status) {
+    public List<Mensalidade> buscarMensalidadesParaRelatorio(String status, Integer ano, Integer mes) {
         List<Mensalidade> todasMensalidades = mensalidadeRepository.findAllWithDetails();
-
+    
+        // Filtro por ano e mês
+        List<Mensalidade> mensalidadesFiltradas = todasMensalidades.stream()
+            .filter(m -> {
+                boolean anoMatch = (ano == null) || (m.getDataVencimento().getYear() == ano);
+                boolean mesMatch = (mes == null) || (m.getDataVencimento().getMonthValue() == mes);
+                return anoMatch && mesMatch;
+            })
+            .collect(Collectors.toList());
+    
         if (status == null || status.trim().isEmpty() || "TODAS".equalsIgnoreCase(status)) {
-            return todasMensalidades;
+            return mensalidadesFiltradas;
         }
-
-        // A lógica de "ATRASADA" agora é tratada na própria entidade ou na camada de visualização.
-        // O filtro deve apenas buscar pelo status literal que está no banco.
-        return todasMensalidades.stream()
+    
+        return mensalidadesFiltradas.stream()
             .filter(m -> {
                 if ("ATRASADA".equalsIgnoreCase(status)) {
                     return "PENDENTE".equals(m.getStatus()) && m.getDataVencimento().isBefore(LocalDate.now());
@@ -137,10 +144,13 @@ public class PagamentoService {
     }
 
     @Transactional(readOnly = true)
-    public Map<String, BigDecimal> calcularTotaisMesCorrente() {
+    public Map<String, BigDecimal> calcularTotais(Integer ano, Integer mes) {
         LocalDate hoje = LocalDate.now();
-        LocalDate inicioDoMes = hoje.withDayOfMonth(1);
-        LocalDate fimDoMes = hoje.withDayOfMonth(hoje.lengthOfMonth());
+        int anoAtual = (ano != null) ? ano : hoje.getYear();
+        int mesAtual = (mes != null) ? mes : hoje.getMonthValue();
+
+        LocalDate inicioDoMes = LocalDate.of(anoAtual, mesAtual, 1);
+        LocalDate fimDoMes = inicioDoMes.withDayOfMonth(inicioDoMes.lengthOfMonth());
 
         List<Mensalidade> todasMensalidades = mensalidadeRepository.findAllWithDetails();
 

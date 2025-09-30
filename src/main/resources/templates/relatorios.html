@@ -21,6 +21,30 @@
         .status-pago { background-color: #5cb85c; }
         .status-atrasado { background-color: #d9534f; }
         .status-cancelado { background-color: #6c757d; }
+
+        .filters-container {
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            margin-bottom: 20px;
+            flex-wrap: wrap;
+            gap: 15px;
+        }
+        .report-filters {
+            display: flex;
+            gap: 15px;
+            align-items: flex-end; /* Alinha os itens na base */
+        }
+        .report-filters .filter-group {
+            display: flex;
+            flex-direction: column; /* Coloca o label acima do select */
+            gap: 5px;
+        }
+        .status-filters {
+            display: flex;
+            gap: 10px;
+            flex-wrap: wrap;
+        }
     </style>
 </head>
 <body class="plan-body">
@@ -43,7 +67,7 @@
                 <div class="summary-card">
                     <div class="card-icon"><i class="fas fa-file-invoice-dollar"></i></div>
                     <div class="card-content">
-                        <span class="card-title">Previsão (Pendentes no Mês)</span>
+                        <span class="card-title" th:text="'Previsão (' + ${#temporals.format(#temporals.create(anoSelecionado, mesSelecionado, 1), 'MMMM yyyy')} + ')'"></span>
                         <span class="card-value" th:text="'R$ ' + ${#numbers.formatDecimal(previsaoArrecadacao, 1, 'POINT', 2, 'COMMA')}"></span>
                     </div>
                 </div>
@@ -51,12 +75,32 @@
 
             <div class="card form-card card--wide">
                 <!-- Filtros -->
-                <div class="report-filters">
-                    <a th:href="@{/relatorios(status='TODAS')}" class="btn" th:classappend="${filtroAtual == 'TODAS'} ? 'btn-primary' : 'btn-secondary'">Todas</a>
-                    <a th:href="@{/relatorios(status='PAGO')}" class="btn" th:classappend="${filtroAtual == 'PAGO'} ? 'btn-primary' : 'btn-secondary'">Pagas</a>
-                    <a th:href="@{/relatorios(status='PENDENTE')}" class="btn" th:classappend="${filtroAtual == 'PENDENTE'} ? 'btn-primary' : 'btn-secondary'">Pendentes</a>
-                    <a th:href="@{/relatorios(status='ATRASADA')}" class="btn" th:classappend="${filtroAtual == 'ATRASADA'} ? 'btn-primary' : 'btn-secondary'">Atrasadas</a>
-                    <a th:href="@{/relatorios(status='CANCELADO')}" class="btn" th:classappend="${filtroAtual == 'CANCELADO'} ? 'btn-primary' : 'btn-secondary'">Canceladas</a>
+                <div class="filters-container">
+                    <form th:action="@{/relatorios}" method="get" class="report-filters">
+                        <div class="filter-group">
+                            <label for="ano">Ano:</label>
+                            <select name="ano" id="ano" class="form-control">
+                                <option th:each="a : ${anos}" th:value="${a}" th:text="${a}" th:selected="${a == anoSelecionado}"></option>
+                            </select>
+                        </div>
+                        <div class="filter-group">
+                            <label for="mes">Mês:</label>
+                            <select name="mes" id="mes" class="form-control">
+                                <option value="">Todos</option>
+                                <option th:each="m : ${#numbers.sequence(1, 12)}" th:value="${m}" th:text="${#temporals.create(2000, m, 1, 0, 0).month.getDisplayName('FULL', new java.util.Locale('pt', 'BR'))}" th:selected="${m == mesSelecionado}"></option>
+                            </select>
+                        </div>
+                        <input type="hidden" name="status" th:value="${filtroAtual}" />
+                        <button type="submit" class="btn btn-primary">Filtrar</button>
+                    </form>
+    
+                    <div class="status-filters">
+                        <a th:href="@{/relatorios(status='TODAS', ano=${anoSelecionado}, mes=${mesSelecionado})}" class="btn" th:classappend="${filtroAtual == 'TODAS'} ? 'btn-primary' : 'btn-secondary'">Todas</a>
+                        <a th:href="@{/relatorios(status='PAGO', ano=${anoSelecionado}, mes=${mesSelecionado})}" class="btn" th:classappend="${filtroAtual == 'PAGO'} ? 'btn-primary' : 'btn-secondary'">Pagas</a>
+                        <a th:href="@{/relatorios(status='PENDENTE', ano=${anoSelecionado}, mes=${mesSelecionado})}" class="btn" th:classappend="${filtroAtual == 'PENDENTE'} ? 'btn-primary' : 'btn-secondary'">Pendentes</a>
+                        <a th:href="@{/relatorios(status='ATRASADA', ano=${anoSelecionado}, mes=${mesSelecionado})}" class="btn" th:classappend="${filtroAtual == 'ATRASADA'} ? 'btn-primary' : 'btn-secondary'">Atrasadas</a>
+                        <a th:href="@{/relatorios(status='CANCELADO', ano=${anoSelecionado}, mes=${mesSelecionado})}" class="btn" th:classappend="${filtroAtual == 'CANCELADO'} ? 'btn-primary' : 'btn-secondary'">Canceladas</a>
+                    </div>
                 </div>
 
                 <!-- Tabela de Resultados -->
