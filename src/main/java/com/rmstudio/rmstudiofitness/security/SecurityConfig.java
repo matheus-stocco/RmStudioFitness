@@ -55,6 +55,7 @@ public class SecurityConfig {
                         // --- Permissões para Usuários Autenticados (Regras Específicas Primeiro) ---
                         .requestMatchers(HttpMethod.POST, "/planos/inscrever/**").authenticated()
                         .requestMatchers(HttpMethod.POST, "/api/pagamentos/gerar-pix/**").authenticated()
+                        .requestMatchers(HttpMethod.POST, "/api/pagamentos/cancelar-plano").authenticated()
                         .requestMatchers(HttpMethod.GET, "/api/pagamentos/pagar/**").authenticated()
 
                         // --- Permissões de Administrador (Regras Genéricas Depois) ---
