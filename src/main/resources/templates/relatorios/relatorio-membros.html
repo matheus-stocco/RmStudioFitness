@@ -47,8 +47,10 @@
                                 <td th:text="${membro.telefone}"></td>
                                 <td th:text="${#temporals.format(membro.dataCadastro, 'dd/MM/yyyy HH:mm')}"></td>
                                 <td>
-                                    <span th:if="${membro.ativo}" class="status-badge status--pago">Ativo</span>
-                                    <span th:unless="${membro.ativo}" class="status-badge status--atrasada">Inativo</span>
+                                    <!-- Se o membro tem um plano ativo, status é 'ATIVO' -->
+                                    <span th:if="${membro.planoAtivo != null}" class="status-badge status--pago">ATIVO</span>
+                                    <!-- Se não tem, status é 'OCIOSO' -->
+                                    <span th:unless="${membro.planoAtivo != null}" class="status-badge status--cancelado">OCIOSO</span>
                                 </td>
                             </tr>
                             <tr th:if="${#lists.isEmpty(membros)}">
