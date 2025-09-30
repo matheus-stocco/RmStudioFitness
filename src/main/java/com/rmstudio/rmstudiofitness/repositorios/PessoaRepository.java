@@ -20,6 +20,12 @@ public interface PessoaRepository extends JpaRepository<Pessoa, Long> {
     /** Busca pessoa por nome (ignoring case) */
     List<Pessoa> findByNomeContainingIgnoreCase(String nome);
 
+    List<Pessoa> findByPlanoAtivoIsNotNullOrderByNome();
+    List<Pessoa> findByNomeContainingIgnoreCaseAndPlanoAtivoIsNotNull(String nome);
+
+    List<Pessoa> findByPlanoAtivoIsNullOrderByNome();
+    List<Pessoa> findByNomeContainingIgnoreCaseAndPlanoAtivoIsNull(String nome);
+
     /** Busca pessoa por usuário */
     @Query("SELECT p FROM Pessoa p LEFT JOIN FETCH p.planoAtivo WHERE p.usuario = :usuario")
     Optional<Pessoa> findByUsuario(@Param("usuario") String usuario);

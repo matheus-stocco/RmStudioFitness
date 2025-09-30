@@ -16,9 +16,23 @@
             <h1 class="page-title"><i class="fas fa-users"></i> Relatório de Membros Cadastrados</h1>
 
             <div class="card form-card card--wide">
-                <!-- Formulário de Pesquisa -->
-                <div class="report-filters">
-                    <form th:action="@{/relatorios/membros}" method="get" class="search-form">
+                <div class="report-filters" style="justify-content: space-between; align-items: center; flex-wrap: wrap; margin-bottom: 24px;">
+                    <!-- Filtros de Status -->
+                    <div class="status-filters" style="display: flex; gap: 12px;">
+                        <a th:href="@{/relatorios/membros(status='TODOS')}"
+                           th:classappend="${filtroStatus == 'TODOS'} ? 'btn-primary' : 'btn-secondary'"
+                           class="btn">Todos</a>
+                        <a th:href="@{/relatorios/membros(status='ATIVO')}"
+                           th:classappend="${filtroStatus == 'ATIVO'} ? 'btn-primary' : 'btn-secondary'"
+                           class="btn">Ativos</a>
+                        <a th:href="@{/relatorios/membros(status='OCIOSO')}"
+                           th:classappend="${filtroStatus == 'OCIOSO'} ? 'btn-primary' : 'btn-secondary'"
+                           class="btn">Ociosos</a>
+                    </div>
+
+                    <!-- Formulário de Pesquisa -->
+                    <form th:action="@{/relatorios/membros}" method="get" class="search-form" style="max-width: 400px;">
+                        <input type="hidden" name="status" th:value="${filtroStatus}" />
                         <input type="text" name="nome" placeholder="Pesquisar por nome..." class="form-control" th:value="${nomePesquisado}">
                         <button type="submit" class="btn btn-primary"><i class="fas fa-search"></i></button>
                     </form>

@@ -41,15 +41,33 @@ public class ControleRelatorios {
     }
 
     @GetMapping("/relatorios/membros")
-    public String relatorioMembros(@RequestParam(value = "nome", required = false) String nome, Model model) {
+    public String relatorioMembros(@RequestParam(value = "nome", required = false) String nome,
+                                   @RequestParam(value = "status", required = false, defaultValue = "TODOS") String status,
+                                   Model model) {
         List<Pessoa> membros;
-        if (nome != null && !nome.trim().isEmpty()) {
-            membros = pessoaRepository.findByNomeContainingIgnoreCase(nome);
-        } else {
-            membros = pessoaRepository.findAllByOrderByNome();
+        boolean hasNome = nome != null && !nome.trim().isEmpty();
+
+        switch (status.toUpperCase()) {
+            case "ATIVO":
+                membros = hasNome
+                    ? pessoaRepository.findByNomeContainingIgnoreCaseAndPlanoAtivoIsNotNull(nome)
+                    : pessoaRepository.findByPlanoAtivoIsNotNullOrderByNome();
+                break;
+            case "OCIOSO":
+                membros = hasNome
+                    ? pessoaRepository.findByNomeContainingIgnoreCaseAndPlanoAtivoIsNull(nome)
+                    : pessoaRepository.findByPlanoAtivoIsNullOrderByNome();
+                break;
+            default: // "TODOS"
+                membros = hasNome
+                    ? pessoaRepository.findByNomeContainingIgnoreCase(nome)
+                    : pessoaRepository.findAllByOrderByNome();
+                break;
         }
+
         model.addAttribute("membros", membros);
         model.addAttribute("nomePesquisado", nome);
+        model.addAttribute("filtroStatus", status.toUpperCase());
         return "relatorios/relatorio-membros";
     }
 }
