@@ -187,7 +187,6 @@
           
           // Formata o valor do plano para o formato de moeda brasileiro (BRL)
           const valorFormatado = new Intl.NumberFormat('pt-BR', { style: 'currency', currency: 'BRL' }).format(plano.valor);
-          const [reais, centavos] = valorFormatado.replace('R$', '').trim().split(',');
 
           // Processa a string de descrição para criar uma lista de benefícios
           const beneficios = plano.descricao ? plano.descricao.split(/\r?\n|;/).map(s => s.trim()).filter(s => s) : [];
@@ -196,7 +195,7 @@
           card.innerHTML += `
             <h3 class="card-title">${plano.nome}</h3>
             <div class="plan-price">
-              <span>R$</span> ${reais}<span class="price-cents">,${centavos}</span><span class="price-period">/mês</span>
+              ${valorFormatado}<span class="price-period">/mês</span>
             </div>
             <ul class="plan-features">
               ${beneficios.map(beneficio => `<li><i class="fas fa-check"></i> ${beneficio}</li>`).join('')}

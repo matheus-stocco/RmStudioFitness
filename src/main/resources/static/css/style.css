@@ -1182,6 +1182,11 @@ p { margin-bottom: calc(var(--spacing-unit) * 2); }
   text-transform: uppercase;
 }
 
+.plan-price,
+.plan-price span:not(.price-period) {
+    color: var(--color-primary) !important;
+}
+
 .plan-price {
   font-size: 3rem;
   font-weight: 900;
