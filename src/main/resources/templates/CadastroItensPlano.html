@@ -143,22 +143,55 @@
                     }
                 });
             });
-
-            // Lógica do menu mobile
-            const navToggle = document.querySelector('.nav-toggle');
-            const navLinks = document.querySelector('.nav-links');
-            if (navToggle) {
-                navToggle.addEventListener('click', () => {
-                    navLinks.classList.toggle('open');
-                });
-            }
         });
 
         function resetForm() {
             document.getElementById('form-item-plano').reset();
             document.getElementById('grupoMuscular').dispatchEvent(new Event('change'));
         }
+
+        // --- LÓGICA DE EXCLUSÃO COM AJAX ---
+        const weekPlanner = document.getElementById('week-planner-container');
+        if (weekPlanner) {
+            weekPlanner.addEventListener('click', async (event) => {
+                const deleteButton = event.target.closest('.delete-item');
+                if (!deleteButton) return; // Sai se o clique não foi no botão de deletar
+
+                event.preventDefault(); // Impede o envio padrão do formulário
+
+                const form = deleteButton.closest('form');
+                const url = form.action;
+                const listItem = deleteButton.closest('li');
+                const exercicioNome = listItem.querySelector('strong').textContent;
+
+                if (!confirm(`Tem certeza que deseja excluir o exercício "${exercicioNome}"?`)) {
+                    return;
+                }
+
+                try {
+                    const response = await fetch(url, {
+                        method: 'DELETE' // Enviamos uma requisição DELETE diretamente
+                    });
+
+                    if (response.ok) { // status 204 (No Content) é sucesso
+                        // Animação suave para remover o item da lista
+                        listItem.style.transition = 'opacity 0.3s, transform 0.3s';
+                        listItem.style.opacity = '0';
+                        listItem.style.transform = 'translateX(20px)';
+                        setTimeout(() => listItem.remove(), 300);
+                        toast('Exercício removido!', true);
+                    } else {
+                        const errorText = await response.text();
+                        toast(`Erro: ${errorText || 'Não foi possível remover'}`, false);
+                    }
+                } catch (error) {
+                    console.error('Falha na exclusão:', error);
+                    toast('Erro de conexão ao excluir.', false);
+                }
+            });
+        }
     </script>
+    <script src="/js/app.js"></script>
 </body>
 </html>
 
