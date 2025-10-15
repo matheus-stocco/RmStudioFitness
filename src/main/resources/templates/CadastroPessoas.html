@@ -257,9 +257,31 @@
             document.getElementById('nome').value = pessoa.nome;
             document.getElementById('email').value = pessoa.email;
             document.getElementById('telefone').value = pessoa.telefone;
-            document.getElementById('genero').value = pessoa.genero;
+            
+            // Converte o valor do gênero da API ('M', 'F') para o valor do select ('MASCULINO', 'FEMININO')
+            let generoParaFormulario = '';
+            if (pessoa.genero === 'M') {
+                generoParaFormulario = 'MASCULINO';
+            } else if (pessoa.genero === 'F') {
+                generoParaFormulario = 'FEMININO';
+            } else if (pessoa.genero === 'O') {
+                generoParaFormulario = 'OUTRO';
+            }
+            document.getElementById('genero').value = generoParaFormulario;
+
             document.getElementById('usuario').value = pessoa.usuario;
-            document.getElementById('dataNascimento').value = pessoa.dataNascimento;
+
+            if (pessoa.dataNascimento) {
+                if (Array.isArray(pessoa.dataNascimento)) {
+                    const [ano, mes, dia] = pessoa.dataNascimento;
+                    document.getElementById('dataNascimento').value = `${ano}-${String(mes).padStart(2, '0')}-${String(dia).padStart(2, '0')}`;
+                } else {
+                    document.getElementById('dataNascimento').value = pessoa.dataNascimento.split('T')[0];
+                }
+            } else {
+                document.getElementById('dataNascimento').value = '';
+            }
+
             document.getElementById('cpf').value = pessoa.cpf;
             
             // Lógica para carregar e selecionar estado/cidade
