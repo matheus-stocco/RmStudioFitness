@@ -134,6 +134,7 @@
     let idInput, secaoPlano, planoAtivoNome, planoIdSelect, btnAtribuirPlano;
     let estadoSelect, cidadeSelect, searchInput, searchButton, clearSearchButton;
     let filterEstadoSelect, filterCidadeSelect;
+    let originalCpf = ''; // Variável para armazenar o CPF original na edição
     
     // --- FUNÇÕES GLOBAIS ---
     function validarCPF(cpf) {
@@ -283,6 +284,7 @@
             }
 
             document.getElementById('cpf').value = pessoa.cpf;
+            originalCpf = pessoa.cpf; // Armazena o CPF original
             
             // Lógica para carregar e selecionar estado/cidade
             const estadoSelect = document.getElementById('estadoId');
@@ -308,6 +310,7 @@
     function resetForm() {
         form.reset();
         document.getElementById('id').value = '';
+        originalCpf = ''; // Limpa o CPF original ao resetar
         document.getElementById('cidadeId').innerHTML = '<option value="">Selecione um estado</option>';
         document.getElementById('cidadeId').disabled = true;
         
@@ -476,6 +479,18 @@
             const formData = new FormData(form);
             const pessoa = Object.fromEntries(formData.entries());
             const id = pessoa.id;
+
+            // Se for uma edição, verifica se dados sensíveis foram alterados
+            if (id) {
+                const newPassword = senhaInput.value.trim();
+                const newCpf = cpfInput.value;
+                
+                if (newPassword !== '' || newCpf !== originalCpf) {
+                    if (!confirm('Você está prestes a alterar dados sensíveis (CPF ou senha). Esta ação não poderá ser desfeita. Deseja continuar?')) {
+                        return; // Cancela o envio se o usuário não confirmar
+                    }
+                }
+            }
 
             const payload = {
                 id: pessoa.id || null,
