@@ -90,7 +90,7 @@ public class ControlePessoa {
     // ===== DETALHE =====
     @GetMapping("/{id}")
     public ResponseEntity<Pessoa> buscar(@PathVariable Long id) {
-        return pessoaRepository.findByIdWithCidadeAndEstado(id)
+        return pessoaRepository.findByIdWithDetails(id)
                 .map(ResponseEntity::ok)
                 .orElse(ResponseEntity.notFound().build());
     }

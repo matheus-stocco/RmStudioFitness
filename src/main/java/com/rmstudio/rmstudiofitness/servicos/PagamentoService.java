@@ -22,6 +22,7 @@ import org.slf4j.LoggerFactory;
 import java.util.List;
 import java.util.stream.Collectors;
 import java.math.BigDecimal;
+import java.math.RoundingMode;
 import java.util.Map;
 
 
@@ -34,13 +35,15 @@ public class PagamentoService {
     private final MensalidadeRepository mensalidadeRepository;
     private final PagHiperService pagHiperService;
     private final ObjectMapper objectMapper;
+    private final AgendamentoService agendamentoService;
 
-    public PagamentoService(PessoaRepository pessoaRepository, TipoPlanoRepository tipoPlanoRepository, MensalidadeRepository mensalidadeRepository, PagHiperService pagHiperService, ObjectMapper objectMapper) {
+    public PagamentoService(PessoaRepository pessoaRepository, TipoPlanoRepository tipoPlanoRepository, MensalidadeRepository mensalidadeRepository, PagHiperService pagHiperService, ObjectMapper objectMapper, AgendamentoService agendamentoService) {
         this.pessoaRepository = pessoaRepository;
         this.tipoPlanoRepository = tipoPlanoRepository;
         this.mensalidadeRepository = mensalidadeRepository;
         this.pagHiperService = pagHiperService;
         this.objectMapper = objectMapper;
+        this.agendamentoService = agendamentoService;
     }
 
     @Transactional
@@ -61,18 +64,61 @@ public class PagamentoService {
         // 1. Atualiza o plano ativo da pessoa
         pessoa.setPlanoAtivo(tipoPlano);
 
-        // 2. Cria a mensalidade inicial sem dados de PIX
-        Mensalidade novaMensalidade = new Mensalidade();
-        novaMensalidade.setPessoa(pessoa);
-        novaMensalidade.setTipoPlano(tipoPlano);
-        novaMensalidade.setValor(tipoPlano.getValor());
-        novaMensalidade.setDataVencimento(LocalDate.now().plusDays(5));
-        novaMensalidade.setStatus("PENDENTE");
+        // 2. Gera a cobrança PROPORCIONAL do mês atual (com mínimo de 50%)
+        LocalDate hoje = LocalDate.now();
+        BigDecimal valorMensal = tipoPlano.getValorMensal();
+        if (valorMensal == null) valorMensal = tipoPlano.getValor();
 
-        pessoa.getMensalidades().add(novaMensalidade);
-        
+        int totalDiasMes = hoje.lengthOfMonth();
+        int diasRestantesInclusivo = totalDiasMes - hoje.getDayOfMonth() + 1; // inclui o dia atual
+        BigDecimal proporcao = BigDecimal.valueOf(diasRestantesInclusivo)
+                .divide(BigDecimal.valueOf(totalDiasMes), 4, RoundingMode.HALF_UP);
+        BigDecimal valorProporcional = valorMensal.multiply(proporcao).setScale(2, RoundingMode.HALF_UP);
+        BigDecimal valorMinimo = valorMensal.multiply(new BigDecimal("0.50")).setScale(2, RoundingMode.HALF_UP);
+        BigDecimal valorPrimeira = valorProporcional.max(valorMinimo);
+
+        boolean jaTemMensalidadeMesAtual = pessoa.getMensalidades().stream()
+                .anyMatch(m -> "PENDENTE".equals(m.getStatus())
+                        && m.getDataVencimento() != null
+                        && m.getDataVencimento().getYear() == hoje.getYear()
+                        && m.getDataVencimento().getMonthValue() == hoje.getMonthValue());
+
+        Mensalidade mensalidadeAtual = null;
+        if (!jaTemMensalidadeMesAtual) {
+            mensalidadeAtual = new Mensalidade();
+            mensalidadeAtual.setPessoa(pessoa);
+            mensalidadeAtual.setTipoPlano(tipoPlano);
+            mensalidadeAtual.setValor(valorPrimeira);
+            // Vencimento: 5º dia útil do mês atual se ainda não passou; caso contrário, próximo dia útil a partir de hoje
+            LocalDate quintoDiaAtual = agendamentoService.encontrarQuintoDiaUtilPublic(hoje.withDayOfMonth(1));
+            LocalDate vencimentoAtual = hoje.isAfter(quintoDiaAtual) ? agendamentoService.ajustarParaProximoDiaUtil(hoje) : quintoDiaAtual;
+            mensalidadeAtual.setDataVencimento(vencimentoAtual);
+            mensalidadeAtual.setStatus("PENDENTE");
+            pessoa.getMensalidades().add(mensalidadeAtual);
+        }
+
+        // 3. Gera a cobrança do PRÓXIMO mês (valor cheio) no 5º dia útil
+        LocalDate proximoVencimento = agendamentoService.calcularProximoVencimento();
+        boolean jaTemMensalidadeProximoMes = pessoa.getMensalidades().stream()
+                .anyMatch(m -> "PENDENTE".equals(m.getStatus())
+                        && m.getDataVencimento() != null
+                        && m.getDataVencimento().getYear() == proximoVencimento.getYear()
+                        && m.getDataVencimento().getMonthValue() == proximoVencimento.getMonthValue());
+
+        Mensalidade mensalidadeProximoMes = null;
+        if (!jaTemMensalidadeProximoMes) {
+            mensalidadeProximoMes = new Mensalidade();
+            mensalidadeProximoMes.setPessoa(pessoa);
+            mensalidadeProximoMes.setTipoPlano(tipoPlano);
+            mensalidadeProximoMes.setValor(valorMensal);
+            mensalidadeProximoMes.setDataVencimento(proximoVencimento);
+            mensalidadeProximoMes.setStatus("PENDENTE");
+            pessoa.getMensalidades().add(mensalidadeProximoMes);
+        }
+
         pessoaRepository.saveAndFlush(pessoa);
-        return novaMensalidade;
+        // Retornamos a mensalidade do mês atual (quando criada); caso contrário, a do próximo mês
+        return mensalidadeAtual != null ? mensalidadeAtual : mensalidadeProximoMes;
     }
 
     @Transactional

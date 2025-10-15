@@ -181,7 +181,7 @@ public class ControleNavegacao {
     @GetMapping("/minhas-mensalidades")
     @Transactional(readOnly = true)
     public String minhasMensalidades(Model model, Authentication authentication,
-                                     @PageableDefault(size = 5, sort = "dataVencimento") Pageable pageable) {
+                                     @PageableDefault(size = 5) Pageable pageable) {
         logger.info("Iniciando carregamento de mensalidades para usuário: {}", authentication != null ? authentication.getName() : "null");
         
         if (authentication == null || !authentication.isAuthenticated()) {
@@ -199,10 +199,19 @@ public class ControleNavegacao {
             logger.debug("Pessoa encontrada: ID={}, Nome={}", pessoa.getId(), pessoa.getNome());
             
             model.addAttribute("pessoa", pessoa);
-            model.addAttribute("planoAtivo", pessoa.getPlanoAtivo());
+            
+            TipoPlano planoAtivo = pessoa.getPlanoAtivo();
+            if (planoAtivo != null && planoAtivo.getDescricao() != null) {
+                List<String> beneficios = Arrays.stream(planoAtivo.getDescricao().split("(?=[A-Z])|;"))
+                                                .map(String::trim)
+                                                .filter(s -> !s.isEmpty())
+                                                .collect(Collectors.toList());
+                planoAtivo.setBeneficios(beneficios);
+            }
+            model.addAttribute("planoAtivo", planoAtivo);
             
             // Etapa 1: Busca paginada apenas das entidades principais
-            Page<Mensalidade> mensalidadesPage = mensalidadeRepository.findByPessoaIdOrderByDataVencimentoDesc(pessoa.getId(), pageable);
+            Page<Mensalidade> mensalidadesPage = mensalidadeRepository.findVisiveisByPessoaIdWithCustomSort(pessoa.getId(), pageable);
             
             // Etapa 2: Busca dos detalhes para as entidades da página atual
             List<Long> ids = mensalidadesPage.getContent().stream().map(Mensalidade::getId).collect(Collectors.toList());
@@ -234,7 +243,7 @@ public class ControleNavegacao {
             Pessoa principal = (Pessoa) authentication.getPrincipal();
             
             // Recarrega a pessoa do banco de dados com a cidade e o estado
-            pessoaRepository.findByIdWithCidadeAndEstado(principal.getId())
+            pessoaRepository.findByIdWithDetails(principal.getId())
                 .ifPresent(pessoaCompleta -> model.addAttribute("pessoa", pessoaCompleta));
         }
         model.addAttribute("estados", estadoRepository.findAllByOrderByNome());

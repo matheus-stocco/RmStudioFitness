@@ -14,12 +14,18 @@ import java.util.Optional;
 @Repository
 public interface MensalidadeRepository extends JpaRepository<Mensalidade, Long> {
 
-    Page<Mensalidade> findByPessoaIdOrderByDataVencimentoDesc(Long pessoaId, Pageable pageable);
+    @Query(value = "SELECT m FROM Mensalidade m WHERE m.pessoa.id = :pessoaId AND FUNCTION('DATE_TRUNC', 'MONTH', m.dataVencimento) <= FUNCTION('DATE_TRUNC', 'MONTH', CURRENT_DATE) " +
+                   "ORDER BY CASE WHEN m.status = 'PENDENTE' THEN 1 ELSE 2 END, m.dataVencimento DESC, m.id DESC",
+           countQuery = "SELECT COUNT(m) FROM Mensalidade m WHERE m.pessoa.id = :pessoaId AND FUNCTION('DATE_TRUNC', 'MONTH', m.dataVencimento) <= FUNCTION('DATE_TRUNC', 'MONTH', CURRENT_DATE)")
+    Page<Mensalidade> findVisiveisByPessoaIdWithCustomSort(
+        @Param("pessoaId") Long pessoaId,
+        Pageable pageable
+    );
 
     @Query("SELECT m FROM Mensalidade m " +
            "LEFT JOIN FETCH m.pessoa p " +
            "LEFT JOIN FETCH m.tipoPlano tp " +
-           "WHERE m.id IN :ids ORDER BY m.dataVencimento DESC")
+           "WHERE m.id IN :ids ORDER BY m.dataVencimento DESC, m.id DESC")
     List<Mensalidade> findAllWithDetailsByIds(@Param("ids") List<Long> ids);
 
     /**

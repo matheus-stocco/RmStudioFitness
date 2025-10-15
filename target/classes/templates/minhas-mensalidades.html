@@ -88,8 +88,18 @@
             <div class="card" th:if="${planoAtivo}">
                 <h3 class="card-title">Meu Plano Ativo</h3>
                 <p style="color: var(--color-primary); font-weight: bold; font-size: 1.2rem;" th:text="${planoAtivo.nome}"></p>
-                <p style="color: var(--color-text-muted);" th:text="${planoAtivo.descricao}"></p>
-                <p><strong>VALOR MENSAL:</strong> <span th:text="|R$ ${#numbers.formatDecimal(planoAtivo.valor, 1, 'POINT', 2, 'COMMA')}|"></span></p>
+                
+                <!-- Lista de Benefícios -->
+                <ul th:if="${planoAtivo.beneficios != null and not #lists.isEmpty(planoAtivo.beneficios)}" style="list-style-type: none; padding-left: 0; color: var(--color-text-muted);">
+                    <li th:each="beneficio : ${planoAtivo.beneficios}" style="margin-bottom: 8px;">
+                        <i class="fas fa-check-circle" style="color: var(--color-primary); margin-right: 8px;"></i>
+                        <span th:text="${beneficio}"></span>
+                    </li>
+                </ul>
+                <!-- Fallback para descrição simples se não houver benefícios -->
+                <p th:if="${planoAtivo.beneficios == null or #lists.isEmpty(planoAtivo.beneficios)}" style="color: var(--color-text-muted);" th:text="${planoAtivo.descricao}"></p>
+                
+                <p style="margin-top: 16px;"><strong>VALOR MENSAL:</strong> <span th:text="|R$ ${#numbers.formatDecimal(planoAtivo.valor, 1, 'POINT', 2, 'COMMA')}|"></span></p>
 
                 <div class="form-actions" style="margin-top: 24px;">
                     <a th:href="@{/planos}" class="btn btn-secondary"><i class="fas fa-exchange-alt"></i> Trocar de Plano</a>
