@@ -73,9 +73,9 @@ h1, h2, h3, h4, h5, h6 {
   margin-bottom: calc(var(--spacing-unit) * 2);
 }
 
-h1 { font-size: 3rem; /* 48px */ }
-h2 { font-size: 2.25rem; /* 36px */ }
-h3 { font-size: 1.5rem; /* 24px */ }
+h1 { font-size: 1.75rem; /* 28px - reduzido */ }
+h2 { font-size: 1.5rem; /* 24px - reduzido */ }
+h3 { font-size: 1.25rem; /* 20px - reduzido */ }
 p { margin-bottom: calc(var(--spacing-unit) * 2); }
 
 /* --- LAYOUT E ESTRUTURA --- */
@@ -99,7 +99,7 @@ p { margin-bottom: calc(var(--spacing-unit) * 2); }
 .section-title {
   text-align: center;
   margin-bottom: calc(var(--spacing-unit) * 4);
-  font-size: 2.5rem;
+  font-size: 1.5rem; /* Reduzido de 2.5rem */
   color: var(--color-primary);
 }
 
@@ -117,36 +117,46 @@ p { margin-bottom: calc(var(--spacing-unit) * 2); }
   display: flex;
   align-items: center;
   transition: background-color 0.3s ease;
+  overflow: visible; /* Permite que dropdowns sejam visíveis */
 }
 
 .navbar {
   display: flex;
-  justify-content: space-between;
+  justify-content: space-between; /* Alinha itens nas pontas */
   align-items: center;
   width: 100%;
-  gap: calc(var(--spacing-unit) * 4);
+  padding: 0 5rem; /* Adicionado para centralizar mais o conteúdo */
+  gap: calc(var(--spacing-unit) * 2); /* Espaço entre os grupos */
+  flex-wrap: nowrap;
+  overflow: visible;
 }
 
 .navbar-right {
-  flex-shrink: 0; /* Impede que o elemento encolha */
+  flex-shrink: 0;
   display: flex;
   align-items: center;
-  margin-left: auto; /* Empurra o elemento para a direita */
+  /* margin-left: auto; não é mais necessário com space-between */
 }
 
 .navbar-right .btn {
-  padding: calc(var(--spacing-unit) * 1) calc(var(--spacing-unit) * 2.5);
-  font-size: 0.9rem;
+  padding: calc(var(--spacing-unit) * 0.8) calc(var(--spacing-unit) * 1.5);
+  font-size: 0.75rem;
+  white-space: nowrap;
 }
 
 .user-menu {
   display: flex;
   align-items: center;
-  gap: var(--spacing-unit);
+  gap: calc(var(--spacing-unit) * 0.5);
 }
 
 .user-info {
   font-weight: 500;
+  font-size: 0.85rem;
+  white-space: nowrap;
+  max-width: 120px; /* Limita largura do nome */
+  overflow: hidden;
+  text-overflow: ellipsis; /* Adiciona ... se muito longo */
 }
 
 .btn-logout {
@@ -154,9 +164,9 @@ p { margin-bottom: calc(var(--spacing-unit) * 2); }
   border: none;
   color: var(--color-text);
   cursor: pointer;
-  padding: var(--spacing-unit);
+  padding: calc(var(--spacing-unit) * 0.5);
   transition: color 0.3s ease;
-  font-size: 1.2rem; /* Tamanho do ícone */
+  font-size: 1.1rem; /* Ícone menor */
 }
 
 .btn-logout:hover {
@@ -289,34 +299,44 @@ p { margin-bottom: calc(var(--spacing-unit) * 2); }
 
 
 .brand {
-  font-size: 1.5rem;
+  font-size: 1.1rem;
   font-weight: 900;
   text-transform: uppercase;
   color: var(--color-text);
   display: flex;
   align-items: center;
-  gap: calc(var(--spacing-unit) * 0.5);
+  gap: calc(var(--spacing-unit) * 0.3);
+  flex-shrink: 0;
 }
 
 .brand span {
   color: var(--color-primary);
 }
 
+.brand i {
+  font-size: 1rem;
+}
+
 .nav-links {
-  display: flex; /* Garante que os links fiquem na mesma linha */
+  display: flex;
   align-items: center;
-  gap: calc(var(--spacing-unit) * 2.5); /* Espaçamento entre os links */
+  gap: calc(var(--spacing-unit) * 1.5);
+  flex-wrap: nowrap;
+  overflow: visible;
+  flex-shrink: 1; /* Permite encolher se necessário */
+  justify-content: center;
 }
 
 .nav-links a {
   color: var(--color-text);
-  padding: calc(var(--spacing-unit)) 0;
+  padding: calc(var(--spacing-unit) * 0.8) calc(var(--spacing-unit) * 0.5);
   text-transform: uppercase;
-  font-weight: 700;
-  font-size: 0.9rem;
+  font-weight: 600;
+  font-size: 0.8rem; /* Fonte um pouco maior para melhor legibilidade */
   position: relative;
-  letter-spacing: 0.05em;
-  white-space: nowrap; /* Impede que o texto quebre em várias linhas */
+  letter-spacing: 0.03em;
+  white-space: nowrap;
+  flex-shrink: 0;
 }
 
 .nav-links a::after {
@@ -364,7 +384,7 @@ p { margin-bottom: calc(var(--spacing-unit) * 2); }
 }
 
 .hero-title {
-  font-size: 4rem;
+  font-size: 2.5rem; /* Reduzido de 4rem */
   font-weight: 900;
   margin-bottom: var(--spacing-unit);
   line-height: 1.1;
@@ -376,21 +396,21 @@ p { margin-bottom: calc(var(--spacing-unit) * 2); }
 }
 
 .hero-subtitle {
-  font-size: 1.25rem;
+  font-size: 1rem; /* Reduzido de 1.25rem */
   color: var(--color-text-muted);
   max-width: 600px;
   margin: 0 auto calc(var(--spacing-unit) * 4) auto;
 }
 
 .btn-lg {
-  padding: calc(var(--spacing-unit) * 2) calc(var(--spacing-unit) * 5);
-  font-size: 1.1rem;
+  padding: calc(var(--spacing-unit) * 1.5) calc(var(--spacing-unit) * 3);
+  font-size: 0.95rem; /* Reduzido */
 }
 
 /* --- BOTÕES --- */
 .btn {
   display: inline-block;
-  padding: calc(var(--spacing-unit) * 1.5) calc(var(--spacing-unit) * 4);
+  padding: calc(var(--spacing-unit) * 1.25) calc(var(--spacing-unit) * 2.5);
   border-radius: var(--border-radius);
   font-weight: 700;
   text-transform: uppercase;
@@ -398,7 +418,7 @@ p { margin-bottom: calc(var(--spacing-unit) * 2); }
   border: 2px solid transparent;
   cursor: pointer;
   transition: all 0.3s ease;
-  font-size: 1rem;
+  font-size: 0.875rem; /* Reduzido */
 }
 
 .btn-primary {
@@ -450,13 +470,13 @@ p { margin-bottom: calc(var(--spacing-unit) * 2); }
 }
 
 .card-icon {
-  font-size: 2.5rem;
+  font-size: 1.75rem; /* Reduzido de 2.5rem */
   color: var(--color-primary);
   margin-bottom: calc(var(--spacing-unit) * 2);
 }
 
 .card-title {
-  font-size: 1.25rem;
+  font-size: 1.1rem; /* Reduzido de 1.25rem */
   margin-bottom: var(--spacing-unit);
 }
 
@@ -708,10 +728,73 @@ p { margin-bottom: calc(var(--spacing-unit) * 2); }
 
 /* Telas grandes (desktops) - acima de 1200px (já é o padrão, sem necessidade de media query) */
 
+/* Telas médias grandes - até 1600px */
+@media (max-width: 1600px) {
+  .nav-links {
+    gap: calc(var(--spacing-unit) * 1);
+  }
+  
+  .nav-links a,
+  .nav-dropdown-toggle {
+    font-size: 0.7rem;
+    padding: calc(var(--spacing-unit) * 0.7) calc(var(--spacing-unit) * 0.25);
+  }
+  
+  .brand {
+    font-size: 1rem;
+  }
+  
+  .user-info {
+    font-size: 0.8rem;
+    max-width: 100px;
+  }
+}
+
+/* Telas médias - até 1366px */
+@media (max-width: 1366px) {
+  .nav-links {
+    gap: calc(var(--spacing-unit) * 0.8);
+  }
+  
+  .nav-links a,
+  .nav-dropdown-toggle {
+    font-size: 0.65rem;
+    padding: calc(var(--spacing-unit) * 0.6) calc(var(--spacing-unit) * 0.2);
+    letter-spacing: 0.02em;
+  }
+  
+  .brand {
+    font-size: 0.95rem;
+  }
+  
+  .user-info {
+    font-size: 0.75rem;
+    max-width: 90px;
+  }
+  
+  .btn-logout {
+    font-size: 1rem;
+  }
+}
+
 /* Telas médias (laptops e tablets em paisagem) - até 1200px */
 @media (max-width: 1200px) {
   .container {
     max-width: 960px;
+  }
+  
+  .nav-links {
+    gap: calc(var(--spacing-unit) * 0.6);
+  }
+  
+  .nav-links a,
+  .nav-dropdown-toggle {
+    font-size: 0.6rem;
+    padding: calc(var(--spacing-unit) * 0.5) calc(var(--spacing-unit) * 0.15);
+  }
+  
+  .brand {
+    font-size: 0.9rem;
   }
 }
 
@@ -928,8 +1011,9 @@ p { margin-bottom: calc(var(--spacing-unit) * 2); }
 }
 
 .page-title {
-    margin-bottom: calc(var(--spacing-unit) * 3);
-    text-align: center;
+  margin-bottom: calc(var(--spacing-unit) * 3);
+  text-align: center;
+  font-size: 1.5rem; /* Adiciona tamanho reduzido */
 }
 
 .page-title i {
@@ -1188,24 +1272,24 @@ p { margin-bottom: calc(var(--spacing-unit) * 2); }
 }
 
 .plan-price {
-  font-size: 3rem;
+  font-size: 2rem; /* Reduzido de 3rem */
   font-weight: 900;
   color: var(--color-primary);
   margin-bottom: calc(var(--spacing-unit) * 3);
 }
 
 .plan-price span {
-  font-size: 1.5rem;
+  font-size: 1rem; /* Reduzido de 1.5rem */
   font-weight: 700;
   vertical-align: super;
 }
 
 .plan-price .price-cents {
-  font-size: 1.5rem;
+  font-size: 1rem; /* Reduzido */
 }
 
 .plan-price .price-period {
-  font-size: 1rem;
+  font-size: 0.875rem; /* Reduzido */
   color: var(--color-text-muted);
   font-weight: 400;
 }
@@ -1235,27 +1319,70 @@ p { margin-bottom: calc(var(--spacing-unit) * 2); }
 .nav-dropdown {
   position: relative;
   display: inline-block;
+  z-index: 150;
 }
 
 .nav-dropdown-toggle {
   cursor: pointer;
   display: flex;
   align-items: center;
-  gap: calc(var(--spacing-unit) * 0.5);
+  gap: calc(var(--spacing-unit) * 0.3);
+  color: var(--color-text);
+  padding: calc(var(--spacing-unit) * 0.8) calc(var(--spacing-unit) * 0.5);
+  text-transform: uppercase;
+  font-weight: 600;
+  font-size: 0.8rem;
+  letter-spacing: 0.03em;
+  white-space: nowrap;
+  position: relative;
+}
+
+.nav-dropdown-toggle i {
+  font-size: 0.7rem;
+}
+
+.nav-dropdown-toggle::after {
+  content: '';
+  position: absolute;
+  bottom: 0;
+  left: 0;
+  width: 100%;
+  height: 2px;
+  background-color: var(--color-primary);
+  transform: scaleX(0);
+  transform-origin: right;
+  transition: transform 0.3s ease-in-out;
+}
+
+.nav-dropdown-toggle:hover::after {
+  transform: scaleX(1);
+  transform-origin: left;
+}
+
+/* Cria uma ponte invisível entre o toggle e o menu */
+.nav-dropdown::before {
+  content: '';
+  position: absolute;
+  top: 100%;
+  left: 0;
+  right: 0;
+  height: 10px; /* Área invisível para manter o hover */
+  background: transparent;
+  z-index: 199;
 }
 
 .nav-dropdown-menu {
   display: none;
   position: absolute;
-  top: 100%;
+  top: calc(100% + 5px);
   left: 0;
   background-color: var(--color-secondary);
   border: 1px solid var(--color-border);
   border-radius: var(--border-radius);
-  padding: var(--spacing-unit);
+  padding: calc(var(--spacing-unit) * 0.75);
   min-width: 200px;
-  z-index: 100;
-  box-shadow: 0 8px 16px rgba(0,0,0,0.3);
+  z-index: 200;
+  box-shadow: 0 8px 16px rgba(0,0,0,0.5);
 }
 
 .nav-dropdown:hover .nav-dropdown-menu {
@@ -1264,11 +1391,15 @@ p { margin-bottom: calc(var(--spacing-unit) * 2); }
 
 .nav-dropdown-menu a {
   display: block;
-  padding: calc(var(--spacing-unit) * 1) calc(var(--spacing-unit) * 1.5);
+  padding: calc(var(--spacing-unit) * 1) calc(var(--spacing-unit) * 1.25);
   color: var(--color-text-muted);
   border-radius: var(--border-radius);
   transition: background-color 0.2s ease, color 0.2s ease;
-  white-space: nowrap; /* Impede que o texto quebre em duas linhas */
+  white-space: nowrap;
+  font-size: 0.85rem;
+  font-weight: 500;
+  text-transform: none;
+  letter-spacing: normal;
 }
 
 .nav-dropdown-menu a:hover {
@@ -1312,14 +1443,14 @@ p { margin-bottom: calc(var(--spacing-unit) * 2); }
 }
 
 .plan-title {
-    text-align: center;
-    font-size: 2.5rem;
-    font-weight: 900;
-    margin-bottom: calc(var(--spacing-unit) * 5);
-    color: var(--color-text);
-    text-transform: uppercase;
-    letter-spacing: 0.15em; /* Aumenta o espaçamento entre as letras */
-    text-shadow: 0 3px 10px rgba(0,0,0,0.5); /* Adiciona uma sombra sutil */
+  text-align: center;
+  font-size: 1.75rem; /* Reduzido de 2.5rem */
+  font-weight: 900;
+  margin-bottom: calc(var(--spacing-unit) * 4);
+  color: var(--color-text);
+  text-transform: uppercase;
+  letter-spacing: 0.1em;
+  text-shadow: 0 3px 10px rgba(0,0,0,0.5);
 }
 
 /* Grid dos Planos */
@@ -1401,31 +1532,31 @@ p { margin-bottom: calc(var(--spacing-unit) * 2); }
 }
 
 .price-currency {
-    font-size: 1.5rem;
-    font-weight: 700;
-    margin-right: calc(var(--spacing-unit) * 0.5);
-    color: var(--color-primary);
+  font-size: 1rem; /* Reduzido de 1.5rem */
+  font-weight: 700;
+  margin-right: calc(var(--spacing-unit) * 0.5);
+  color: var(--color-primary);
 }
 
 .price-value {
-    font-size: 3rem;
-    font-weight: 900;
-    color: var(--color-primary);
-    line-height: 1;
+  font-size: 2rem; /* Reduzido de 3rem */
+  font-weight: 900;
+  color: var(--color-primary);
+  line-height: 1;
 }
 
 .price-cents {
-    font-size: 1.5rem;
-    font-weight: 700;
-    color: var(--color-primary);
+  font-size: 1rem; /* Reduzido de 1.5rem */
+  font-weight: 700;
+  color: var(--color-primary);
 }
 
 .price-period {
-    font-size: 1.5rem;
-    font-weight: 700;
-    color: var(--color-text-muted);
-    align-self: baseline;
-    padding-left: 5px;
+  font-size: 1rem; /* Reduzido de 1.5rem */
+  font-weight: 700;
+  color: var(--color-text-muted);
+  align-self: baseline;
+  padding-left: 5px;
 }
 
 .plan-benefits {
