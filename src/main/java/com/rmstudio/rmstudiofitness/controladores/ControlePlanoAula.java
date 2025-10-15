@@ -194,35 +194,36 @@ public class ControlePlanoAula {
     }
 
     /** Body para criação/atualização de item. */
-    public record ItemPayload(Long exercicioId, DiaSemana dia, Integer series, Integer repeticoes) {}
+    public record ItemPayload(Long exercicioId, DiaSemana dia, Integer series, String repeticoes, String observacoes) {}
 
     /** Adiciona item ao plano. */
     @PostMapping("/{id}/itens")
     @Transactional
-    public ResponseEntity<?> adicionarItem(@PathVariable Long id, @RequestBody ItemPayload body) {
+    public ResponseEntity<?> adicionarItem(@PathVariable Long id,
+                                           @RequestParam("exercicioId") Long exercicioId,
+                                           @RequestParam("dia") DiaSemana dia,
+                                           @RequestParam("series") Integer series,
+                                           @RequestParam("repeticoes") String repeticoes,
+                                           @RequestParam(name = "observacoes", required = false) String observacoes) {
         PlanoAula plano = em.find(PlanoAula.class, id);
         if (plano == null) return ResponseEntity.notFound().build();
 
-        String msg = validarItem(body);
-        if (msg != null) return badRequest(msg);
-
-        Exercicio ex = em.find(Exercicio.class, body.exercicioId());
+        Exercicio ex = em.find(Exercicio.class, exercicioId);
         if (ex == null) return badRequest("Exercício não encontrado.");
 
         ItemPlanoAula item = new ItemPlanoAula();
         item.setPlanoAula(plano);
-        item.setDia(body.dia());
+        item.setDia(dia);
         item.setExercicio(ex);
-        item.setSeries(body.series());
-        item.setRepeticoes(body.repeticoes());
+        item.setSeries(series);
+        item.setRepeticoes(repeticoes); // O tipo já é String
+        item.setObservacoes(observacoes);
 
-        // Se o mapeamento da entidade PlanoAula tiver método utilitário, use-o:
-        // plano.addItem(item);
         em.persist(item);
         em.flush();
 
-        return ResponseEntity.created(URI.create("/api/planos-aula/" + id + "/itens/" + item.getId()))
-                             .body(item);
+        // Redireciona para a página de edição de itens do plano
+        return ResponseEntity.status(HttpStatus.FOUND).location(URI.create("/itens-plano?planoId=" + id)).build();
     }
 
     /** Atualiza um item existente. */
@@ -284,7 +285,7 @@ public class ControlePlanoAula {
         if (p.exercicioId() == null) return "Informe o exercicioId.";
         if (p.dia() == null) return "Informe o dia.";
         if (p.series() == null || p.series() <= 0) return "Séries deve ser > 0.";
-        if (p.repeticoes() == null || p.repeticoes() <= 0) return "Repetições deve ser > 0.";
+        if (p.repeticoes() == null || p.repeticoes().trim().isEmpty()) return "Repetições deve ser informado.";
         return null;
     }
 

@@ -34,8 +34,8 @@ public class ItemPlanoAula implements Serializable {
     @Column(nullable = false)
     private Integer series;
 
-    @Column(nullable = false)
-    private Integer repeticoes;
+    @Column(nullable = false, length = 50)
+    private String repeticoes;
 
     @Column(name = "carga_kg")
     private Double cargaKg;
@@ -57,7 +57,7 @@ public class ItemPlanoAula implements Serializable {
         this.dia = dia;
         this.exercicio = exercicio;
         this.series = series;
-        this.repeticoes = repeticoes;
+        this.repeticoes = String.valueOf(repeticoes);
     }
 
     public ItemPlanoAula(PlanoAula planoAula, DiaSemana dia, Exercicio exercicio, int series, int repeticoes) {
@@ -65,14 +65,14 @@ public class ItemPlanoAula implements Serializable {
         this.dia = dia;
         this.exercicio = exercicio;
         this.series = series;
-        this.repeticoes = repeticoes;
+        this.repeticoes = String.valueOf(repeticoes);
     }
 
     public ItemPlanoAula(DiaSemana dia, Exercicio exercicio, int series, int repeticoes, Double cargaKg) {
         this.dia = dia;
         this.exercicio = exercicio;
         this.series = series;
-        this.repeticoes = repeticoes;
+        this.repeticoes = String.valueOf(repeticoes);
         this.cargaKg = cargaKg;
     }
 
@@ -93,8 +93,8 @@ public class ItemPlanoAula implements Serializable {
     public Integer getSeries() { return series; }
     public void setSeries(Integer series) { this.series = series; }
 
-    public Integer getRepeticoes() { return repeticoes; }
-    public void setRepeticoes(Integer repeticoes) { this.repeticoes = repeticoes; }
+    public String getRepeticoes() { return repeticoes; }
+    public void setRepeticoes(String repeticoes) { this.repeticoes = repeticoes; }
 
     public Double getCargaKg() { return cargaKg; }
     public void setCargaKg(Double cargaKg) { this.cargaKg = cargaKg; }
@@ -130,22 +130,18 @@ public class ItemPlanoAula implements Serializable {
         return dia != null
             && exercicio != null
             && series != null && series > 0
-            && repeticoes != null && repeticoes > 0;
+            && repeticoes != null && !repeticoes.trim().isEmpty();
     }
 
     @Transient
     public Integer getVolumeTotal() {
-        if (series != null && repeticoes != null) {
-            return series * repeticoes;
-        }
+        // Não é mais possível calcular o volume se repetições for texto
         return 0;
     }
 
     @Transient
     public Double getVolumeComCarga() {
-        if (series != null && repeticoes != null && cargaKg != null) {
-            return series * repeticoes * cargaKg;
-        }
+        // Não é mais possível calcular o volume se repetições for texto
         return 0.0;
     }
 
@@ -176,7 +172,7 @@ public class ItemPlanoAula implements Serializable {
     @Transient
     public boolean isAltaIntensidade() {
         return (series != null && series >= 4)
-            || (repeticoes != null && repeticoes >= 15)
+            // Não é mais possível calcular intensidade por repetições
             || (cargaKg != null && cargaKg >= 50.0);
     }
 
@@ -196,11 +192,11 @@ public class ItemPlanoAula implements Serializable {
 
     @Override
     public String toString() {
-        return String.format("%s: %s %dx%d%s",
+        return String.format("%s: %s %dx%s%s",
             getDiaLabel(),
             getExercicioNome(),
             series != null ? series : 0,
-            repeticoes != null ? repeticoes : 0,
+            repeticoes != null ? repeticoes : "0",
             (cargaKg != null && cargaKg > 0) ? " (" + cargaKg + "kg)" : ""
         );
     }

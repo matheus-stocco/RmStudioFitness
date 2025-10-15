@@ -41,7 +41,7 @@
           <a th:href="@{/quem-somos}">Quem Somos</a>
           <!-- Link visível apenas para usuários autenticados (logados) -->
           <a sec:authorize="isAuthenticated()" th:href="@{/minhas-avaliacoes}">Minhas Avaliações</a>
-          <a sec:authorize="isAuthenticated()" th:href="@{/meus-planos-aula}">Meus Planos</a>
+          <a sec:authorize="isAuthenticated()" th:href="@{/meus-planos-aula}">Meus Planos de Aula</a>
           <a sec:authorize="isAuthenticated()" th:href="@{/minhas-mensalidades}">Minhas Mensalidades</a>
           <a sec:authorize="isAuthenticated()" th:href="@{/perfil}">Perfil</a>
           <!-- Dropdown de Gestão para Administradores -->

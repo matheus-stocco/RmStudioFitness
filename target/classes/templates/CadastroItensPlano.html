@@ -53,36 +53,33 @@
         <div class="container">
             <h1 class="page-title">
                 <i class="fas fa-clipboard-list"></i> Gestão de Itens do Plano
-                <span id="plano-descricao" style="color: var(--color-primary); display: block; font-size: 1rem; text-transform: none; letter-spacing: normal; margin-top: 8px;"></span>
+                <span id="plano-descricao" style="color: var(--color-primary); display: block; font-size: 1rem; text-transform: none; letter-spacing: normal; margin-top: 8px;"
+                      th:text="|Plano: ${planoAula.nome} - Aluno: ${planoAula.aluno.nome}|"></span>
             </h1>
-             <a href="/CadastroPlanoAula.html" class="btn btn-secondary" style="margin-bottom: 16px;"><i class="fas fa-arrow-left"></i> Voltar para Planos</a>
+             <a th:href="@{/planos-aula}" class="btn btn-secondary" style="margin-bottom: 16px;"><i class="fas fa-arrow-left"></i> Voltar para Planos</a>
 
             <div class="card form-card">
                 <h3 class="card-title">Adicionar Exercício ao Plano</h3>
-                <form id="form-item-plano">
+                <form id="form-item-plano" th:action="@{/api/planos-aula/{planoId}/itens(planoId=${planoAula.id})}" method="post">
                     <input type="hidden" id="itemId" name="itemId">
                     <div class="form-group">
                         <label for="diaSemana" class="form-label">Dia da Semana</label>
-                        <select id="diaSemana" name="diaSemana" class="form-control" required>
-                            <option value="SEGUNDA">Segunda-feira</option>
-                            <option value="TERCA">Terça-feira</option>
-                            <option value="QUARTA">Quarta-feira</option>
-                            <option value="QUINTA">Quinta-feira</option>
-                            <option value="SEXTA">Sexta-feira</option>
-                            <option value="SABADO">Sábado</option>
-                            <option value="DOMINGO">Domingo</option>
+                        <select id="diaSemana" name="dia" class="form-control" required>
+                            <option th:each="dia : ${diasDaSemana}" th:value="${dia}" th:text="${dia.label}"></option>
                         </select>
                     </div>
                     <div class="form-group">
                         <label for="grupoMuscular" class="form-label">Grupo Muscular</label>
                         <select id="grupoMuscular" name="grupoMuscular" class="form-control">
                             <option value="">Todos</option>
+                            <option th:each="grupo : ${gruposMusculares}" th:value="${grupo}" th:text="${grupo}"></option>
                         </select>
                     </div>
                     <div class="form-group">
                         <label for="exercicioId" class="form-label">Exercício</label>
                         <select id="exercicioId" name="exercicioId" class="form-control" required>
-                            <option value="">Carregando...</option>
+                            <option value="">Selecione um exercício</option>
+                            <option th:each="ex : ${exercicios}" th:value="${ex.id}" th:text="${ex.nome}" th:attr="data-grupo=${ex.grupoMuscular}"></option>
                         </select>
                     </div>
                     <div class="form-group">
@@ -101,7 +98,21 @@
             </div>
 
             <div class="week-planner" id="week-planner-container">
-                <!-- Cards dos dias da semana serão inseridos aqui pelo JS -->
+                <div th:each="dia : ${diasDaSemana}" class="day-card">
+                    <h3 class="day-title" th:text="${dia.label}"></h3>
+                    <ul class="exercise-list" th:id="|list-${dia.name()}|">
+                         <li th:each="item : ${planoAula.getItensPorDia(dia)}" th:id="|item-${item.id}|">
+                            <span>
+                                <strong th:text="${item.exercicio.nome}"></strong>
+                                (<span th:text="${item.series}"></span>x<span th:text="${item.repeticoes}"></span>)
+                            </span>
+                            <form th:action="@{/api/planos-aula/{planoId}/itens/{itemId}(planoId=${planoAula.id}, itemId=${item.id})}" method="post" style="display: inline;">
+                                <input type="hidden" name="_method" value="delete"/>
+                                <button type="submit" class="delete-item"><i class="fas fa-trash"></i></button>
+                            </form>
+                        </li>
+                    </ul>
+                </div>
             </div>
         </div>
     </main>
@@ -113,176 +124,39 @@
         </div>
     </footer>
     <script>
-        const API_PLANOS_URL = '/api/planos-aula';
-        const API_EXERCICIOS_URL = '/api/exercicios';
-
-        const form = document.getElementById('form-item-plano');
-        const weekPlannerContainer = document.getElementById('week-planner-container');
-        const grupoMuscularSelect = document.getElementById('grupoMuscular');
-        
-        let planoId = null;
-        const diasDaSemana = {
-            SEGUNDA: "Segunda-feira",
-            TERCA: "Terça-feira",
-            QUARTA: "Quarta-feira",
-            QUINTA: "Quinta-feira",
-            SEXTA: "Sexta-feira",
-            SABADO: "Sábado",
-            DOMINGO: "Domingo"
-        };
-
-        async function fetchGruposMusculares() {
-            try {
-                const response = await fetch(`${API_EXERCICIOS_URL}/grupos-musculares`);
-                if (!response.ok) throw new Error('Erro ao buscar grupos musculares');
-                const grupos = await response.json();
-                grupoMuscularSelect.innerHTML = '<option value="">Todos</option>'; // Limpa e adiciona a opção "Todos"
-                grupos.forEach(grupo => {
-                    grupoMuscularSelect.innerHTML += `<option value="${grupo}">${grupo}</option>`;
-                });
-            } catch (error) {
-                console.error(error);
-            }
-        }
-
-        async function fetchExercicios(grupoMuscular = '') {
+        document.addEventListener('DOMContentLoaded', () => {
+            const grupoMuscularSelect = document.getElementById('grupoMuscular');
             const exercicioSelect = document.getElementById('exercicioId');
-            let url = `${API_EXERCICIOS_URL}?size=100&sort=nome,asc`;
-            if (grupoMuscular) {
-                // Assumindo que a API aceita um parâmetro de query `q`
-                url = `${API_EXERCICIOS_URL}?q=${encodeURIComponent(grupoMuscular)}&size=100&sort=nome,asc`;
-            }
-            try {
-                const response = await fetch(url);
-                if (!response.ok) throw new Error('Erro ao buscar exercícios');
-                const pageData = await response.json();
-                const exercicios = pageData.content || [];
-                exercicioSelect.innerHTML = '<option value="">Selecione um exercício</option>';
-                exercicios.forEach(ex => {
-                    // Filtra no cliente, já que a API de busca 'q' é ampla
-                    if (!grupoMuscular || ex.grupoMuscular.toLowerCase() === grupoMuscular.toLowerCase()) {
-                        exercicioSelect.innerHTML += `<option value="${ex.id}">${ex.nome}</option>`;
+            const exerciciosOptions = Array.from(exercicioSelect.options);
+
+            grupoMuscularSelect.addEventListener('change', () => {
+                const grupoSelecionado = grupoMuscularSelect.value;
+                
+                // Limpa o select de exercícios (mantendo a primeira opção)
+                exercicioSelect.innerHTML = '';
+                exercicioSelect.appendChild(exerciciosOptions[0]);
+
+                // Filtra e adiciona as opções de exercícios
+                exerciciosOptions.slice(1).forEach(option => {
+                    if (!grupoSelecionado || option.getAttribute('data-grupo') === grupoSelecionado) {
+                        exercicioSelect.appendChild(option.cloneNode(true));
                     }
                 });
-            } catch (error) {
-                console.error(error);
-                exercicioSelect.innerHTML = '<option value="">Erro ao carregar</option>';
-            }
-        }
-        
-        function renderizarPlano(plano) {
-            document.getElementById('plano-descricao').textContent = `Plano: ${plano.nome || 'Sem nome'} - Aluno: ${plano.aluno ? plano.aluno.nome : 'N/A'}`;
-            weekPlannerContainer.innerHTML = ''; // Limpa o container
+            });
 
-            // Cria um card para cada dia da semana
-            for (const [key, value] of Object.entries(diasDaSemana)) {
-                const dayCard = document.createElement('div');
-                dayCard.className = 'day-card';
-                dayCard.innerHTML = `<h3 class="day-title">${value}</h3><ul class="exercise-list" id="list-${key}"></ul>`;
-                weekPlannerContainer.appendChild(dayCard);
-            }
-
-            // Distribui os itens do plano nos cards corretos
-            if (plano.itens && Array.isArray(plano.itens)) {
-                plano.itens.forEach(item => {
-                    adicionarItemNaLista(item);
+            // Lógica do menu mobile
+            const navToggle = document.querySelector('.nav-toggle');
+            const navLinks = document.querySelector('.nav-links');
+            if (navToggle) {
+                navToggle.addEventListener('click', () => {
+                    navLinks.classList.toggle('open');
                 });
-            }
-        }
-
-        function adicionarItemNaLista(item) {
-            const diaSemana = item.dia || item.diaSemana;
-            const list = document.getElementById(`list-${diaSemana}`);
-            if (list) {
-                const listItem = document.createElement('li');
-                listItem.id = `item-${item.id}`;
-                const nomeExercicio = item.exercicio ? item.exercicio.nome : (item.exercicioNome || 'Exercício');
-                listItem.innerHTML = `
-                    <span>${nomeExercicio} (${item.series}x${item.repeticoes})</span>
-                    <button class="delete-item" onclick="deleteItem(${item.id})"><i class="fas fa-trash"></i></button>
-                `;
-                list.appendChild(listItem);
-            }
-        }
-
-        async function fetchPlanoDetalhado() {
-            if (!planoId) return;
-            try {
-                const response = await fetch(`${API_PLANOS_URL}/${planoId}`);
-                if (!response.ok) throw new Error('Plano não encontrado');
-                const plano = await response.json();
-                renderizarPlano(plano);
-            } catch (error) {
-                console.error(error);
-                document.getElementById('plano-descricao').textContent = 'Plano não encontrado';
-            }
-        }
-
-        form.addEventListener('submit', async (e) => {
-            e.preventDefault();
-            const formData = new FormData(form);
-            const payload = {
-                exercicioId: parseInt(formData.get('exercicioId'), 10),
-                dia: formData.get('diaSemana'),
-                series: parseInt(formData.get('series'), 10),
-                repeticoes: parseInt(formData.get('repeticoes'), 10)
-            };
-
-            try {
-                const response = await fetch(`${API_PLANOS_URL}/${planoId}/itens`, {
-                    method: 'POST',
-                    headers: { 'Content-Type': 'application/json' },
-                    body: JSON.stringify(payload),
-                });
-                if (!response.ok) throw new Error('Erro ao salvar item');
-                const novoItem = await response.json();
-                adicionarItemNaLista(novoItem);
-                form.reset();
-            } catch (error) {
-                console.error(error);
-                alert('Erro ao salvar o item.');
             }
         });
-        
-        async function deleteItem(itemId) {
-            if (!confirm('Tem certeza que deseja remover este item do plano?')) return;
-            try {
-                const response = await fetch(`${API_PLANOS_URL}/${planoId}/itens/${itemId}`, { method: 'DELETE' });
-                if (!response.ok) throw new Error('Erro ao excluir');
-                document.getElementById(`item-${itemId}`).remove();
-            } catch (error) {
-                console.error('Falha ao excluir:', error);
-                alert('Erro ao excluir o item.');
-            }
-        }
 
         function resetForm() {
-            form.reset();
-        }
-
-        document.addEventListener('DOMContentLoaded', () => {
-            const urlParams = new URLSearchParams(window.location.search);
-            planoId = urlParams.get('planoId');
-            if (planoId) {
-                fetchPlanoDetalhado();
-                fetchGruposMusculares();
-                fetchExercicios(); // Carga inicial de todos os exercícios
-            } else {
-                document.querySelector('.container').innerHTML = '<h1>Plano não especificado.</h1><a href="/CadastroPlanoAula.html">Voltar</a>';
-            }
-        });
-
-        grupoMuscularSelect.addEventListener('change', () => {
-            fetchExercicios(grupoMuscularSelect.value);
-        });
-
-        // Mobile nav toggle
-        const navToggle = document.querySelector('.nav-toggle');
-        const navLinks = document.querySelector('.nav-links');
-        if (navToggle) {
-            navToggle.addEventListener('click', () => {
-                navLinks.classList.toggle('open');
-            });
+            document.getElementById('form-item-plano').reset();
+            document.getElementById('grupoMuscular').dispatchEvent(new Event('change'));
         }
     </script>
 </body>

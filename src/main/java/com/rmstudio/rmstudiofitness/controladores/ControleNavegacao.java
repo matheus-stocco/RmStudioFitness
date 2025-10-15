@@ -1,9 +1,11 @@
 package com.rmstudio.rmstudiofitness.controladores;
 
+import com.rmstudio.rmstudiofitness.entidades.DiaSemana;
 import com.rmstudio.rmstudiofitness.entidades.Pessoa;
 import com.rmstudio.rmstudiofitness.entidades.PlanoAula;
 import com.rmstudio.rmstudiofitness.repositorios.AvaliacaoFisicaRepository;
 import com.rmstudio.rmstudiofitness.repositorios.EstadoRepository;
+import com.rmstudio.rmstudiofitness.repositorios.ExercicioRepository;
 import com.rmstudio.rmstudiofitness.repositorios.MensalidadeRepository;
 import com.rmstudio.rmstudiofitness.repositorios.PessoaRepository;
 import com.rmstudio.rmstudiofitness.repositorios.PlanoAulaRepository;
@@ -28,6 +30,7 @@ import org.springframework.stereotype.Controller;
 import org.springframework.transaction.annotation.Transactional;
 import org.springframework.ui.Model;
 import org.springframework.web.bind.annotation.GetMapping;
+import org.springframework.web.bind.annotation.RequestParam;
 import org.springframework.web.server.ResponseStatusException;
 import org.springframework.http.HttpStatus;
 import org.slf4j.Logger;
@@ -44,6 +47,7 @@ public class ControleNavegacao {
     private final AvaliacaoFisicaRepository avaliacaoFisicaRepository;
     private final MensalidadeRepository mensalidadeRepository;
     private final PlanoAulaRepository planoAulaRepository;
+    private final ExercicioRepository exercicioRepository;
 
     @Autowired
     public ControleNavegacao(PessoaRepository pessoaRepository,
@@ -52,13 +56,15 @@ public class ControleNavegacao {
                              PagamentoService pagamentoService,
                              AvaliacaoFisicaRepository avaliacaoFisicaRepository,
                              MensalidadeRepository mensalidadeRepository,
-                             PlanoAulaRepository planoAulaRepository) {
+                             PlanoAulaRepository planoAulaRepository,
+                             ExercicioRepository exercicioRepository) {
         this.pessoaRepository = pessoaRepository;
         this.estadoRepository = estadoRepository;
         this.tipoPlanoRepository = tipoPlanoRepository;
         this.avaliacaoFisicaRepository = avaliacaoFisicaRepository;
         this.mensalidadeRepository = mensalidadeRepository;
         this.planoAulaRepository = planoAulaRepository;
+        this.exercicioRepository = exercicioRepository;
     }
     
     /**
@@ -146,7 +152,16 @@ public class ControleNavegacao {
     }
 
     @GetMapping({"/itens-plano", "/CadastroItensPlano.html"})
-    public String cadastroItensPlano() {
+    @Transactional(readOnly = true)
+    public String cadastroItensPlano(@RequestParam("planoId") Long planoId, Model model) {
+        PlanoAula planoAula = planoAulaRepository.findByIdWithItens(planoId)
+            .orElseThrow(() -> new ResponseStatusException(HttpStatus.NOT_FOUND, "Plano de Aula não encontrado"));
+
+        model.addAttribute("planoAula", planoAula);
+        model.addAttribute("exercicios", exercicioRepository.findAllByOrderByNome());
+        model.addAttribute("gruposMusculares", exercicioRepository.findDistinctGruposMusculares());
+        model.addAttribute("diasDaSemana", DiaSemana.values());
+
         return "CadastroItensPlano";
     }
 
