@@ -23,6 +23,9 @@ public interface PlanoAulaRepository extends JpaRepository<PlanoAula, Long> {
     /** Busca planos por ID de aluno com paginação */
     Page<PlanoAula> findByAlunoOrderByDataInicioDesc(Pessoa aluno, Pageable pageable);
 
+    @Query("SELECT DISTINCT p FROM PlanoAula p LEFT JOIN FETCH p.itens i LEFT JOIN FETCH i.exercicio WHERE p.id IN :ids ORDER BY p.dataInicio DESC")
+    List<PlanoAula> findAllWithDetailsByIds(@Param("ids") List<Long> ids);
+
     /** Busca todos os planos ordenados por nome com paginação */
     Page<PlanoAula> findAllByOrderByNome(Pageable pageable);
 

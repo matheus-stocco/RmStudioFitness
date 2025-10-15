@@ -19,10 +19,13 @@ import java.util.stream.Collectors;
 
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.data.domain.Page;
+import org.springframework.data.domain.PageImpl;
 import org.springframework.data.domain.Pageable;
+import org.springframework.data.domain.Sort;
 import org.springframework.data.web.PageableDefault;
 import org.springframework.security.core.Authentication;
 import org.springframework.stereotype.Controller;
+import org.springframework.transaction.annotation.Transactional;
 import org.springframework.ui.Model;
 import org.springframework.web.bind.annotation.GetMapping;
 import org.springframework.web.server.ResponseStatusException;
@@ -161,6 +164,7 @@ public class ControleNavegacao {
      * Mapeia a URL /minhas-mensalidades para a página de mensalidades do usuário.
      */
     @GetMapping("/minhas-mensalidades")
+    @Transactional(readOnly = true)
     public String minhasMensalidades(Model model, Authentication authentication,
                                      @PageableDefault(size = 5, sort = "dataVencimento") Pageable pageable) {
         logger.info("Iniciando carregamento de mensalidades para usuário: {}", authentication != null ? authentication.getName() : "null");
@@ -182,21 +186,21 @@ public class ControleNavegacao {
             model.addAttribute("pessoa", pessoa);
             model.addAttribute("planoAtivo", pessoa.getPlanoAtivo());
             
-            // Usar a consulta com JOIN FETCH para evitar problemas de lazy loading
-            try {
-                logger.debug("Tentando buscar mensalidades com paginação para pessoa ID: {}", pessoa.getId());
-                Page<Mensalidade> page = mensalidadeRepository.findByPessoaIdOrderByDataVencimentoDesc(pessoa.getId(), pageable);
-                logger.debug("Mensalidades encontradas: {} total", page.getTotalElements());
-                model.addAttribute("page", page);
-            } catch (Exception e) {
-                logger.warn("Erro na consulta paginada, usando consulta alternativa: {}", e.getMessage());
-                // Se houver erro na consulta paginada, usar a consulta simples
-                List<Mensalidade> mensalidades = mensalidadeRepository.findByPessoaIdWithDetails(pessoa.getId());
-                logger.debug("Mensalidades encontradas na consulta alternativa: {}", mensalidades.size());
-                // Criar uma página manual para manter a compatibilidade com o template
-                Page<Mensalidade> page = new org.springframework.data.domain.PageImpl<>(mensalidades, pageable, mensalidades.size());
-                model.addAttribute("page", page);
+            // Etapa 1: Busca paginada apenas das entidades principais
+            Page<Mensalidade> mensalidadesPage = mensalidadeRepository.findByPessoaIdOrderByDataVencimentoDesc(pessoa.getId(), pageable);
+            
+            // Etapa 2: Busca dos detalhes para as entidades da página atual
+            List<Long> ids = mensalidadesPage.getContent().stream().map(Mensalidade::getId).collect(Collectors.toList());
+            Page<Mensalidade> pageWithDetails;
+
+            if (!ids.isEmpty()) {
+                List<Mensalidade> mensalidadesComDetalhes = mensalidadeRepository.findAllWithDetailsByIds(ids);
+                pageWithDetails = new PageImpl<>(mensalidadesComDetalhes, pageable, mensalidadesPage.getTotalElements());
+            } else {
+                pageWithDetails = Page.empty(pageable);
             }
+            
+            model.addAttribute("page", pageWithDetails);
 
             model.addAttribute("pageTitle", "Minhas Mensalidades");
             logger.info("Carregamento de mensalidades concluído com sucesso");
@@ -209,6 +213,7 @@ public class ControleNavegacao {
     }
 
     @GetMapping("/perfil")
+    @Transactional(readOnly = true)
     public String perfil(Model model, Authentication authentication) {
         if (authentication != null && authentication.isAuthenticated()) {
             Pessoa principal = (Pessoa) authentication.getPrincipal();
@@ -239,15 +244,29 @@ public class ControleNavegacao {
     }
  
     @GetMapping("/meus-planos-aula")
+    @Transactional(readOnly = true)
     public String meusPlanosAula(Model model, Authentication authentication,
-                                 @PageableDefault(size = 5, sort = "dataInicio") Pageable pageable) {
+                                 @PageableDefault(size = 5, sort = "dataInicio", direction = Sort.Direction.DESC) Pageable pageable) {
         if (authentication != null && authentication.isAuthenticated()) {
             String username = authentication.getName();
             Pessoa pessoa = pessoaRepository.findByUsuario(username)
                 .orElseThrow(() -> new ResponseStatusException(HttpStatus.NOT_FOUND, "Usuário não encontrado."));
             
-            Page<PlanoAula> page = planoAulaRepository.findByAlunoOrderByDataInicioDesc(pessoa, pageable);
-            model.addAttribute("page", page);
+            // Etapa 1: Busca paginada apenas dos Planos de Aula
+            Page<PlanoAula> planosPage = planoAulaRepository.findByAlunoOrderByDataInicioDesc(pessoa, pageable);
+
+            // Etapa 2: Busca dos detalhes (itens e exercícios) para os planos da página atual
+            List<Long> ids = planosPage.getContent().stream().map(PlanoAula::getId).collect(Collectors.toList());
+            Page<PlanoAula> pageWithDetails;
+
+            if (!ids.isEmpty()) {
+                List<PlanoAula> planosComDetalhes = planoAulaRepository.findAllWithDetailsByIds(ids);
+                pageWithDetails = new PageImpl<>(planosComDetalhes, pageable, planosPage.getTotalElements());
+            } else {
+                pageWithDetails = Page.empty(pageable);
+            }
+
+            model.addAttribute("page", pageWithDetails);
         }
         return "meus-planos-aula";
     }

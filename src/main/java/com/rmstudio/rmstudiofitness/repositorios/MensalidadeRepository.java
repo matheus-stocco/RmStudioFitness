@@ -16,6 +16,12 @@ public interface MensalidadeRepository extends JpaRepository<Mensalidade, Long> 
 
     Page<Mensalidade> findByPessoaIdOrderByDataVencimentoDesc(Long pessoaId, Pageable pageable);
 
+    @Query("SELECT m FROM Mensalidade m " +
+           "LEFT JOIN FETCH m.pessoa p " +
+           "LEFT JOIN FETCH m.tipoPlano tp " +
+           "WHERE m.id IN :ids ORDER BY m.dataVencimento DESC")
+    List<Mensalidade> findAllWithDetailsByIds(@Param("ids") List<Long> ids);
+
     /**
      * Busca mensalidades de uma pessoa com JOIN FETCH para evitar lazy loading
      */

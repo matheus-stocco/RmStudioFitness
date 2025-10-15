@@ -162,10 +162,11 @@
         if (!response.ok) throw new Error('Erro ao buscar planos.');
         
         // Converte a resposta da API (que está em formato JSON) para um objeto JavaScript
-        const planos = await response.json();
+        const pageData = await response.json();
+        const planos = pageData.content; // Extrai o array do objeto de paginação
         
         // Se não houver planos retornados pela API, exibe uma mensagem
-        if (planos.length === 0) {
+        if (!planos || planos.length === 0) {
           planosGrid.innerHTML = '<p style="text-align: center; color: var(--color-text-muted);">Nenhum plano cadastrado no momento.</p>';
           return;
         }

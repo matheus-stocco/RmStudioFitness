@@ -10,6 +10,7 @@ import java.io.Serializable;
 import java.time.LocalDateTime;
 import java.util.ArrayList;
 import java.util.List;
+import java.util.Map;
 import java.util.Objects;
 import java.util.stream.Collectors;
 
@@ -179,6 +180,13 @@ public class PlanoAula implements Serializable {
     }
     @Transient public boolean isValid() { return nome != null && !nome.trim().isEmpty() && hasItens(); }
     @Transient public boolean isAtivo() { return ativo != null && ativo; }
+
+    @Transient
+    public Map<String, List<ItemPlanoAula>> getItensAgrupadosPorDia() {
+        return getItens().stream()
+                .collect(Collectors.groupingBy(item -> item.getDia().getLabel()));
+    }
+
     @Transient public String getNivelDificuldadeDescricao() {
         if (nivelDificuldade == null) return "Não definido";
         switch (nivelDificuldade.toUpperCase()) {
