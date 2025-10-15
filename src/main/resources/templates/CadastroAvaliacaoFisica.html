@@ -7,23 +7,227 @@
     <link rel="stylesheet" href="/css/style.css">
     <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
     <style>
+        /* Estilos para seções colapsáveis */
+        .form-section {
+            background-color: rgba(255, 255, 255, 0.02);
+            border: 1px solid var(--color-border);
+            border-radius: var(--border-radius);
+            margin-bottom: calc(var(--spacing-unit) * 2);
+            overflow: hidden;
+        }
+
+        .section-header {
+            display: flex;
+            align-items: center;
+            justify-content: space-between;
+            padding: calc(var(--spacing-unit) * 2);
+            cursor: pointer;
+            background-color: rgba(255, 255, 255, 0.03);
+            transition: background-color 0.3s ease;
+            user-select: none;
+        }
+
+        .section-header:hover {
+            background-color: rgba(255, 107, 53, 0.1);
+        }
+
+        .section-header-title {
+            display: flex;
+            align-items: center;
+            gap: var(--spacing-unit);
+            font-weight: 600;
+            font-size: 1rem;
+            text-transform: uppercase;
+            letter-spacing: 0.05em;
+        }
+
+        .section-header-title i {
+            color: var(--color-primary);
+            font-size: 1.2rem;
+        }
+
+        .section-toggle {
+            color: var(--color-text-muted);
+            transition: transform 0.3s ease;
+        }
+
+        .section-content {
+            padding: calc(var(--spacing-unit) * 2);
+            display: none;
+        }
+
+        .section-content.active {
+            display: block;
+        }
+
+        .form-section.collapsed .section-toggle {
+            transform: rotate(-90deg);
+        }
+
+        /* Campo obrigatório */
+        .form-label.required::after {
+            content: " *";
+            color: var(--color-primary);
+        }
+
+        /* Grid responsivo melhorado */
+        .form-grid-responsive {
+            display: grid;
+            grid-template-columns: repeat(auto-fit, minmax(200px, 1fr));
+            gap: calc(var(--spacing-unit) * 2);
+        }
+
+        /* Tabela melhorada */
         .table-responsive {
             width: 100%;
             overflow-x: auto;
             -webkit-overflow-scrolling: touch;
+            border: 1px solid var(--color-border);
+            border-radius: var(--border-radius);
         }
+
         .table th, .table td {
             white-space: nowrap;
-            padding: 12px 15px;
+            padding: 14px 16px;
             text-align: center;
             vertical-align: middle;
         }
+
         .table th:first-child, .table td:first-child {
             text-align: left;
             min-width: 200px;
+            position: sticky;
+            left: 0;
+            background-color: var(--color-secondary);
+            z-index: 10;
         }
+
+        .table thead th:first-child {
+            background-color: var(--color-secondary);
+            z-index: 11;
+        }
+
         .table .cell-actions {
-            min-width: 100px;
+            min-width: 120px;
+            position: sticky;
+            right: 0;
+            background-color: var(--color-secondary);
+            z-index: 10;
+        }
+
+        .table thead .cell-actions {
+            z-index: 11;
+        }
+
+        /* Agrupamento visual das colunas na tabela */
+        .table th.group-basic {
+            background-color: rgba(255, 107, 53, 0.15);
+        }
+
+        .table th.group-composition {
+            background-color: rgba(52, 152, 219, 0.15);
+        }
+
+        .table th.group-health {
+            background-color: rgba(46, 204, 113, 0.15);
+        }
+
+        .table th.group-measures {
+            background-color: rgba(155, 89, 182, 0.15);
+        }
+
+        /* Badge IMC */
+        .imc-badge {
+            display: inline-block;
+            font-size: 0.75rem;
+            padding: 2px 6px;
+            border-radius: 3px;
+            margin-left: 4px;
+            font-weight: 600;
+        }
+
+        .imc-baixo { background-color: rgba(52, 152, 219, 0.3); color: #3498db; }
+        .imc-normal { background-color: rgba(46, 204, 113, 0.3); color: #2ecc71; }
+        .imc-sobrepeso { background-color: rgba(241, 196, 15, 0.3); color: #f1c40f; }
+        .imc-obesidade { background-color: rgba(231, 76, 60, 0.3); color: #e74c3c; }
+
+        /* Tooltip */
+        .tooltip-icon {
+            display: inline-block;
+            width: 16px;
+            height: 16px;
+            line-height: 16px;
+            text-align: center;
+            border-radius: 50%;
+            background-color: rgba(255, 107, 53, 0.2);
+            color: var(--color-primary);
+            font-size: 0.7rem;
+            margin-left: 4px;
+            cursor: help;
+        }
+
+        /* Card de avaliação (alternativa à tabela em telas menores) */
+        @media (max-width: 992px) {
+            .table-view {
+                display: none;
+            }
+            
+            .card-view {
+                display: block;
+            }
+        }
+
+        @media (min-width: 993px) {
+            .card-view {
+                display: none;
+            }
+        }
+
+        .avaliacao-card-item {
+            background-color: rgba(255, 255, 255, 0.02);
+            border: 1px solid var(--color-border);
+            border-radius: var(--border-radius);
+            padding: calc(var(--spacing-unit) * 2);
+            margin-bottom: calc(var(--spacing-unit) * 2);
+        }
+
+        .avaliacao-card-header {
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            margin-bottom: calc(var(--spacing-unit) * 2);
+            padding-bottom: var(--spacing-unit);
+            border-bottom: 1px solid var(--color-border);
+        }
+
+        .avaliacao-card-grid {
+            display: grid;
+            grid-template-columns: repeat(auto-fill, minmax(140px, 1fr));
+            gap: calc(var(--spacing-unit) * 1.5);
+            margin-bottom: calc(var(--spacing-unit) * 2);
+        }
+
+        .avaliacao-card-item-info {
+            font-size: 0.85rem;
+        }
+
+        .avaliacao-card-item-label {
+            color: var(--color-text-muted);
+            font-size: 0.75rem;
+            text-transform: uppercase;
+            display: block;
+            margin-bottom: 2px;
+        }
+
+        .avaliacao-card-item-value {
+            color: var(--color-text);
+            font-weight: 600;
+        }
+
+        .card-actions {
+            display: flex;
+            gap: var(--spacing-unit);
+            justify-content: flex-end;
         }
     </style>
 </head>
@@ -39,92 +243,165 @@
                 <form id="form-avaliacao">
                     <input type="hidden" id="id" name="id">
                     
-                    <!-- Grid principal com 4 colunas -->
-                    <div class="form-grid-quad">
-                        <!-- Coluna 1: Aluno e Medidas Principais -->
-                        <div class="form-group">
-                            <label for="pessoaId" class="form-label">Aluno</label>
-                            <select id="pessoaId" name="pessoaId" class="form-control" required></select>
+                    <!-- Seção: Informações Básicas -->
+                    <div class="form-section" data-section="basicas">
+                        <div class="section-header" onclick="toggleSection(this)">
+                            <div class="section-header-title">
+                                <i class="fas fa-user-check"></i>
+                                <span>Informações Básicas</span>
+                            </div>
+                            <i class="fas fa-chevron-down section-toggle"></i>
                         </div>
-                        <div class="form-group">
-                            <label for="dataAvaliacao" class="form-label">Data da Avaliação</label>
-                            <input type="date" id="dataAvaliacao" name="dataAvaliacao" class="form-control" required>
-                        </div>
-                        <div class="form-group">
-                            <label for="peso" class="form-label">Peso (kg)</label>
-                            <input type="number" id="peso" name="peso" step="0.1" class="form-control" required>
-                        </div>
-                        <div class="form-group">
-                            <label for="altura" class="form-label">Altura (m)</label>
-                            <input type="number" id="altura" name="altura" step="0.01" class="form-control" required>
-                        </div>
-
-                        <!-- Coluna 2: Composição Corporal -->
-                        <div class="form-group">
-                            <label for="gorduraCorporal" class="form-label">Gordura Corp. (%)</label>
-                            <input type="number" id="gorduraCorporal" name="gorduraCorporal" class="form-control" step="0.1">
-                        </div>
-                        <div class="form-group">
-                            <label for="massaMagra" class="form-label">Massa Magra (kg)</label>
-                            <input type="number" id="massaMagra" name="massaMagra" class="form-control" step="0.1">
-                        </div>
-                        <div class="form-group">
-                            <label for="massaMuscular" class="form-label">Massa Muscular (kg)</label>
-                            <input type="number" id="massaMuscular" name="massaMuscular" class="form-control" step="0.1">
-                        </div>
-                         <div class="form-group">
-                            <label for="hidratacao" class="form-label">Hidratação (%)</label>
-                            <input type="number" id="hidratacao" name="hidratacao" class="form-control" step="0.1">
-                        </div>
-
-                        <!-- Coluna 3: Métricas de Saúde -->
-                        <div class="form-group">
-                            <label for="taxaMetabolismoBasal" class="form-label">Metab. Basal (kcal)</label>
-                            <input type="number" id="taxaMetabolismoBasal" name="taxaMetabolismoBasal" class="form-control" step="1">
-                        </div>
-                        <div class="form-group">
-                            <label for="densidadeOssea" class="form-label">Dens. Óssea (%)</label>
-                            <input type="number" id="densidadeOssea" name="densidadeOssea" class="form-control" step="0.1">
-                        </div>
-                        <div class="form-group">
-                            <label for="gorduraVisceral" class="form-label">Gord. Visceral (%)</label>
-                            <input type="number" id="gorduraVisceral" name="gorduraVisceral" class="form-control" step="0.1">
-                        </div>
-                         <div class="form-group">
-                            <label for="medidaPescoco" class="form-label">Pescoço (cm)</label>
-                            <input type="number" id="medidaPescoco" name="medidaPescoco" class="form-control" step="0.1">
-                        </div>
-                        
-                        <!-- Coluna 4: Medidas Corporais -->
-                        <div class="form-group">
-                            <label for="medidaCintura" class="form-label">Cintura (cm)</label>
-                            <input type="number" id="medidaCintura" name="medidaCintura" class="form-control" step="0.1">
-                        </div>
-                        <div class="form-group">
-                            <label for="medidaQuadril" class="form-label">Quadril (cm)</label>
-                            <input type="number" id="medidaQuadril" name="medidaQuadril" class="form-control" step="0.1">
-                        </div>
-                        <div class="form-group">
-                            <label for="medidaBracoDireito" class="form-label">Braço D. (cm)</label>
-                            <input type="number" id="medidaBracoDireito" name="medidaBracoDireito" class="form-control" step="0.1">
-                        </div>
-                        <div class="form-group">
-                            <label for="medidaBracoEsquerdo" class="form-label">Braço E. (cm)</label>
-                            <input type="number" id="medidaBracoEsquerdo" name="medidaBracoEsquerdo" class="form-control" step="0.1">
-                        </div>
-                        <div class="form-group">
-                            <label for="medidaPernaDireita" class="form-label">Perna D. (cm)</label>
-                            <input type="number" id="medidaPernaDireita" name="medidaPernaDireita" class="form-control" step="0.1">
-                        </div>
-                        <div class="form-group">
-                            <label for="medidaPernaEsquerda" class="form-label">Perna E. (cm)</label>
-                            <input type="number" id="medidaPernaEsquerda" name="medidaPernaEsquerda" class="form-control" step="0.1">
+                        <div class="section-content active">
+                            <div class="form-grid-responsive">
+                                <div class="form-group">
+                                    <label for="pessoaId" class="form-label required">Aluno</label>
+                                    <select id="pessoaId" name="pessoaId" class="form-control" required></select>
+                                </div>
+                                <div class="form-group">
+                                    <label for="dataAvaliacao" class="form-label required">Data da Avaliação</label>
+                                    <input type="date" id="dataAvaliacao" name="dataAvaliacao" class="form-control" required>
+                                </div>
+                                <div class="form-group">
+                                    <label for="peso" class="form-label required">Peso (kg)</label>
+                                    <input type="number" id="peso" name="peso" step="0.1" class="form-control" required placeholder="Ex: 75.5">
+                                </div>
+                                <div class="form-group">
+                                    <label for="altura" class="form-label required">Altura (m)</label>
+                                    <input type="number" id="altura" name="altura" step="0.01" class="form-control" required placeholder="Ex: 1.75">
+                                </div>
+                            </div>
                         </div>
                     </div>
 
+                    <!-- Seção: Composição Corporal -->
+                    <div class="form-section" data-section="composicao">
+                        <div class="section-header" onclick="toggleSection(this)">
+                            <div class="section-header-title">
+                                <i class="fas fa-weight"></i>
+                                <span>Composição Corporal</span>
+                            </div>
+                            <i class="fas fa-chevron-down section-toggle"></i>
+                        </div>
+                        <div class="section-content active">
+                            <div class="form-grid-responsive">
+                                <div class="form-group">
+                                    <label for="gorduraCorporal" class="form-label">
+                                        Gordura Corporal (%)
+                                        <span class="tooltip-icon" title="Percentual de gordura no corpo">?</span>
+                                    </label>
+                                    <input type="number" id="gorduraCorporal" name="gorduraCorporal" class="form-control" step="0.1" placeholder="Ex: 22.0">
+                                </div>
+                                <div class="form-group">
+                                    <label for="massaMagra" class="form-label">
+                                        Massa Magra (kg)
+                                        <span class="tooltip-icon" title="Peso total menos gordura corporal">?</span>
+                                    </label>
+                                    <input type="number" id="massaMagra" name="massaMagra" class="form-control" step="0.1" placeholder="Ex: 37.0">
+                                </div>
+                                <div class="form-group">
+                                    <label for="massaMuscular" class="form-label">
+                                        Massa Muscular (kg)
+                                        <span class="tooltip-icon" title="Peso da massa muscular">?</span>
+                                    </label>
+                                    <input type="number" id="massaMuscular" name="massaMuscular" class="form-control" step="0.1" placeholder="Ex: 32.0">
+                                </div>
+                                <div class="form-group">
+                                    <label for="hidratacao" class="form-label">
+                                        Hidratação (%)
+                                        <span class="tooltip-icon" title="Percentual de água no corpo">?</span>
+                                    </label>
+                                    <input type="number" id="hidratacao" name="hidratacao" class="form-control" step="0.1" placeholder="Ex: 70.5">
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+
+                    <!-- Seção: Métricas de Saúde -->
+                    <div class="form-section" data-section="saude">
+                        <div class="section-header" onclick="toggleSection(this)">
+                            <div class="section-header-title">
+                                <i class="fas fa-heartbeat"></i>
+                                <span>Métricas de Saúde</span>
+                            </div>
+                            <i class="fas fa-chevron-down section-toggle"></i>
+                        </div>
+                        <div class="section-content active">
+                            <div class="form-grid-responsive">
+                                <div class="form-group">
+                                    <label for="taxaMetabolismoBasal" class="form-label">
+                                        Metabolismo Basal (kcal/dia)
+                                        <span class="tooltip-icon" title="Calorias queimadas em repouso">?</span>
+                                    </label>
+                                    <input type="number" id="taxaMetabolismoBasal" name="taxaMetabolismoBasal" class="form-control" step="1" placeholder="Ex: 1800">
+                                </div>
+                                <div class="form-group">
+                                    <label for="densidadeOssea" class="form-label">
+                                        Densidade Óssea (%)
+                                        <span class="tooltip-icon" title="Densidade mineral óssea">?</span>
+                                    </label>
+                                    <input type="number" id="densidadeOssea" name="densidadeOssea" class="form-control" step="0.1" placeholder="Ex: 3.0">
+                                </div>
+                                <div class="form-group">
+                                    <label for="gorduraVisceral" class="form-label">
+                                        Gordura Visceral (%)
+                                        <span class="tooltip-icon" title="Gordura ao redor dos órgãos">?</span>
+                                    </label>
+                                    <input type="number" id="gorduraVisceral" name="gorduraVisceral" class="form-control" step="0.1" placeholder="Ex: 4.0">
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+
+                    <!-- Seção: Medidas Corporais -->
+                    <div class="form-section" data-section="medidas">
+                        <div class="section-header" onclick="toggleSection(this)">
+                            <div class="section-header-title">
+                                <i class="fas fa-ruler"></i>
+                                <span>Medidas Corporais (cm)</span>
+                            </div>
+                            <i class="fas fa-chevron-down section-toggle"></i>
+                        </div>
+                        <div class="section-content active">
+                            <div class="form-grid-responsive">
+                                <div class="form-group">
+                                    <label for="medidaPescoco" class="form-label">Pescoço</label>
+                                    <input type="number" id="medidaPescoco" name="medidaPescoco" class="form-control" step="0.1" placeholder="Ex: 38.0">
+                                </div>
+                                <div class="form-group">
+                                    <label for="medidaCintura" class="form-label">Cintura</label>
+                                    <input type="number" id="medidaCintura" name="medidaCintura" class="form-control" step="0.1" placeholder="Ex: 85.0">
+                                </div>
+                                <div class="form-group">
+                                    <label for="medidaQuadril" class="form-label">Quadril</label>
+                                    <input type="number" id="medidaQuadril" name="medidaQuadril" class="form-control" step="0.1" placeholder="Ex: 95.0">
+                                </div>
+                                <div class="form-group">
+                                    <label for="medidaBracoDireito" class="form-label">Braço Direito</label>
+                                    <input type="number" id="medidaBracoDireito" name="medidaBracoDireito" class="form-control" step="0.1" placeholder="Ex: 32.0">
+                                </div>
+                                <div class="form-group">
+                                    <label for="medidaBracoEsquerdo" class="form-label">Braço Esquerdo</label>
+                                    <input type="number" id="medidaBracoEsquerdo" name="medidaBracoEsquerdo" class="form-control" step="0.1" placeholder="Ex: 32.0">
+                                </div>
+                                <div class="form-group">
+                                    <label for="medidaPernaDireita" class="form-label">Perna Direita</label>
+                                    <input type="number" id="medidaPernaDireita" name="medidaPernaDireita" class="form-control" step="0.1" placeholder="Ex: 55.0">
+                                </div>
+                                <div class="form-group">
+                                    <label for="medidaPernaEsquerda" class="form-label">Perna Esquerda</label>
+                                    <input type="number" id="medidaPernaEsquerda" name="medidaPernaEsquerda" class="form-control" step="0.1" placeholder="Ex: 55.0">
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+
+                    <!-- Observações -->
                     <div class="form-group">
-                        <label for="observacoes" class="form-label">Observações</label>
-                        <textarea id="observacoes" name="observacoes" class="form-control" rows="3"></textarea>
+                        <label for="observacoes" class="form-label">
+                            <i class="fas fa-clipboard"></i> Observações
+                        </label>
+                        <textarea id="observacoes" name="observacoes" class="form-control" rows="3" placeholder="Adicione observações sobre a avaliação..."></textarea>
                     </div>
 
                     <div class="form-actions">
@@ -136,36 +413,43 @@
 
             <div class="card card--wide" style="margin-top: 32px;">
                 <h3 class="card-title">Avaliações Recentes</h3>
-                <div class="table-responsive">
-                    <table class="table" id="tabela-avaliacoes">
-                        <thead>
-                            <tr>
-                                <th>Aluno</th>
-                                <th>Data</th>
-                                <th>Gênero</th>
-                                <th>IMC</th>
-                                <th>Peso</th>
-                                <th>Altura</th>
-                                <th>Gordura Corporal</th>
-                                <th>Massa Magra</th>
-                                <th>Massa Muscular</th>
-                                <th>Hidratação</th>
-                                <th>Metabolismo Basal</th>
-                                <th>Densidade Óssea</th>
-                                <th>Gordura Visceral</th>
-                                <th>Pescoço</th>
-                                <th>Cintura</th>
-                                <th>Quadril</th>
-                                <th>Braço D.</th>
-                                <th>Braço E.</th>
-                                <th>Perna D.</th>
-                                <th>Perna E.</th>
-                                <th>Ações</th>
-                            </tr>
-                        </thead>
-                        <tbody></tbody>
-                    </table>
+                
+                <!-- Visualização em Tabela (Desktop) -->
+                <div class="table-view">
+                    <div class="table-responsive">
+                        <table class="table" id="tabela-avaliacoes">
+                            <thead>
+                                <tr>
+                                    <th>Aluno</th>
+                                    <th class="group-basic">Data</th>
+                                    <th class="group-basic">Gênero</th>
+                                    <th class="group-basic">IMC</th>
+                                    <th class="group-basic">Peso</th>
+                                    <th class="group-basic">Altura</th>
+                                    <th class="group-composition">Gord. Corp.</th>
+                                    <th class="group-composition">Massa Magra</th>
+                                    <th class="group-composition">Massa Musc.</th>
+                                    <th class="group-composition">Hidratação</th>
+                                    <th class="group-health">Metab. Basal</th>
+                                    <th class="group-health">Dens. Óssea</th>
+                                    <th class="group-health">Gord. Visc.</th>
+                                    <th class="group-measures">Pescoço</th>
+                                    <th class="group-measures">Cintura</th>
+                                    <th class="group-measures">Quadril</th>
+                                    <th class="group-measures">Braço D.</th>
+                                    <th class="group-measures">Braço E.</th>
+                                    <th class="group-measures">Perna D.</th>
+                                    <th class="group-measures">Perna E.</th>
+                                    <th class="cell-actions">Ações</th>
+                                </tr>
+                            </thead>
+                            <tbody></tbody>
+                        </table>
+                    </div>
                 </div>
+
+                <!-- Visualização em Cards (Mobile) -->
+                <div class="card-view" id="avaliacoes-cards"></div>
             </div>
         </div>
     </main>
@@ -175,7 +459,22 @@
     <script>
         const API_URL = '/api/avaliacoes';
         const API_PESSOAS_URL = '/api/pessoas';
-        let form, tableBody;
+        let form, tableBody, cardsContainer;
+        
+        // Função para toggle de seções
+        function toggleSection(header) {
+            const section = header.parentElement;
+            const content = section.querySelector('.section-content');
+            const isActive = content.classList.contains('active');
+            
+            if (isActive) {
+                content.classList.remove('active');
+                section.classList.add('collapsed');
+            } else {
+                content.classList.add('active');
+                section.classList.remove('collapsed');
+            }
+        }
         
         // Funções globais
         async function fetchPessoas() {
@@ -207,9 +506,13 @@
                 const avaliacoes = await response.json();
                 console.log('Avaliações recebidas:', avaliacoes);
                 renderTable(avaliacoes);
+                renderCards(avaliacoes);
             } catch (error) {
                 console.error('Erro ao buscar avaliações:', error);
-                tableBody.innerHTML = `<tr><td colspan="14">Erro ao carregar avaliações: ${error.message}</td></tr>`;
+                tableBody.innerHTML = `<tr><td colspan="21">Erro ao carregar avaliações: ${error.message}</td></tr>`;
+                if (cardsContainer) {
+                    cardsContainer.innerHTML = `<p style="text-align:center;padding:20px;color:var(--color-text-muted);">Erro ao carregar avaliações: ${error.message}</p>`;
+                }
             }
         }
 
@@ -233,13 +536,13 @@
         }
 
         function classificarIMC(imc) {
-            if (imc === null || imc === undefined) return 'N/A';
-            if (imc < 18.5) return "Abaixo do peso";
-            if (imc < 25) return "Peso normal";
-            if (imc < 30) return "Sobrepeso";
-            if (imc < 35) return "Obesidade grau I";
-            if (imc < 40) return "Obesidade grau II";
-            return "Obesidade grau III";
+            if (imc === null || imc === undefined) return { texto: 'N/A', classe: '' };
+            if (imc < 18.5) return { texto: "Abaixo", classe: "imc-baixo" };
+            if (imc < 25) return { texto: "Normal", classe: "imc-normal" };
+            if (imc < 30) return { texto: "Sobrepeso", classe: "imc-sobrepeso" };
+            if (imc < 35) return { texto: "Obesidade I", classe: "imc-obesidade" };
+            if (imc < 40) return { texto: "Obesidade II", classe: "imc-obesidade" };
+            return { texto: "Obesidade III", classe: "imc-obesidade" };
         }
 
         function formatValue(value, { unit = '', decimals = -1, fallback = 'N/A' } = {}) {
@@ -261,7 +564,7 @@
             console.log('Renderizando tabela com', avaliacoes.length, 'avaliações');
             tableBody.innerHTML = '';
              if (avaliacoes.length === 0) {
-                tableBody.innerHTML = `<tr><td colspan="14" style="text-align:center;">Nenhuma avaliação cadastrada.</td></tr>`;
+                tableBody.innerHTML = `<tr><td colspan="21" style="text-align:center;">Nenhuma avaliação cadastrada.</td></tr>`;
                 return;
             }
             avaliacoes.forEach((av, index) => {
@@ -270,20 +573,21 @@
 
                 const imc = calcularIMC(av.peso, av.altura);
                 const classificacaoImc = classificarIMC(imc);
+                const imcFormatted = imc ? `${formatValue(imc, { decimals: 1 })} <span class="imc-badge ${classificacaoImc.classe}">${classificacaoImc.texto}</span>` : 'N/A';
 
                 const tr = document.createElement('tr');
                 tr.innerHTML = `
                     <td>${av.pessoa ? av.pessoa.nome : 'N/A'}</td>
-                    <td>${new Date(av.dataAvaliacao).toLocaleDateString()}</td>
+                    <td>${new Date(av.dataAvaliacao).toLocaleDateString('pt-BR')}</td>
                     <td>${av.pessoa ? getGeneroDescricao(av.pessoa.genero) : 'N/A'}</td>
-                    <td>${imc ? `${formatValue(imc, { decimals: 1 })} (${classificacaoImc})` : 'N/A'}</td>
+                    <td>${imcFormatted}</td>
                     <td>${formatValue(av.peso, { unit: 'kg', decimals: 1 })}</td>
                     <td>${formatValue(av.altura, { unit: 'm', decimals: 2 })}</td>
                     <td>${formatValue(av.gorduraCorporal, { unit: '%', decimals: 1 })}</td>
                     <td>${formatValue(av.massaMagra, { unit: 'kg', decimals: 1 })}</td>
                     <td>${formatValue(av.massaMuscular, { unit: 'kg', decimals: 1 })}</td>
                     <td>${formatValue(av.hidratacao, { unit: '%', decimals: 1 })}</td>
-                    <td>${formatValue(av.taxaMetabolismoBasal, { unit: 'kcal/dia', decimals: 0 })}</td>
+                    <td>${formatValue(av.taxaMetabolismoBasal, { unit: 'kcal', decimals: 0 })}</td>
                     <td>${formatValue(av.densidadeOssea, { unit: '%', decimals: 1 })}</td>
                     <td>${formatValue(av.gorduraVisceral, { unit: '%', decimals: 1 })}</td>
                     <td>${formatValue(av.medidaPescoco, { unit: 'cm', decimals: 1 })}</td>
@@ -299,6 +603,90 @@
                     </td>
                 `;
                 tableBody.appendChild(tr);
+            });
+        }
+
+        function renderCards(avaliacoes) {
+            if (!cardsContainer) return;
+            
+            cardsContainer.innerHTML = '';
+            if (avaliacoes.length === 0) {
+                cardsContainer.innerHTML = `<p style="text-align:center;padding:20px;color:var(--color-text-muted);">Nenhuma avaliação cadastrada.</p>`;
+                return;
+            }
+
+            avaliacoes.forEach(av => {
+                const imc = calcularIMC(av.peso, av.altura);
+                const classificacaoImc = classificarIMC(imc);
+
+                const card = document.createElement('div');
+                card.className = 'avaliacao-card-item';
+                card.innerHTML = `
+                    <div class="avaliacao-card-header">
+                        <div>
+                            <strong style="font-size:1.1rem;">${av.pessoa ? av.pessoa.nome : 'N/A'}</strong>
+                            <div style="color:var(--color-text-muted);font-size:0.85rem;margin-top:4px;">
+                                ${new Date(av.dataAvaliacao).toLocaleDateString('pt-BR')} • ${av.pessoa ? getGeneroDescricao(av.pessoa.genero) : 'N/A'}
+                            </div>
+                        </div>
+                        <div>
+                            ${imc ? `<div style="font-size:1.2rem;font-weight:700;">${formatValue(imc, { decimals: 1 })}</div><span class="imc-badge ${classificacaoImc.classe}">${classificacaoImc.texto}</span>` : 'N/A'}
+                        </div>
+                    </div>
+                    
+                    <div class="avaliacao-card-grid">
+                        <div class="avaliacao-card-item-info">
+                            <span class="avaliacao-card-item-label">Peso</span>
+                            <div class="avaliacao-card-item-value">${formatValue(av.peso, { unit: 'kg', decimals: 1 })}</div>
+                        </div>
+                        <div class="avaliacao-card-item-info">
+                            <span class="avaliacao-card-item-label">Altura</span>
+                            <div class="avaliacao-card-item-value">${formatValue(av.altura, { unit: 'm', decimals: 2 })}</div>
+                        </div>
+                        <div class="avaliacao-card-item-info">
+                            <span class="avaliacao-card-item-label">Gordura Corp.</span>
+                            <div class="avaliacao-card-item-value">${formatValue(av.gorduraCorporal, { unit: '%', decimals: 1 })}</div>
+                        </div>
+                        <div class="avaliacao-card-item-info">
+                            <span class="avaliacao-card-item-label">Massa Magra</span>
+                            <div class="avaliacao-card-item-value">${formatValue(av.massaMagra, { unit: 'kg', decimals: 1 })}</div>
+                        </div>
+                        <div class="avaliacao-card-item-info">
+                            <span class="avaliacao-card-item-label">Massa Musc.</span>
+                            <div class="avaliacao-card-item-value">${formatValue(av.massaMuscular, { unit: 'kg', decimals: 1 })}</div>
+                        </div>
+                        <div class="avaliacao-card-item-info">
+                            <span class="avaliacao-card-item-label">Hidratação</span>
+                            <div class="avaliacao-card-item-value">${formatValue(av.hidratacao, { unit: '%', decimals: 1 })}</div>
+                        </div>
+                        <div class="avaliacao-card-item-info">
+                            <span class="avaliacao-card-item-label">Metab. Basal</span>
+                            <div class="avaliacao-card-item-value">${formatValue(av.taxaMetabolismoBasal, { unit: 'kcal', decimals: 0 })}</div>
+                        </div>
+                        <div class="avaliacao-card-item-info">
+                            <span class="avaliacao-card-item-label">Dens. Óssea</span>
+                            <div class="avaliacao-card-item-value">${formatValue(av.densidadeOssea, { unit: '%', decimals: 1 })}</div>
+                        </div>
+                        <div class="avaliacao-card-item-info">
+                            <span class="avaliacao-card-item-label">Gord. Visc.</span>
+                            <div class="avaliacao-card-item-value">${formatValue(av.gorduraVisceral, { unit: '%', decimals: 1 })}</div>
+                        </div>
+                        <div class="avaliacao-card-item-info">
+                            <span class="avaliacao-card-item-label">Cintura</span>
+                            <div class="avaliacao-card-item-value">${formatValue(av.medidaCintura, { unit: 'cm', decimals: 1 })}</div>
+                        </div>
+                        <div class="avaliacao-card-item-info">
+                            <span class="avaliacao-card-item-label">Quadril</span>
+                            <div class="avaliacao-card-item-value">${formatValue(av.medidaQuadril, { unit: 'cm', decimals: 1 })}</div>
+                        </div>
+                    </div>
+
+                    <div class="card-actions">
+                        <button class="btn btn-secondary" onclick="editAvaliacao('${av.id}')"><i class="fas fa-edit"></i> Editar</button>
+                        <button class="btn btn-secondary" onclick="deleteAvaliacao('${av.id}')"><i class="fas fa-trash"></i> Excluir</button>
+                    </div>
+                `;
+                cardsContainer.appendChild(card);
             });
         }
 
@@ -417,6 +805,8 @@
         document.addEventListener('DOMContentLoaded', () => {
             form = document.getElementById('form-avaliacao');
             tableBody = document.querySelector('#tabela-avaliacoes tbody');
+            cardsContainer = document.getElementById('avaliacoes-cards');
+            
             if (form) {
                 form.addEventListener('submit', handleSubmit);
             }
