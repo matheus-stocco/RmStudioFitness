@@ -37,9 +37,6 @@ public class ItemPlanoAula implements Serializable {
     @Column(nullable = false, length = 50)
     private String repeticoes;
 
-    @Column(name = "carga_kg")
-    private Double cargaKg;
-
     @Column(name = "tempo_descanso_segundos")
     private Integer tempoDescansoSegundos;
 
@@ -68,14 +65,6 @@ public class ItemPlanoAula implements Serializable {
         this.repeticoes = String.valueOf(repeticoes);
     }
 
-    public ItemPlanoAula(DiaSemana dia, Exercicio exercicio, int series, int repeticoes, Double cargaKg) {
-        this.dia = dia;
-        this.exercicio = exercicio;
-        this.series = series;
-        this.repeticoes = String.valueOf(repeticoes);
-        this.cargaKg = cargaKg;
-    }
-
     // ─── Getters & Setters ─────────────────────────────────────────────────────
 
     public Long getId() { return id; }
@@ -95,9 +84,6 @@ public class ItemPlanoAula implements Serializable {
 
     public String getRepeticoes() { return repeticoes; }
     public void setRepeticoes(String repeticoes) { this.repeticoes = repeticoes; }
-
-    public Double getCargaKg() { return cargaKg; }
-    public void setCargaKg(Double cargaKg) { this.cargaKg = cargaKg; }
 
     public Integer getTempoDescansoSegundos() { return tempoDescansoSegundos; }
     public void setTempoDescansoSegundos(Integer tempoDescansoSegundos) { this.tempoDescansoSegundos = tempoDescansoSegundos; }
@@ -151,9 +137,6 @@ public class ItemPlanoAula implements Serializable {
         info.append(getExercicioNome()).append(" - ")
             .append(series).append("x").append(repeticoes);
 
-        if (cargaKg != null && cargaKg > 0) {
-            info.append(" (").append(cargaKg).append("kg)");
-        }
         if (tempoDescansoSegundos != null && tempoDescansoSegundos > 0) {
             info.append(" - Descanso: ").append(formatarTempoDescanso());
         }
@@ -171,9 +154,8 @@ public class ItemPlanoAula implements Serializable {
 
     @Transient
     public boolean isAltaIntensidade() {
-        return (series != null && series >= 4)
+        return (series != null && series >= 4);
             // Não é mais possível calcular intensidade por repetições
-            || (cargaKg != null && cargaKg >= 50.0);
     }
 
     public void copiarDe(ItemPlanoAula outro) {
@@ -182,7 +164,6 @@ public class ItemPlanoAula implements Serializable {
             this.exercicio = outro.exercicio;
             this.series = outro.series;
             this.repeticoes = outro.repeticoes;
-            this.cargaKg = outro.cargaKg;
             this.tempoDescansoSegundos = outro.tempoDescansoSegundos;
             this.observacoes = outro.observacoes;
         }
@@ -192,12 +173,11 @@ public class ItemPlanoAula implements Serializable {
 
     @Override
     public String toString() {
-        return String.format("%s: %s %dx%s%s",
+        return String.format("%s: %s %dx%s",
             getDiaLabel(),
             getExercicioNome(),
             series != null ? series : 0,
-            repeticoes != null ? repeticoes : "0",
-            (cargaKg != null && cargaKg > 0) ? " (" + cargaKg + "kg)" : ""
+            repeticoes != null ? repeticoes : "0"
         );
     }
 

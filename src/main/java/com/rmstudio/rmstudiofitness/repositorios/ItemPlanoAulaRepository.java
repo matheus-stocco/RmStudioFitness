@@ -62,9 +62,7 @@ public interface ItemPlanoAulaRepository extends JpaRepository<ItemPlanoAula, Lo
      */
     @Query("SELECT i FROM ItemPlanoAula i " +
            "WHERE i.series >= :minSeries " +
-           "   OR i.repeticoes >= :minRepeticoes " +
-           "   OR i.cargaKg >= :minCarga")
+           "   OR i.repeticoes >= :minRepeticoes")
     List<ItemPlanoAula> findAltaIntensidade(@Param("minSeries") Integer minSeries,
-                                            @Param("minRepeticoes") Integer minRepeticoes,
-                                            @Param("minCarga") Double minCarga);
+                                            @Param("minRepeticoes") Integer minRepeticoes);
 }

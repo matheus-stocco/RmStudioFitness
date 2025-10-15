@@ -51,8 +51,8 @@ public interface PlanoAulaRepository extends JpaRepository<PlanoAula, Long> {
     @Query("SELECT DISTINCT p FROM PlanoAula p LEFT JOIN FETCH p.itens ORDER BY p.nome")
     List<PlanoAula> findAllWithItens();
 
-    /** Busca plano por ID com JOIN FETCH dos itens */
-    @Query("SELECT p FROM PlanoAula p LEFT JOIN FETCH p.itens WHERE p.id = :id")
+    /** Busca plano por ID com JOIN FETCH dos itens e seus exercícios */
+    @Query("SELECT DISTINCT p FROM PlanoAula p LEFT JOIN FETCH p.itens i LEFT JOIN FETCH i.exercicio WHERE p.id = :id")
     Optional<PlanoAula> findByIdWithItens(@Param("id") Long id);
 
     /** Conta planos ativos */

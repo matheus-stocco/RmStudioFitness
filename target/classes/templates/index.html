@@ -136,19 +136,8 @@
   </footer>
 
   <!-- SCRIPTS JAVASCRIPT -->
+  <script src="/js/app.js"></script>
   <script>
-    // --- LÓGICA PARA O MENU MOBILE ---
-    // Seleciona o botão e a lista de links
-    const navToggle = document.querySelector('.nav-toggle');
-    const navLinks = document.querySelector('.nav-links');
-    if (navToggle) {
-        // Adiciona um evento de clique ao botão
-        navToggle.addEventListener('click', () => {
-            // Alterna a classe 'open' na lista de links para mostrá-la ou escondê-la (controlado via CSS)
-            navLinks.classList.toggle('open');
-        });
-    }
-
     // --- LÓGICA PARA CARREGAR OS PLANOS DINAMICAMENTE ---
     // Adiciona um evento que dispara quando o HTML da página foi completamente carregado
     document.addEventListener('DOMContentLoaded', async () => {
