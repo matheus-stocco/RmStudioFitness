@@ -2,6 +2,8 @@
 package com.rmstudio.rmstudiofitness.repositorios;
 
 import com.rmstudio.rmstudiofitness.entidades.AvaliacaoFisica;
+import org.springframework.data.domain.Page;
+import org.springframework.data.domain.Pageable;
 import org.springframework.data.jpa.repository.JpaRepository;
 import org.springframework.data.jpa.repository.Query;
 import org.springframework.data.repository.query.Param;
@@ -13,6 +15,11 @@ import java.util.Optional;
 
 @Repository
 public interface AvaliacaoFisicaRepository extends JpaRepository<AvaliacaoFisica, Long> {
+
+    /**
+     * Busca avaliações de uma pessoa específica ordenadas por data com paginação
+     */
+    Page<AvaliacaoFisica> findByPessoaIdOrderByDataAvaliacaoDesc(Long pessoaId, Pageable pageable);
 
     /**
      * Busca todas as avaliações ordenadas por data decrescente

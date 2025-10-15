@@ -1,6 +1,7 @@
 package com.rmstudio.rmstudiofitness.controladores;
 
 import com.rmstudio.rmstudiofitness.entidades.Exercicio; // ajuste o pacote se suas entidades estiverem em outro namespace
+import com.rmstudio.rmstudiofitness.repositorios.ExercicioRepository;
 
 import jakarta.persistence.EntityManager;
 import jakarta.persistence.PersistenceContext;
@@ -10,6 +11,9 @@ import jakarta.transaction.Transactional;
 import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
 import org.springframework.web.bind.annotation.*;
+import org.springframework.data.domain.Page;
+import org.springframework.data.domain.Pageable;
+import org.springframework.data.web.PageableDefault;
 
 import java.net.URI;
 import java.util.List;
@@ -28,23 +32,28 @@ import java.util.List;
 @RequestMapping("/api/exercicios")
 public class ControleExercicio {
 
+    private final ExercicioRepository exercicioRepository;
     @PersistenceContext
     private EntityManager em;
 
+    public ControleExercicio(ExercicioRepository exercicioRepository) {
+        this.exercicioRepository = exercicioRepository;
+    }
+
     // ---------- LISTAR ----------
     @GetMapping
-    public List<Exercicio> listar(@RequestParam(name = "q", required = false) String q) {
-        if (q == null || q.trim().isEmpty()) {
-            return em.createQuery("SELECT e FROM Exercicio e ORDER BY e.nome", Exercicio.class)
-                     .getResultList();
+    public Page<Exercicio> listar(@RequestParam(name = "q", required = false) String q,
+                                  @PageableDefault(sort = "nome") Pageable pageable) {
+        if (q != null && !q.trim().isEmpty()) {
+            // Busca tanto no nome quanto no grupo muscular
+            String termo = q.trim();
+            Page<Exercicio> porNome = exercicioRepository.findByNomeContainingIgnoreCaseOrderByNome(termo, pageable);
+            if (porNome.hasContent()) {
+                return porNome;
+            }
+            return exercicioRepository.findByGrupoMuscularContainingIgnoreCaseOrderByNome(termo, pageable);
         }
-        String filtro = "%" + q.trim().toLowerCase() + "%";
-        TypedQuery<Exercicio> query = em.createQuery(
-            "SELECT e FROM Exercicio e " +
-            "WHERE LOWER(e.nome) LIKE :filtro OR LOWER(e.grupoMuscular) LIKE :filtro " +
-            "ORDER BY e.nome", Exercicio.class);
-        query.setParameter("filtro", filtro);
-        return query.getResultList();
+        return exercicioRepository.findAllByOrderByNome(pageable);
     }
 
     // ---------- LISTAR GRUPOS MUSCULARES ----------

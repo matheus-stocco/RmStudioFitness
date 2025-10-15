@@ -2,6 +2,8 @@
 package com.rmstudio.rmstudiofitness.repositorios;
 
 import com.rmstudio.rmstudiofitness.entidades.Pessoa;
+import org.springframework.data.domain.Page;
+import org.springframework.data.domain.Pageable;
 import org.springframework.data.jpa.repository.JpaRepository;
 import org.springframework.data.jpa.repository.Query;
 import org.springframework.data.repository.query.Param;
@@ -14,11 +16,17 @@ import java.util.Optional;
 @Repository
 public interface PessoaRepository extends JpaRepository<Pessoa, Long> {
 
-    /** Busca todas as pessoas ordenadas por nome */
-    List<Pessoa> findAllByOrderByNome();
+    /** Busca todas as pessoas ordenadas por nome com paginação */
+    Page<Pessoa> findAllByOrderByNome(Pageable pageable);
+
+    /** Busca pessoa por nome (ignoring case) com paginação */
+    Page<Pessoa> findByNomeContainingIgnoreCase(String nome, Pageable pageable);
 
     /** Busca pessoa por nome (ignoring case) */
     List<Pessoa> findByNomeContainingIgnoreCase(String nome);
+
+    /** Busca todas as pessoas ordenadas por nome */
+    List<Pessoa> findAllByOrderByNome();
 
     List<Pessoa> findByPlanoAtivoIsNotNullOrderByNome();
     List<Pessoa> findByNomeContainingIgnoreCaseAndPlanoAtivoIsNotNull(String nome);
@@ -52,9 +60,13 @@ public interface PessoaRepository extends JpaRepository<Pessoa, Long> {
     /** Busca pessoas por cidade */
     List<Pessoa> findByCidadeIdOrderByNome(Long cidadeId);
 
-    /** Busca pessoas por estado (via cidade) */
-    @Query("SELECT p FROM Pessoa p JOIN p.cidade c WHERE c.estado.id = :estadoId ORDER BY p.nome")
-    List<Pessoa> findByEstadoId(@Param("estadoId") Long estadoId);
+    /** Busca pessoas por estado (via cidade) com paginação */
+    @Query(value = "SELECT p FROM Pessoa p JOIN p.cidade c WHERE c.estado.id = :estadoId",
+           countQuery = "SELECT count(p) FROM Pessoa p JOIN p.cidade c WHERE c.estado.id = :estadoId")
+    Page<Pessoa> findByEstadoId(@Param("estadoId") Long estadoId, Pageable pageable);
+
+    /** Busca pessoas por cidade com paginação */
+    Page<Pessoa> findByCidadeIdOrderByNome(Long cidadeId, Pageable pageable);
 
     /** Busca pessoas cadastradas em um período */
     List<Pessoa> findByDataCadastroBetweenOrderByDataCadastroDesc(LocalDateTime inicio, LocalDateTime fim);

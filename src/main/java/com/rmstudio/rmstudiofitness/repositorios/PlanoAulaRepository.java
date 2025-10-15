@@ -2,6 +2,8 @@
 package com.rmstudio.rmstudiofitness.repositorios;
 
 import com.rmstudio.rmstudiofitness.entidades.PlanoAula;
+import org.springframework.data.domain.Page;
+import org.springframework.data.domain.Pageable;
 import org.springframework.data.jpa.repository.JpaRepository;
 import org.springframework.data.jpa.repository.Query;
 import org.springframework.data.repository.query.Param;
@@ -10,9 +12,19 @@ import org.springframework.stereotype.Repository;
 import java.time.LocalDateTime;
 import java.util.List;
 import java.util.Optional;
+import com.rmstudio.rmstudiofitness.entidades.Pessoa;
 
 @Repository
 public interface PlanoAulaRepository extends JpaRepository<PlanoAula, Long> {
+
+    /** Busca planos por ID de aluno com paginação */
+    Page<PlanoAula> findByAluno_IdOrderByDataInicioDesc(Long alunoId, Pageable pageable);
+
+    /** Busca planos por ID de aluno com paginação */
+    Page<PlanoAula> findByAlunoOrderByDataInicioDesc(Pessoa aluno, Pageable pageable);
+
+    /** Busca todos os planos ordenados por nome com paginação */
+    Page<PlanoAula> findAllByOrderByNome(Pageable pageable);
 
     /** Busca todos os planos ordenados por nome */
     List<PlanoAula> findAllByOrderByNome();

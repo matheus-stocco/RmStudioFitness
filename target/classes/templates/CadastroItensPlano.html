@@ -113,7 +113,7 @@
         </div>
     </footer>
     <script>
-        const API_PLANOS_URL = '/api/planoaulas';
+        const API_PLANOS_URL = '/api/planos-aula';
         const API_EXERCICIOS_URL = '/api/exercicios';
 
         const form = document.getElementById('form-item-plano');
@@ -147,15 +147,16 @@
 
         async function fetchExercicios(grupoMuscular = '') {
             const exercicioSelect = document.getElementById('exercicioId');
-            let url = API_EXERCICIOS_URL;
+            let url = `${API_EXERCICIOS_URL}?size=100&sort=nome,asc`;
             if (grupoMuscular) {
-                // Assumindo que a API aceita um parâmetro de query `grupo`
-                url += `?q=${encodeURIComponent(grupoMuscular)}`;
+                // Assumindo que a API aceita um parâmetro de query `q`
+                url = `${API_EXERCICIOS_URL}?q=${encodeURIComponent(grupoMuscular)}&size=100&sort=nome,asc`;
             }
             try {
                 const response = await fetch(url);
                 if (!response.ok) throw new Error('Erro ao buscar exercícios');
-                const exercicios = await response.json();
+                const pageData = await response.json();
+                const exercicios = pageData.content || [];
                 exercicioSelect.innerHTML = '<option value="">Selecione um exercício</option>';
                 exercicios.forEach(ex => {
                     // Filtra no cliente, já que a API de busca 'q' é ampla
@@ -170,7 +171,7 @@
         }
         
         function renderizarPlano(plano) {
-            document.getElementById('plano-descricao').textContent = `Plano: ${plano.descricao} - Aluno: ${plano.aluno.nome}`;
+            document.getElementById('plano-descricao').textContent = `Plano: ${plano.nome || 'Sem nome'} - Aluno: ${plano.aluno ? plano.aluno.nome : 'N/A'}`;
             weekPlannerContainer.innerHTML = ''; // Limpa o container
 
             // Cria um card para cada dia da semana
@@ -182,18 +183,22 @@
             }
 
             // Distribui os itens do plano nos cards corretos
-            plano.itens.forEach(item => {
-                adicionarItemNaLista(item);
-            });
+            if (plano.itens && Array.isArray(plano.itens)) {
+                plano.itens.forEach(item => {
+                    adicionarItemNaLista(item);
+                });
+            }
         }
 
         function adicionarItemNaLista(item) {
-            const list = document.getElementById(`list-${item.diaSemana}`);
+            const diaSemana = item.dia || item.diaSemana;
+            const list = document.getElementById(`list-${diaSemana}`);
             if (list) {
                 const listItem = document.createElement('li');
                 listItem.id = `item-${item.id}`;
+                const nomeExercicio = item.exercicio ? item.exercicio.nome : (item.exercicioNome || 'Exercício');
                 listItem.innerHTML = `
-                    <span>${item.exercicioNome} (${item.series}x${item.repeticoes})</span>
+                    <span>${nomeExercicio} (${item.series}x${item.repeticoes})</span>
                     <button class="delete-item" onclick="deleteItem(${item.id})"><i class="fas fa-trash"></i></button>
                 `;
                 list.appendChild(listItem);
@@ -217,10 +222,10 @@
             e.preventDefault();
             const formData = new FormData(form);
             const payload = {
-                exercicioId: formData.get('exercicioId'),
-                diaSemana: formData.get('diaSemana'),
-                series: formData.get('series'),
-                repeticoes: formData.get('repeticoes')
+                exercicioId: parseInt(formData.get('exercicioId'), 10),
+                dia: formData.get('diaSemana'),
+                series: parseInt(formData.get('series'), 10),
+                repeticoes: parseInt(formData.get('repeticoes'), 10)
             };
 
             try {

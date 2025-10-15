@@ -1,8 +1,12 @@
 package com.rmstudio.rmstudiofitness.controladores;
 
 import com.rmstudio.rmstudiofitness.entidades.Pessoa;
+import com.rmstudio.rmstudiofitness.entidades.PlanoAula;
+import com.rmstudio.rmstudiofitness.repositorios.AvaliacaoFisicaRepository;
 import com.rmstudio.rmstudiofitness.repositorios.EstadoRepository;
+import com.rmstudio.rmstudiofitness.repositorios.MensalidadeRepository;
 import com.rmstudio.rmstudiofitness.repositorios.PessoaRepository;
+import com.rmstudio.rmstudiofitness.repositorios.PlanoAulaRepository;
 import com.rmstudio.rmstudiofitness.repositorios.TipoPlanoRepository;
 import com.rmstudio.rmstudiofitness.servicos.PagamentoService;
 import com.rmstudio.rmstudiofitness.entidades.Mensalidade;
@@ -14,30 +18,44 @@ import java.util.List;
 import java.util.stream.Collectors;
 
 import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.data.domain.Page;
+import org.springframework.data.domain.Pageable;
+import org.springframework.data.web.PageableDefault;
 import org.springframework.security.core.Authentication;
 import org.springframework.stereotype.Controller;
 import org.springframework.ui.Model;
 import org.springframework.web.bind.annotation.GetMapping;
 import org.springframework.web.server.ResponseStatusException;
 import org.springframework.http.HttpStatus;
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
 
 @Controller
 public class ControleNavegacao {
 
+    private static final Logger logger = LoggerFactory.getLogger(ControleNavegacao.class);
+    
     private final PessoaRepository pessoaRepository;
     private final EstadoRepository estadoRepository;
     private final TipoPlanoRepository tipoPlanoRepository;
-    private final PagamentoService pagamentoService;
+    private final AvaliacaoFisicaRepository avaliacaoFisicaRepository;
+    private final MensalidadeRepository mensalidadeRepository;
+    private final PlanoAulaRepository planoAulaRepository;
 
     @Autowired
     public ControleNavegacao(PessoaRepository pessoaRepository,
                              EstadoRepository estadoRepository,
                              TipoPlanoRepository tipoPlanoRepository,
-                             PagamentoService pagamentoService) {
+                             PagamentoService pagamentoService,
+                             AvaliacaoFisicaRepository avaliacaoFisicaRepository,
+                             MensalidadeRepository mensalidadeRepository,
+                             PlanoAulaRepository planoAulaRepository) {
         this.pessoaRepository = pessoaRepository;
         this.estadoRepository = estadoRepository;
         this.tipoPlanoRepository = tipoPlanoRepository;
-        this.pagamentoService = pagamentoService;
+        this.avaliacaoFisicaRepository = avaliacaoFisicaRepository;
+        this.mensalidadeRepository = mensalidadeRepository;
+        this.planoAulaRepository = planoAulaRepository;
     }
     
     /**
@@ -143,22 +161,51 @@ public class ControleNavegacao {
      * Mapeia a URL /minhas-mensalidades para a página de mensalidades do usuário.
      */
     @GetMapping("/minhas-mensalidades")
-    public String minhasMensalidades(Model model, Authentication authentication) {
+    public String minhasMensalidades(Model model, Authentication authentication,
+                                     @PageableDefault(size = 5, sort = "dataVencimento") Pageable pageable) {
+        logger.info("Iniciando carregamento de mensalidades para usuário: {}", authentication != null ? authentication.getName() : "null");
+        
         if (authentication == null || !authentication.isAuthenticated()) {
+            logger.warn("Usuário não autenticado, redirecionando para login");
             return "redirect:/login";
         }
-        String username = authentication.getName();
-        Pessoa pessoa = pessoaRepository.findByUsuario(username)
-            .orElseThrow(() -> new ResponseStatusException(HttpStatus.NOT_FOUND, "Usuário não encontrado."));
-
-        model.addAttribute("pessoa", pessoa);
-        model.addAttribute("planoAtivo", pessoa.getPlanoAtivo());
         
-        List<Mensalidade> mensalidades = pagamentoService.findMensalidadesByPessoaId(pessoa.getId());
-        model.addAttribute("mensalidades", mensalidades);
+        String username = authentication.getName();
+        logger.debug("Buscando pessoa com usuário: {}", username);
+        
+        try {
+            Pessoa pessoa = pessoaRepository.findByUsuario(username)
+                .orElseThrow(() -> new ResponseStatusException(HttpStatus.NOT_FOUND, "Usuário não encontrado."));
+            
+            logger.debug("Pessoa encontrada: ID={}, Nome={}", pessoa.getId(), pessoa.getNome());
+            
+            model.addAttribute("pessoa", pessoa);
+            model.addAttribute("planoAtivo", pessoa.getPlanoAtivo());
+            
+            // Usar a consulta com JOIN FETCH para evitar problemas de lazy loading
+            try {
+                logger.debug("Tentando buscar mensalidades com paginação para pessoa ID: {}", pessoa.getId());
+                Page<Mensalidade> page = mensalidadeRepository.findByPessoaIdOrderByDataVencimentoDesc(pessoa.getId(), pageable);
+                logger.debug("Mensalidades encontradas: {} total", page.getTotalElements());
+                model.addAttribute("page", page);
+            } catch (Exception e) {
+                logger.warn("Erro na consulta paginada, usando consulta alternativa: {}", e.getMessage());
+                // Se houver erro na consulta paginada, usar a consulta simples
+                List<Mensalidade> mensalidades = mensalidadeRepository.findByPessoaIdWithDetails(pessoa.getId());
+                logger.debug("Mensalidades encontradas na consulta alternativa: {}", mensalidades.size());
+                // Criar uma página manual para manter a compatibilidade com o template
+                Page<Mensalidade> page = new org.springframework.data.domain.PageImpl<>(mensalidades, pageable, mensalidades.size());
+                model.addAttribute("page", page);
+            }
 
-        model.addAttribute("pageTitle", "Minhas Mensalidades");
-        return "minhas-mensalidades";
+            model.addAttribute("pageTitle", "Minhas Mensalidades");
+            logger.info("Carregamento de mensalidades concluído com sucesso");
+            return "minhas-mensalidades";
+            
+        } catch (Exception e) {
+            logger.error("Erro ao carregar mensalidades para usuário {}: {}", username, e.getMessage(), e);
+            throw new ResponseStatusException(HttpStatus.INTERNAL_SERVER_ERROR, "Erro interno do servidor ao carregar mensalidades");
+        }
     }
 
     @GetMapping("/perfil")
@@ -175,29 +222,32 @@ public class ControleNavegacao {
     }
  
     @GetMapping("/minhas-avaliacoes")
-    public String minhasAvaliacoes(Model model, Authentication authentication) {
+    public String minhasAvaliacoes(Model model, Authentication authentication,
+                                   @PageableDefault(size = 1, sort = "dataAvaliacao") Pageable pageable) {
         if (authentication != null && authentication.isAuthenticated()) {
-            // Em vez de usar o principal diretamente (que pode estar detached),
-            // pegamos o nome de usuário e buscamos do banco novamente para garantir
-            // que a sessão do Hibernate esteja ativa para carregar os dados.
             String username = authentication.getName();
             
-            // Usa o novo método do repositório que busca pelo username e já carrega as avaliações
-            pessoaRepository.findByUsuarioWithAvaliacoes(username).ifPresent(pessoaCompleta -> {
-                model.addAttribute("avaliacoes", pessoaCompleta.getAvaliacoes());
-            });
+            Pessoa pessoa = pessoaRepository.findByUsuario(username)
+                .orElseThrow(() -> new ResponseStatusException(HttpStatus.NOT_FOUND, "Usuário não encontrado."));
+
+            Page<com.rmstudio.rmstudiofitness.entidades.AvaliacaoFisica> page = avaliacaoFisicaRepository
+                .findByPessoaIdOrderByDataAvaliacaoDesc(pessoa.getId(), pageable);
+            
+            model.addAttribute("page", page);
         }
         return "minhas-avaliacoes";
     }
  
     @GetMapping("/meus-planos-aula")
-    public String meusPlanosAula(Model model, Authentication authentication) {
-        model.addAttribute("planosDeAula", Collections.emptyList()); // Default to empty list
+    public String meusPlanosAula(Model model, Authentication authentication,
+                                 @PageableDefault(size = 5, sort = "dataInicio") Pageable pageable) {
         if (authentication != null && authentication.isAuthenticated()) {
             String username = authentication.getName();
-            pessoaRepository.findByUsuarioWithPlanosDeAula(username).ifPresent(pessoaCompleta -> {
-                model.addAttribute("planosDeAula", pessoaCompleta.getPlanosDeAula());
-            });
+            Pessoa pessoa = pessoaRepository.findByUsuario(username)
+                .orElseThrow(() -> new ResponseStatusException(HttpStatus.NOT_FOUND, "Usuário não encontrado."));
+            
+            Page<PlanoAula> page = planoAulaRepository.findByAlunoOrderByDataInicioDesc(pessoa, pageable);
+            model.addAttribute("page", page);
         }
         return "meus-planos-aula";
     }

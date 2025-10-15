@@ -122,7 +122,7 @@
                             </tr>
                         </thead>
                         <tbody>
-                            <tr th:each="m : ${mensalidades}">
+                            <tr th:each="m : ${page.content}">
                                 <td th:text="${#temporals.format(m.dataVencimento, 'dd/MM/yyyy')}"></td>
                                 <td th:text="|R$ ${#numbers.formatDecimal(m.valor, 1, 'POINT', 2, 'COMMA')}|"></td>
                                 <td>
@@ -162,11 +162,16 @@
                                     </th:block>
                                 </td>
                             </tr>
-                            <tr th:if="${#lists.isEmpty(mensalidades)}">
+                            <tr th:if="${page.empty}">
                                 <td colspan="5" style="text-align: center;">Nenhuma cobrança encontrada.</td>
                             </tr>
                         </tbody>
                     </table>
+                </div>
+                <div th:if="${page.totalPages > 1}" class="pagination-controls">
+                    <a th:if="${page.hasPrevious()}" th:href="@{/minhas-mensalidades(page=${page.number - 1}, size=${page.size})}" class="btn btn-secondary">&laquo; Anterior</a>
+                    <span th:text="'Página ' + (${page.number + 1}) + ' de ' + ${page.totalPages}" class="page-info"></span>
+                    <a th:if="${page.hasNext()}" th:href="@{/minhas-mensalidades(page=${page.number + 1}, size=${page.size})}" class="btn btn-secondary">Próxima &raquo;</a>
                 </div>
             </div>
         </div>

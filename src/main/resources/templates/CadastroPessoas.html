@@ -118,6 +118,10 @@
             </tbody>
           </table>
         </div>
+        <!-- Controles de Paginação -->
+        <div class="pagination-controls" id="pagination-controls">
+            <!-- Os botões de paginação serão inseridos aqui via JavaScript -->
+        </div>
       </div>
     </div>
   </main>
@@ -126,37 +130,12 @@
 
   <script>
     const API_URL = '/api/pessoas';
-    const form = document.getElementById('form-pessoas');
-    const tableBody = document.querySelector('#tabela-pessoas tbody');
-    const cpfInput = document.getElementById('cpf');
-    const telefoneInput = document.getElementById('telefone');
-    const senhaInput = document.getElementById('senha');
-    const idInput = document.getElementById('id');
-    const secaoPlano = document.getElementById('secao-plano');
-    const planoAtivoNome = document.getElementById('plano-ativo-nome');
-    const planoIdSelect = document.getElementById('planoId-select');
-    const btnAtribuirPlano = document.getElementById('btn-atribuir-plano');
-
-    // --- MÁSCARAS DE INPUT ---
-    cpfInput.addEventListener('input', (e) => {
-        let value = e.target.value.replace(/\D/g, '').slice(0, 11);
-        value = value.replace(/(\d{3})(\d)/, '$1.$2');
-        value = value.replace(/(\d{3})(\d)/, '$1.$2');
-        value = value.replace(/(\d{3})(\d{1,2})$/, '$1-$2');
-        e.target.value = value;
-    });
-
-    telefoneInput.addEventListener('input', (e) => {
-        let value = e.target.value.replace(/\D/g, '').slice(0, 11);
-        if (value.length > 10) {
-            value = value.replace(/^(\d\d)(\d{5})(\d{4}).*/, '($1) $2-$3');
-        } else {
-            value = value.replace(/^(\d\d)(\d{4})(\d{0,4}).*/, '($1) $2-$3');
-        }
-        e.target.value = value;
-    });
+    let form, tableBody, paginationControls, cpfInput, telefoneInput, senhaInput;
+    let idInput, secaoPlano, planoAtivoNome, planoIdSelect, btnAtribuirPlano;
+    let estadoSelect, cidadeSelect, searchInput, searchButton, clearSearchButton;
+    let filterEstadoSelect, filterCidadeSelect;
     
-    // --- LÓGICA DE VALIDAÇÃO ---
+    // --- FUNÇÕES GLOBAIS ---
     function validarCPF(cpf) {
         cpf = cpf.replace(/[^\d]+/g, '');
         if (cpf == '' || cpf.length != 11 || /^(\d)\1{10}$/.test(cpf)) return false;
@@ -176,9 +155,10 @@
     // --- LÓGICA DE PLANOS ---
     async function fetchPlanos() {
         try {
-            const response = await fetch('/api/tipos-plano');
+            const response = await fetch('/api/tipos-plano?size=100&sort=nome,asc');
             if (!response.ok) throw new Error('Erro ao buscar planos');
-            const planos = await response.json();
+            const pageData = await response.json();
+            const planos = pageData.content;
             planoIdSelect.innerHTML = '<option value="">Selecione um plano</option>';
             planos.forEach(plano => {
                 planoIdSelect.innerHTML += `<option value="${plano.id}">${plano.nome} - R$ ${plano.valor}</option>`;
@@ -190,12 +170,13 @@
     }
 
     // Funções de interação com a API
-    async function getPessoas() {
+    async function getPessoas(page = 0, size = 10) {
         try {
-            const response = await fetch(API_URL);
+            const response = await fetch(`${API_URL}?page=${page}&size=${size}&sort=nome,asc`);
             if (!response.ok) throw new Error('Erro ao buscar pessoas');
-            const pessoas = await response.json();
-            renderTable(pessoas);
+            const pageData = await response.json();
+            renderTable(pageData.content);
+            renderPagination(pageData);
         } catch (error) {
             console.error(error);
             // Adicionar feedback de erro para o usuário aqui
@@ -237,6 +218,34 @@
             `;
             tableBody.appendChild(tr);
         });
+    }
+
+    function renderPagination(pageData) {
+        paginationControls.innerHTML = '';
+        if (pageData.totalPages <= 1) return;
+
+        let html = '';
+
+        // Botão "Anterior"
+        if (!pageData.first) {
+            html += `<button class="btn btn-secondary" onclick="getPessoas(${pageData.number - 1})">Anterior</button>`;
+        }
+
+        // Números de Página
+        for (let i = 0; i < pageData.totalPages; i++) {
+            if (i === pageData.number) {
+                html += `<button class="btn btn-primary active" disabled>${i + 1}</button>`;
+            } else {
+                html += `<button class="btn btn-secondary" onclick="getPessoas(${i})">${i + 1}</button>`;
+            }
+        }
+
+        // Botão "Próximo"
+        if (!pageData.last) {
+            html += `<button class="btn btn-secondary" onclick="getPessoas(${pageData.number + 1})">Próximo</button>`;
+        }
+
+        paginationControls.innerHTML = html;
     }
 
     async function editPessoa(id) {
@@ -289,9 +298,10 @@
     async function getEstados() {
         const estadoSelect = document.getElementById('estadoId');
         try {
-            const response = await fetch('/api/estados');
+            const response = await fetch('/api/estados?size=100&sort=nome,asc');
             if (!response.ok) throw new Error('Erro ao buscar estados');
-            const estados = await response.json();
+            const pageData = await response.json();
+            const estados = pageData.content;
             estadoSelect.innerHTML = '<option value="">Selecione...</option>';
             estados.forEach(estado => {
                 const option = document.createElement('option');
@@ -339,119 +349,158 @@
         }
     }
 
-    // Event Listeners
-    form.addEventListener('submit', async (e) => {
-        e.preventDefault();
-        const formData = new FormData(form);
-        const pessoa = Object.fromEntries(formData.entries());
-        const id = pessoa.id;
+    function resetForm() {
+        form.reset();
+        document.getElementById('id').value = '';
+        document.getElementById('senha').value = '';
+        if (secaoPlano) secaoPlano.style.display = 'none';
+    }
 
-        const payload = {
-            id: pessoa.id || null,
-            nome: pessoa.nome,
-            email: pessoa.email,
-            telefone: pessoa.telefone,
-            genero: pessoa.genero,
-            usuario: pessoa.usuario,
-            senha: pessoa.senha,
-            dataNascimento: pessoa.dataNascimento,
-            cpf: pessoa.cpf,
-            cidade: { id: pessoa.cidadeId }
-        };
-        
-        const method = id ? 'PUT' : 'POST';
-        const url = id ? `${API_URL}/${id}` : API_URL;
-
-        try {
-            await fetch(url, {
-                method,
-                headers: { 'Content-Type': 'application/json' },
-                body: JSON.stringify(payload)
-            });
-            // Não vamos mais verificar a resposta, vamos assumir que funcionou.
-        } catch (error) {
-            // O erro de rede será registrado no console, mas não exibido ao usuário.
-            console.error('Falha na requisição ao salvar (erro ignorado):', error);
-        } finally {
-            // Este bloco será executado sempre, tendo a requisição sucesso ou falha.
-            resetForm();
-            getPessoas();
-        }
-    });
-
-    // Antes de submeter, adiciona validações
-    const originalSubmitHandler = form.onsubmit;
-    form.addEventListener('submit', function(e) {
-        // Validação de Senha para novos usuários
-        if (!idInput.value && !senhaInput.value) {
-            alert('O campo Senha é obrigatório para novos membros.');
-            e.preventDefault();
-            return;
-        }
-
-        // Validação de CPF
-        if (!validarCPF(cpfInput.value)) {
-            alert('CPF inválido. Por favor, verifique o número digitado.');
-            e.preventDefault();
-            return;
-        }
-    });
-
-    document.getElementById('estadoId').addEventListener('change', (e) => {
-        getCidadesPorEstado(e.target.value);
-    });
-
+    // Inicialização
     document.addEventListener('DOMContentLoaded', () => {
+        form = document.getElementById('form-pessoas');
+        tableBody = document.querySelector('#tabela-pessoas tbody');
+        paginationControls = document.getElementById('pagination-controls');
+        cpfInput = document.getElementById('cpf');
+        telefoneInput = document.getElementById('telefone');
+        senhaInput = document.getElementById('senha');
+        idInput = document.getElementById('id');
+        secaoPlano = document.getElementById('secao-plano');
+        planoAtivoNome = document.getElementById('plano-ativo-nome');
+        planoIdSelect = document.getElementById('planoId-select');
+        btnAtribuirPlano = document.getElementById('btn-atribuir-plano');
+        estadoSelect = document.getElementById('estadoId');
+        cidadeSelect = document.getElementById('cidadeId');
+        searchInput = document.getElementById('search-input');
+        searchButton = document.getElementById('search-button');
+        clearSearchButton = document.getElementById('clear-search-button');
+        filterEstadoSelect = document.getElementById('filter-estadoId');
+        filterCidadeSelect = document.getElementById('filter-cidadeId');
+
+        // --- MÁSCARAS DE INPUT ---
+        cpfInput.addEventListener('input', (e) => {
+            let value = e.target.value.replace(/\D/g, '').slice(0, 11);
+            value = value.replace(/(\d{3})(\d)/, '$1.$2');
+            value = value.replace(/(\d{3})(\d)/, '$1.$2');
+            value = value.replace(/(\d{3})(\d{1,2})$/, '$1-$2');
+            e.target.value = value;
+        });
+
+        telefoneInput.addEventListener('input', (e) => {
+            let value = e.target.value.replace(/\D/g, '').slice(0, 11);
+            if (value.length > 10) {
+                value = value.replace(/^(\d\d)(\d{5})(\d{4}).*/, '($1) $2-$3');
+            } else {
+                value = value.replace(/^(\d\d)(\d{4})(\d{0,4}).*/, '($1) $2-$3');
+            }
+            e.target.value = value;
+        });
+
+        // --- LÓGICA DO BOTÃO ATRIBUIR PLANO ---
+        btnAtribuirPlano.addEventListener('click', async () => {
+            const pessoaId = idInput.value;
+            const tipoPlanoId = planoIdSelect.value;
+
+            if (!pessoaId || !tipoPlanoId) {
+                alert('Por favor, selecione um membro e um plano.');
+                return;
+            }
+
+            if (!confirm('Tem certeza que deseja atribuir este plano ao membro? Uma nova cobrança será gerada.')) {
+                return;
+            }
+
+            try {
+                const response = await fetch('/api/pagamentos/atribuir-plano', {
+                    method: 'POST',
+                    headers: { 'Content-Type': 'application/json' },
+                    body: JSON.stringify({ pessoaId, tipoPlanoId })
+                });
+
+                if (!response.ok) {
+                    const errorData = await response.json();
+                    throw new Error(errorData.message || 'Erro ao atribuir plano.');
+                }
+
+                const novaMensalidade = await response.json();
+                alert(`Plano atribuído com sucesso! Nova mensalidade gerada com vencimento em ${new Date(novaMensalidade.dataVencimento).toLocaleDateString()}.`);
+                
+                // Atualiza a interface
+                planoAtivoNome.textContent = planoIdSelect.options[planoIdSelect.selectedIndex].text.split(' - ')[0];
+
+            } catch (error) {
+                console.error('Erro ao atribuir plano:', error);
+                alert(`Falha ao atribuir plano: ${error.message}`);
+            }
+        });
+
+        // --- SUBMIT E VALIDAÇÃO ---
+        form.addEventListener('submit', async (e) => {
+            // Validação de Senha para novos usuários
+            if (!idInput.value && !senhaInput.value) {
+                alert('O campo Senha é obrigatório para novos membros.');
+                e.preventDefault();
+                return;
+            }
+
+            // Validação de CPF
+            if (!validarCPF(cpfInput.value)) {
+                alert('CPF inválido. Por favor, verifique o número digitado.');
+                e.preventDefault();
+                return;
+            }
+
+            e.preventDefault();
+            const formData = new FormData(form);
+            const pessoa = Object.fromEntries(formData.entries());
+            const id = pessoa.id;
+
+            const payload = {
+                id: pessoa.id || null,
+                nome: pessoa.nome,
+                email: pessoa.email,
+                telefone: pessoa.telefone,
+                genero: pessoa.genero,
+                usuario: pessoa.usuario,
+                senha: pessoa.senha,
+                dataNascimento: pessoa.dataNascimento,
+                cpf: pessoa.cpf,
+                cidade: { id: pessoa.cidadeId }
+            };
+            
+            const method = id ? 'PUT' : 'POST';
+            const url = id ? `${API_URL}/${id}` : API_URL;
+
+            try {
+                await fetch(url, {
+                    method,
+                    headers: { 'Content-Type': 'application/json' },
+                    body: JSON.stringify(payload)
+                });
+            } catch (error) {
+                console.error('Falha na requisição ao salvar (erro ignorado):', error);
+            } finally {
+                resetForm();
+                getPessoas();
+            }
+        });
+
+        estadoSelect.addEventListener('change', (e) => {
+            getCidadesPorEstado(e.target.value);
+        });
+
+        // Mobile nav toggle
+        const navToggle = document.querySelector('.nav-toggle');
+        const navLinks = document.querySelector('.nav-links');
+        if (navToggle) {
+            navToggle.addEventListener('click', () => {
+                navLinks.classList.toggle('open');
+            });
+        }
+        
         getPessoas();
         getEstados();
         fetchPlanos();
-    });
-    
-    // Mobile nav toggle
-    const navToggle = document.querySelector('.nav-toggle');
-    const navLinks = document.querySelector('.nav-links');
-    if (navToggle) {
-        navToggle.addEventListener('click', () => {
-            navLinks.classList.toggle('open');
-        });
-    }
-
-    // --- LÓGICA DO BOTÃO ATRIBUIR PLANO ---
-    btnAtribuirPlano.addEventListener('click', async () => {
-        const pessoaId = idInput.value;
-        const tipoPlanoId = planoIdSelect.value;
-
-        if (!pessoaId || !tipoPlanoId) {
-            alert('Por favor, selecione um membro e um plano.');
-            return;
-        }
-
-        if (!confirm('Tem certeza que deseja atribuir este plano ao membro? Uma nova cobrança será gerada.')) {
-            return;
-        }
-
-        try {
-            const response = await fetch('/api/pagamentos/atribuir-plano', {
-                method: 'POST',
-                headers: { 'Content-Type': 'application/json' },
-                body: JSON.stringify({ pessoaId, tipoPlanoId })
-            });
-
-            if (!response.ok) {
-                const errorData = await response.json();
-                throw new Error(errorData.message || 'Erro ao atribuir plano.');
-            }
-
-            const novaMensalidade = await response.json();
-            alert(`Plano atribuído com sucesso! Nova mensalidade gerada com vencimento em ${new Date(novaMensalidade.dataVencimento).toLocaleDateString()}.`);
-            
-            // Atualiza a interface
-            planoAtivoNome.textContent = planoIdSelect.options[planoIdSelect.selectedIndex].text.split(' - ')[0];
-
-        } catch (error) {
-            console.error('Erro ao atribuir plano:', error);
-            alert(`Falha ao atribuir plano: ${error.message}`);
-        }
     });
   </script>
 </body>

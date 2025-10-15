@@ -1,5 +1,6 @@
 package com.rmstudio.rmstudiofitness.entidades;
 
+import com.fasterxml.jackson.annotation.JsonIgnoreProperties;
 import jakarta.persistence.*;
 import java.io.Serializable;
 import java.util.Objects;
@@ -16,6 +17,7 @@ public class ItemPlanoAula implements Serializable {
     // Muitos itens pertencem a um plano
     @ManyToOne(optional = false, fetch = FetchType.LAZY)
     @JoinColumn(name = "plano_aula_id", nullable = false)
+    @JsonIgnoreProperties({"itens", "aluno"})
     private PlanoAula planoAula;
 
     // Dia da semana
@@ -24,8 +26,9 @@ public class ItemPlanoAula implements Serializable {
     private DiaSemana dia;
 
     // Exercício do item
-    @ManyToOne(optional = false, fetch = FetchType.LAZY)
+    @ManyToOne(optional = false, fetch = FetchType.EAGER)
     @JoinColumn(name = "exercicio_id", nullable = false)
+    @JsonIgnoreProperties({"hibernateLazyInitializer", "handler"})
     private Exercicio exercicio;
 
     @Column(nullable = false)

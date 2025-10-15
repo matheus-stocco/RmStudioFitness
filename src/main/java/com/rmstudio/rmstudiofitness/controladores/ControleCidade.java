@@ -3,14 +3,19 @@ package com.rmstudio.rmstudiofitness.controladores;
 import com.rmstudio.rmstudiofitness.entidades.Cidade;
 import com.rmstudio.rmstudiofitness.entidades.Estado;
 
+import com.rmstudio.rmstudiofitness.repositorios.CidadeRepository;
+import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.data.domain.Page;
+import org.springframework.data.domain.Pageable;
+import org.springframework.data.web.PageableDefault;
+import org.springframework.http.HttpStatus;
+import org.springframework.http.ResponseEntity;
+import org.springframework.web.bind.annotation.*;
+
 import jakarta.persistence.EntityManager;
 import jakarta.persistence.PersistenceContext;
 import jakarta.persistence.TypedQuery;
 import jakarta.transaction.Transactional;
-
-import org.springframework.http.HttpStatus;
-import org.springframework.http.ResponseEntity;
-import org.springframework.web.bind.annotation.*;
 
 import java.net.URI;
 import java.util.List;
@@ -29,39 +34,34 @@ import java.util.List;
 @RequestMapping("/api/cidades")
 public class ControleCidade {
 
+    private final CidadeRepository cidadeRepository;
     @PersistenceContext
     private EntityManager em;
+
+    @Autowired
+    public ControleCidade(CidadeRepository cidadeRepository) {
+        this.cidadeRepository = cidadeRepository;
+    }
 
     // Payload simples para criação/atualização
     public record CidadePayload(String nome, Long estadoId) {}
 
     // LISTAR (com filtros opcionais)
     @GetMapping
-    public List<Cidade> listar(@RequestParam(name = "q", required = false) String q,
-                               @RequestParam(name = "estadoId", required = false) Long estadoId) {
-
-        // Para retornar Estado junto no JSON, usamos JOIN FETCH
-        StringBuilder jpql = new StringBuilder(
-            "SELECT c FROM Cidade c JOIN FETCH c.estado e WHERE 1=1 ");
-
+    public Page<Cidade> listar(@RequestParam(name = "q", required = false) String q,
+                               @RequestParam(name = "estadoId", required = false) Long estadoId,
+                               @PageableDefault(sort = "nome") Pageable pageable) {
         if (q != null && !q.trim().isEmpty()) {
-            jpql.append("AND LOWER(c.nome) LIKE :filtro ");
+            String termo = q.trim();
+            if (estadoId != null) {
+                return cidadeRepository.findByNomeContainingIgnoreCaseAndEstadoIdOrderByNome(termo, estadoId, pageable);
+            }
+            return cidadeRepository.findByNomeContainingIgnoreCaseOrderByNome(termo, pageable);
         }
         if (estadoId != null) {
-            jpql.append("AND e.id = :estadoId ");
+            return cidadeRepository.findByEstadoIdOrderByNome(estadoId, pageable);
         }
-        jpql.append("ORDER BY c.nome");
-
-        TypedQuery<Cidade> query = em.createQuery(jpql.toString(), Cidade.class);
-
-        if (q != null && !q.trim().isEmpty()) {
-            query.setParameter("filtro", "%" + q.trim().toLowerCase() + "%");
-        }
-        if (estadoId != null) {
-            query.setParameter("estadoId", estadoId);
-        }
-
-        return query.getResultList();
+        return cidadeRepository.findAllByOrderByNome(pageable);
     }
 
     // BUSCAR POR ID (com estado)

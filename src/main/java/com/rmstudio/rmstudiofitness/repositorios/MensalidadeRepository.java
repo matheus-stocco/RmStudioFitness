@@ -1,6 +1,8 @@
 package com.rmstudio.rmstudiofitness.repositorios;
 
 import com.rmstudio.rmstudiofitness.entidades.Mensalidade;
+import org.springframework.data.domain.Page;
+import org.springframework.data.domain.Pageable;
 import org.springframework.data.jpa.repository.JpaRepository;
 import org.springframework.data.jpa.repository.Query;
 import org.springframework.data.repository.query.Param;
@@ -11,6 +13,14 @@ import java.util.Optional;
 
 @Repository
 public interface MensalidadeRepository extends JpaRepository<Mensalidade, Long> {
+
+    Page<Mensalidade> findByPessoaIdOrderByDataVencimentoDesc(Long pessoaId, Pageable pageable);
+
+    /**
+     * Busca mensalidades de uma pessoa com JOIN FETCH para evitar lazy loading
+     */
+    @Query("SELECT m FROM Mensalidade m JOIN FETCH m.pessoa p JOIN FETCH m.tipoPlano tp WHERE p.id = :pessoaId ORDER BY m.dataVencimento DESC")
+    List<Mensalidade> findByPessoaIdWithDetails(@Param("pessoaId") Long pessoaId);
 
     @Query("SELECT m FROM Mensalidade m JOIN FETCH m.pessoa p WHERE m.id = :id")
     Optional<Mensalidade> findByIdWithPessoa(@Param("id") Long id);

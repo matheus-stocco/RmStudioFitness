@@ -54,6 +54,7 @@
                         <tbody></tbody>
                     </table>
                 </div>
+                <div class="pagination-controls" id="pagination-controls"></div>
             </div>
         </div>
     </main>
@@ -62,14 +63,15 @@
 
     <script>
         const API_URL = '/api/tipos-plano';
-        const form = document.getElementById('form-tipo-plano');
-        const tableBody = document.querySelector('#tabela-tipos-plano tbody');
-
-        async function fetchData() {
+        let form, tableBody, paginationControls;
+        
+        // Funções globais para serem acessíveis via onclick
+        async function fetchData(page = 0, size = 10) {
             try {
-                const response = await fetch(API_URL);
-                const data = await response.json();
-                renderTable(data);
+                const response = await fetch(`${API_URL}?page=${page}&size=${size}&sort=nome,asc`);
+                const pageData = await response.json();
+                renderTable(pageData.content);
+                renderPagination(pageData);
             } catch (error) {
                 console.error('Falha ao buscar dados:', error);
                 tableBody.innerHTML = `<tr><td colspan="4">Erro ao carregar dados.</td></tr>`;
@@ -97,28 +99,21 @@
             });
         }
 
-        form.addEventListener('submit', async (e) => {
-            e.preventDefault();
-            const formData = new FormData(form);
-            const data = Object.fromEntries(formData.entries());
-            const id = data.id;
-
-            const method = id ? 'PUT' : 'POST';
-            const url = id ? `${API_URL}/${id}` : API_URL;
-
-            try {
-                const response = await fetch(url, {
-                    method,
-                    headers: { 'Content-Type': 'application/json' },
-                    body: JSON.stringify(data),
-                });
-                if (!response.ok) throw new Error('Erro ao salvar');
-                resetForm();
-                fetchData();
-            } catch (error) {
-                console.error('Falha ao salvar:', error);
+        function renderPagination(pageData) {
+            paginationControls.innerHTML = '';
+            if (pageData.totalPages <= 1) return;
+            let html = '';
+            if (!pageData.first) {
+                html += `<button class="btn btn-secondary" onclick="fetchData(${pageData.number - 1})">Anterior</button>`;
             }
-        });
+            for (let i = 0; i < pageData.totalPages; i++) {
+                html += `<button class="btn ${i === pageData.number ? 'btn-primary active' : 'btn-secondary'}" onclick="fetchData(${i})">${i + 1}</button>`;
+            }
+            if (!pageData.last) {
+                html += `<button class="btn btn-secondary" onclick="fetchData(${pageData.number + 1})">Próximo</button>`;
+            }
+            paginationControls.innerHTML = html;
+        }
 
         async function editItem(id) {
             try {
@@ -150,16 +145,47 @@
             document.getElementById('id').value = '';
         }
 
-        document.addEventListener('DOMContentLoaded', fetchData);
-        
-        // Mobile nav toggle
-        const navToggle = document.querySelector('.nav-toggle');
-        const navLinks = document.querySelector('.nav-links');
-        if (navToggle) {
-            navToggle.addEventListener('click', () => {
-                navLinks.classList.toggle('open');
+        // Inicialização
+        document.addEventListener('DOMContentLoaded', () => {
+            form = document.getElementById('form-tipo-plano');
+            tableBody = document.querySelector('#tabela-tipos-plano tbody');
+            paginationControls = document.getElementById('pagination-controls');
+
+            // Mobile nav toggle
+            const navToggle = document.querySelector('.nav-toggle');
+            const navLinks = document.querySelector('.nav-links');
+            if (navToggle) {
+                navToggle.addEventListener('click', () => {
+                    navLinks.classList.toggle('open');
+                });
+            }
+            
+            form.addEventListener('submit', async (e) => {
+                e.preventDefault();
+                const formData = new FormData(form);
+                const data = Object.fromEntries(formData.entries());
+                const id = data.id;
+
+                const method = id ? 'PUT' : 'POST';
+                const url = id ? `${API_URL}/${id}` : API_URL;
+
+                try {
+                    const response = await fetch(url, {
+                        method,
+                        headers: { 'Content-Type': 'application/json' },
+                        body: JSON.stringify(data),
+                    });
+                    if (!response.ok) throw new Error('Erro ao salvar');
+                    resetForm();
+                    fetchData();
+                } catch (error) {
+                    console.error('Falha ao salvar:', error);
+                }
             });
-        }
+            
+            // Carregar dados ao inicializar
+            fetchData();
+        });
     </script>
 </body>
 </html>

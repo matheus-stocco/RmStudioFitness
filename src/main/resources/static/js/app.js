@@ -7,13 +7,14 @@ function toast(msg, ok=true){
   const el = document.createElement("div");
   el.className = "toast " + (ok ? "ok" : "err");
   el.textContent = msg;
-  toasts.appendChild(el);
+  toasts?.appendChild(el);
   setTimeout(()=>{ el.style.opacity=0; setTimeout(()=>el.remove(),250) }, 2500);
 }
 
 function confirmDialog(text){
   return new Promise(resolve=>{
     const dlg = $("#modal-confirm");
+    if(!dlg){ resolve(true); return; }
     $("#modal-text").textContent = text;
     dlg.showModal();
     const ok = $("#confirmar"), no = $("#cancelar");
@@ -28,16 +29,18 @@ function debounce(fn, t=250){ let id; return (...a)=>{ clearTimeout(id); id=setT
 
 // ---------- Loading States ----------
 function showLoading() {
-  $("#loading-overlay").style.display = "flex";
+  const overlay = $("#loading-overlay");
+  if (overlay) overlay.style.display = "flex";
 }
 
 function hideLoading() {
-  $("#loading-overlay").style.display = "none";
+  const overlay = $("#loading-overlay");
+  if (overlay) overlay.style.display = "none";
 }
 
 // ---------- Navbar mobile ----------
 $(".nav-toggle")?.addEventListener("click", ()=>{
-  $(".nav-links").classList.toggle("open");
+  $(".nav-links")?.classList.toggle("open");
 });
 
 // ---------- Estados ----------
@@ -50,6 +53,7 @@ const itemsPerPage = 10;  // itens por página
 
 // Atualizar estatísticas
 function updateStats() {
+  if(!$("#total-estados")) return; // Só se a UI existir
   const total = cache.length;
   const ativos = cache.length; // Todos os estados são considerados ativos
   const ultima = new Date().toLocaleString('pt-BR');
@@ -61,8 +65,9 @@ function updateStats() {
 
 // Paginação
 function updatePagination() {
-  const totalPages = Math.ceil(cache.length / itemsPerPage);
   const pagination = $("#pagination");
+  if(!pagination) return;
+  const totalPages = Math.ceil(cache.length / itemsPerPage);
   
   if (totalPages <= 1) {
     pagination.style.display = "none";
@@ -94,14 +99,17 @@ $("#btn-next")?.addEventListener("click", () => {
 });
 
 async function listar(){
+  // Só executa em telas que usam esta listagem
+  if(!tbody) return;
   try {
     showLoading();
-    const r = await fetch("/api/estados");
+    const r = await fetch("/api/estados?page=0&size=1000&sort=nome,asc");
     if(!r.ok){ 
       toast("Falha ao carregar estados", false); 
       return; 
     }
-    cache = await r.json();
+    const pageData = await r.json();
+    cache = Array.isArray(pageData) ? pageData : (pageData.content || []);
     currentPage = 1; // Reset para primeira página
     updateStats();
     render();
@@ -113,6 +121,7 @@ async function listar(){
 }
 
 function render(){
+  if(!tbody) return;
   let rows = [...cache];
 
   // filtro
@@ -236,56 +245,67 @@ $("#form-estado")?.addEventListener("submit", async ev=>{
 
 // Visualizar detalhes
 function showDetails(estado) {
-  $("#detail-id").textContent = estado.id;
-  $("#detail-nome").textContent = estado.nome;
-  $("#detail-uf").textContent = estado.uf;
-  $("#detail-data").textContent = new Date().toLocaleDateString('pt-BR');
+  const detailId = $("#detail-id");
+  const detailNome = $("#detail-nome");
+  const detailUf = $("#detail-uf");
+  const detailData = $("#detail-data");
+  const modalDetails = $("#modal-details");
   
-  $("#modal-details").showModal();
+  if (detailId) detailId.textContent = estado.id;
+  if (detailNome) detailNome.textContent = estado.nome;
+  if (detailUf) detailUf.textContent = estado.uf;
+  if (detailData) detailData.textContent = new Date().toLocaleDateString('pt-BR');
+  if (modalDetails) modalDetails.showModal();
 }
 
 // Fechar modal de detalhes
-$("#close-details")?.addEventListener("click", () => {
-  $("#modal-details").close();
-});
+const closeDetails = $("#close-details");
+if (closeDetails) {
+  closeDetails.addEventListener("click", () => {
+    const modalDetails = $("#modal-details");
+    if (modalDetails) modalDetails.close();
+  });
+}
 
 // excluir (delegação)
-tbody.addEventListener("click", async ev=>{
-  const btn = ev.target.closest("[data-del]");
-  const viewBtn = ev.target.closest("[data-view]");
-  
-  if(viewBtn) {
-    const id = viewBtn.getAttribute("data-view");
-    const estado = cache.find(e => e.id == id);
-    if(estado) showDetails(estado);
-    return;
-  }
-  
-  if(!btn) return;
-  
-  const id = btn.getAttribute("data-del");
-  const estado = cache.find(e => e.id == id);
-  
-  if(!estado) return;
-  
-  if(!await confirmDialog(`Excluir o estado "${estado.nome}" (${estado.uf})?`)) return;
-  
-  try {
-    showLoading();
-    const r = await fetch(`/api/estados/${id}`, { method: "DELETE" });
-    if(!r.ok){ 
-      const errorText = await r.text();
-      toast("Erro ao excluir: " + errorText, false); 
-      return; 
+if (tbody) {
+  tbody.addEventListener("click", async ev=>{
+    const btn = ev.target.closest("[data-del]");
+    const viewBtn = ev.target.closest("[data-view]");
+    
+    if(viewBtn) {
+      const id = viewBtn.getAttribute("data-view");
+      const estado = cache.find(e => e.id == id);
+      if(estado) showDetails(estado);
+      return;
     }
-    toast("Estado excluído com sucesso! 🗑️");
-    await listar();
-  } catch (error) {
-    toast("Erro de conexão: " + error.message, false);
-  } finally {
-    hideLoading();
-  }
-});
+    
+    if(!btn) return;
+    
+    const id = btn.getAttribute("data-del");
+    const estado = cache.find(e => e.id == id);
+    
+    if(!estado) return;
+    
+    if(!await confirmDialog(`Excluir o estado "${estado.nome}" (${estado.uf})?`)) return;
+    
+    try {
+      showLoading();
+      const r = await fetch(`/api/estados/${id}`, { method: "DELETE" });
+      if(!r.ok){ 
+        const errorText = await r.text();
+        toast("Erro ao excluir: " + errorText, false); 
+        return; 
+      }
+      toast("Estado excluído com sucesso! 🗑️");
+      await listar();
+    } catch (error) {
+      toast("Erro de conexão: " + error.message, false);
+    } finally {
+      hideLoading();
+    }
+  });
+}
 
 // Atalhos de teclado
 document.addEventListener("keydown", (e) => {
@@ -332,66 +352,7 @@ function addTooltips() {
 
 // boot
 document.addEventListener("DOMContentLoaded", () => {
-  listar();
   addTooltips();
-  
-  // Focar no primeiro campo após carregar
-  setTimeout(() => {
-    $("#nome")?.focus();
-  }, 500);
-});
-
-// ---------- NAVEGAÇÃO SPA (Single Page Application) ----------
-
-const mainContent = $("main.form-page-container");
-
-async function navigateTo(url) {
-    try {
-        showLoading();
-        const response = await fetch(url);
-        if (!response.ok) {
-            toast("Erro ao carregar a página.", false);
-            return;
-        }
-        const html = await response.text();
-        const parser = new DOMParser();
-        const doc = parser.parseFromString(html, "text/html");
-        
-        const newMain = doc.querySelector("main.form-page-container");
-        const newTitle = doc.querySelector("title").innerText;
-
-        if (newMain && mainContent) {
-            mainContent.innerHTML = newMain.innerHTML;
-            document.title = newTitle;
-            window.history.pushState({ path: url }, '', url);
-
-            // Re-executar scripts específicos da página se necessário
-            // Esta é a parte mais complexa de SPAs manuais.
-            // Por enquanto, vamos assumir que o HTML é autossuficiente.
-        } else {
-            // Fallback para carregamento normal se a estrutura não for encontrada
-            window.location.href = url;
-        }
-
-    } catch (error) {
-        toast("Erro de conexão: " + error.message, false);
-    } finally {
-        hideLoading();
-    }
-}
-
-document.addEventListener("click", e => {
-    const link = e.target.closest('a[href^="/"]');
-
-    // Ignorar links que não são da navegação principal, se necessário
-    if (link && link.closest(".nav-links")) {
-        e.preventDefault();
-        navigateTo(link.href);
-    }
-});
-
-window.addEventListener("popstate", e => {
-    if (e.state && e.state.path) {
-        navigateTo(e.state.path);
-    }
+  // Não chamar listar() automaticamente pois pode conflitar com scripts específicos das páginas
+  // Cada página deve chamar sua própria função de inicialização
 });

@@ -7,6 +7,8 @@ import com.rmstudio.rmstudiofitness.repositorios.CidadeRepository;
 import com.rmstudio.rmstudiofitness.repositorios.PerfilRepository;
 import com.rmstudio.rmstudiofitness.repositorios.PessoaRepository;
 
+import org.springframework.data.domain.Page;
+import org.springframework.data.domain.Pageable;
 import org.springframework.transaction.annotation.Transactional;
 
 import org.springframework.http.HttpStatus;
@@ -20,7 +22,6 @@ import java.time.LocalDate;
 import java.util.HashSet;
 import java.util.Set;
 
-import java.util.List;
 import org.springframework.web.server.ResponseStatusException;
 
 /**
@@ -66,23 +67,24 @@ public class ControlePessoa {
 
     // ===== LISTAR (com filtros opcionais) =====
     @GetMapping
-    public List<Pessoa> listar(
+    public Page<Pessoa> listar(
             @RequestParam(name = "q", required = false) String q,
             @RequestParam(name = "cidadeId", required = false) Long cidadeId,
-            @RequestParam(name = "estadoId", required = false) Long estadoId
+            @RequestParam(name = "estadoId", required = false) Long estadoId,
+            Pageable pageable
     ) {
         // Esta é uma implementação simplificada usando repositórios.
         // Para filtros complexos, uma abordagem com Criteria API ou Querydsl seria mais robusta.
         if (cidadeId != null) {
-            return pessoaRepository.findByCidadeIdOrderByNome(cidadeId);
+            return pessoaRepository.findByCidadeIdOrderByNome(cidadeId, pageable);
         }
         if (estadoId != null) {
-            return pessoaRepository.findByEstadoId(estadoId);
+            return pessoaRepository.findByEstadoId(estadoId, pageable);
         }
-        if (!isBlank(q)) {
-            return pessoaRepository.findByNomeContainingIgnoreCase(q.trim());
+        if (q != null && !q.trim().isEmpty()){
+            return pessoaRepository.findByNomeContainingIgnoreCase(q.trim(), pageable);
         }
-        return pessoaRepository.findAllByOrderByNome();
+        return pessoaRepository.findAllByOrderByNome(pageable);
     }
 
     // ===== DETALHE =====

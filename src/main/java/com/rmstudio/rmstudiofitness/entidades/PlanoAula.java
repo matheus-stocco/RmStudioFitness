@@ -1,7 +1,7 @@
 package com.rmstudio.rmstudiofitness.entidades;
 
 import com.fasterxml.jackson.annotation.JsonIgnoreProperties;
-import com.fasterxml.jackson.annotation.JsonManagedReference;
+import com.fasterxml.jackson.annotation.JsonIgnore;
 import jakarta.persistence.*;
 import jakarta.validation.constraints.NotBlank;
 import jakarta.validation.constraints.Size;
@@ -48,13 +48,23 @@ public class PlanoAula implements Serializable {
     @Column(name = "objetivo", length = 200)
     private String objetivo;
 
+    @Column(name = "data_inicio")
+    private LocalDateTime dataInicio;
+
+    @Column(name = "data_fim")
+    private LocalDateTime dataFim;
+
+    @ManyToOne(fetch = FetchType.EAGER)
+    @JoinColumn(name = "aluno_id")
+    private Pessoa aluno;
+
     @OneToMany(
         mappedBy = "planoAula",
         cascade = CascadeType.ALL,
         orphanRemoval = true,
         fetch = FetchType.LAZY
     )
-    @JsonManagedReference
+    @JsonIgnore
     private List<ItemPlanoAula> itens = new ArrayList<>();
 
     // Construtores
@@ -106,6 +116,22 @@ public class PlanoAula implements Serializable {
 
     public String getObjetivo() { return objetivo; }
     public void setObjetivo(String objetivo) { this.objetivo = objetivo; }
+
+    public LocalDateTime getDataInicio() {
+        return dataInicio;
+    }
+
+    public void setDataInicio(LocalDateTime dataInicio) {
+        this.dataInicio = dataInicio;
+    }
+
+    public LocalDateTime getDataFim() {
+        return dataFim;
+    }
+
+    public void setDataFim(LocalDateTime dataFim) {
+        this.dataFim = dataFim;
+    }
 
     public List<ItemPlanoAula> getItens() {
         if (itens == null) itens = new ArrayList<>();
@@ -174,6 +200,15 @@ public class PlanoAula implements Serializable {
                 .distinct()
                 .collect(Collectors.toList());
     }
+
+    public Pessoa getAluno() {
+        return aluno;
+    }
+
+    public void setAluno(Pessoa aluno) {
+        this.aluno = aluno;
+    }
+
     public PlanoAula duplicar(String novoNome) {
         PlanoAula n = new PlanoAula();
         n.setNome(novoNome);

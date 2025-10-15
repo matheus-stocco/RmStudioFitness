@@ -55,12 +55,15 @@ public class DataInitializer implements CommandLineRunner {
                 return estadoRepository.save(novoEstado);
             });
 
-            Cidade cidadePadrao = cidadeRepository.findByNome("Cidade Padrão").stream().findFirst().orElseGet(() -> {
-                Cidade novaCidade = new Cidade();
-                novaCidade.setNome("Cidade Padrão");
-                novaCidade.setEstado(estadoPadrao);
-                return cidadeRepository.save(novaCidade);
-            });
+            Cidade cidadePadrao = cidadeRepository.findAll().stream()
+                .filter(c -> "Cidade Padrão".equalsIgnoreCase(c.getNome()))
+                .findFirst()
+                .orElseGet(() -> {
+                    Cidade novaCidade = new Cidade();
+                    novaCidade.setNome("Cidade Padrão");
+                    novaCidade.setEstado(estadoPadrao);
+                    return cidadeRepository.save(novaCidade);
+                });
 
             Perfil adminPerfil = perfilRepository.findAll().stream().filter(p -> p.getNome().equals("ROLE_ADMIN")).findFirst().orElseThrow();
 

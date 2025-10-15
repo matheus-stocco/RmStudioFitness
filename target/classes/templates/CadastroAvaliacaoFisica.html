@@ -175,14 +175,15 @@
     <script>
         const API_URL = '/api/avaliacoes';
         const API_PESSOAS_URL = '/api/pessoas';
-        const form = document.getElementById('form-avaliacao');
-        const tableBody = document.querySelector('#tabela-avaliacoes tbody');
-
+        let form, tableBody;
+        
+        // Funções globais
         async function fetchPessoas() {
             const pessoaSelect = document.getElementById('pessoaId');
             try {
                 const response = await fetch(API_PESSOAS_URL);
-                const pessoas = await response.json();
+                const pageData = await response.json();
+                const pessoas = pageData.content; 
                 pessoaSelect.innerHTML = '<option value="">Selecione um aluno</option>';
                 pessoas.forEach(pessoa => {
                     pessoaSelect.innerHTML += `<option value="${pessoa.id}">${pessoa.nome}</option>`;
@@ -301,7 +302,7 @@
             });
         }
 
-        form.addEventListener('submit', async (e) => {
+        async function handleSubmit(e) {
             e.preventDefault();
             const formData = new FormData(form);
             const id = formData.get('id');
@@ -342,7 +343,7 @@
             } catch (error) {
                 console.error('Erro:', error);
             }
-        });
+        }
 
         async function editAvaliacao(id) {
             try {
@@ -412,20 +413,27 @@
             document.getElementById('id').value = '';
         }
 
+        // Inicialização
         document.addEventListener('DOMContentLoaded', () => {
+            form = document.getElementById('form-avaliacao');
+            tableBody = document.querySelector('#tabela-avaliacoes tbody');
+            if (form) {
+                form.addEventListener('submit', handleSubmit);
+            }
+
+            // Mobile nav toggle
+            const navToggle = document.querySelector('.nav-toggle');
+            const navLinks = document.querySelector('.nav-links');
+            if (navToggle) {
+                navToggle.addEventListener('click', () => {
+                    navLinks.classList.toggle('open');
+                });
+            }
+            
             fetchPessoas();
             fetchAvaliacoes();
             document.getElementById('dataAvaliacao').valueAsDate = new Date();
         });
-
-        // Mobile nav toggle
-        const navToggle = document.querySelector('.nav-toggle');
-        const navLinks = document.querySelector('.nav-links');
-        if (navToggle) {
-            navToggle.addEventListener('click', () => {
-                navLinks.classList.toggle('open');
-            });
-        }
     </script>
 </body>
 </html>

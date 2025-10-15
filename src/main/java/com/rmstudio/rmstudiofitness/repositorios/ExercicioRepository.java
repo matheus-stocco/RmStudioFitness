@@ -2,6 +2,8 @@
 package com.rmstudio.rmstudiofitness.repositorios;
 
 import com.rmstudio.rmstudiofitness.entidades.Exercicio;
+import org.springframework.data.domain.Page;
+import org.springframework.data.domain.Pageable;
 import org.springframework.data.jpa.repository.JpaRepository;
 import org.springframework.data.jpa.repository.Query;
 import org.springframework.stereotype.Repository;
@@ -11,6 +13,12 @@ import java.util.Optional;
 
 @Repository
 public interface ExercicioRepository extends JpaRepository<Exercicio, Long> {
+
+    Page<Exercicio> findAllByOrderByNome(Pageable pageable);
+    
+    Page<Exercicio> findByNomeContainingIgnoreCaseOrderByNome(String nome, Pageable pageable);
+    
+    Page<Exercicio> findByGrupoMuscularContainingIgnoreCaseOrderByNome(String grupoMuscular, Pageable pageable);
 
     /**
      * Busca todos os exercícios ordenados por nome

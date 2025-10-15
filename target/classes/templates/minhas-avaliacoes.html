@@ -87,14 +87,14 @@
         <div class="avaliacoes-list">
             
             <!-- Mensagem caso não hajam avaliações (condição do Thymeleaf) -->
-            <div th:if="${#lists.isEmpty(avaliacoes)}" class="card empty-state">
+            <div th:if="${page == null or page.empty}" class="card empty-state">
                 <i class="fas fa-folder-open"></i>
                 <h3 class="card-title">Nenhuma Avaliação Encontrada</h3>
                 <p class="card-text">Você ainda não possui nenhuma avaliação física registrada no sistema.</p>
             </div>
 
             <!-- Loop para iterar sobre cada avaliação (condição do Thymeleaf) -->
-            <div th:if="${not #lists.isEmpty(avaliacoes)}" th:each="avaliacao : ${avaliacoes}" class="card avaliacao-card">
+            <div th:if="${page != null and !page.empty}" th:each="avaliacao : ${page.content}" class="card avaliacao-card">
                 <div class="card-header">
                     <h3 class="card-title">Avaliação de <span th:text="${#temporals.format(avaliacao.dataAvaliacao, 'dd/MM/yyyy')}"></span></h3>
                     <span class="badge" 
@@ -178,6 +178,17 @@
                         <p th:text="${avaliacao.observacoes}"></p>
                     </div>
                 </div>
+            </div>
+
+            <!-- Controles de Paginação -->
+            <div th:if="${page != null and page.totalPages > 1}" class="pagination-controls">
+                <a th:if="${page.hasPrevious()}" th:href="@{/minhas-avaliacoes(page=${page.number - 1}, size=${page.size})}" class="btn btn-secondary">
+                    <i class="fas fa-chevron-left"></i> Anterior
+                </a>
+                <span th:text="'Página ' + (${page.number + 1}) + ' de ' + ${page.totalPages}" class="page-info"></span>
+                <a th:if="${page.hasNext()}" th:href="@{/minhas-avaliacoes(page=${page.number + 1}, size=${page.size})}" class="btn btn-secondary">
+                    Próxima <i class="fas fa-chevron-right"></i>
+                </a>
             </div>
 
         </div>

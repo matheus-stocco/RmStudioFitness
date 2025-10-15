@@ -51,6 +51,9 @@
             </tbody>
           </table>
         </div>
+        <div class="pagination-controls" id="pagination-controls">
+            <!-- Os botões de paginação serão inseridos aqui via JavaScript -->
+        </div>
       </div>
     </div>
   </main>
@@ -60,15 +63,15 @@
   <script>
     const API_CIDADES_URL = '/api/cidades';
     const API_ESTADOS_URL = '/api/estados';
-    const form = document.getElementById('form-cidade');
-    const tableBody = document.querySelector('#tabela-cidades tbody');
-    const estadoSelect = document.getElementById('estadoId');
-
+    let form, tableBody, estadoSelect, paginationControls;
+    
+    // Funções globais para serem acessíveis via onclick
     async function getEstados() {
       try {
         const response = await fetch(API_ESTADOS_URL);
         if (!response.ok) throw new Error('Erro ao buscar estados');
-        const estados = await response.json();
+        const pageData = await response.json();
+        const estados = pageData.content;
         estadoSelect.innerHTML = '<option value="">Selecione um estado</option>';
         estados.forEach(estado => {
           const option = document.createElement('option');
@@ -82,12 +85,13 @@
       }
     }
 
-    async function getCidades() {
+    async function getCidades(page = 0, size = 10) {
       try {
-        const response = await fetch(API_CIDADES_URL);
+        const response = await fetch(`${API_CIDADES_URL}?page=${page}&size=${size}&sort=nome,asc`);
         if (!response.ok) throw new Error('Erro ao buscar cidades');
-        const cidades = await response.json();
-        renderTable(cidades);
+        const pageData = await response.json();
+        renderTable(pageData.content);
+        renderPagination(pageData);
       } catch (error) {
         console.error(error);
         tableBody.innerHTML = '<tr><td colspan="3">Erro ao carregar cidades.</td></tr>';
@@ -114,32 +118,22 @@
       });
     }
 
-    form.addEventListener('submit', async (e) => {
-      e.preventDefault();
-      const formData = new FormData(form);
-      const id = formData.get('id');
-      const payload = {
-        nome: formData.get('nome'),
-        estadoId: formData.get('estadoId') 
-      };
+    function renderPagination(pageData) {
+        paginationControls.innerHTML = '';
+        if (pageData.totalPages <= 1) return;
 
-      const method = id ? 'PUT' : 'POST';
-      const url = id ? `${API_CIDADES_URL}/${id}` : API_CIDADES_URL;
-
-      try {
-        const response = await fetch(url, {
-          method,
-          headers: { 'Content-Type': 'application/json' },
-          body: JSON.stringify(payload),
-        });
-        if (!response.ok) throw new Error('Erro ao salvar cidade');
-        resetForm();
-        getCidades();
-        location.reload();
-      } catch (error) {
-        console.error(error);
-      }
-    });
+        let html = '';
+        if (!pageData.first) {
+            html += `<button class="btn btn-secondary" onclick="getCidades(${pageData.number - 1})">Anterior</button>`;
+        }
+        for (let i = 0; i < pageData.totalPages; i++) {
+            html += `<button class="btn ${i === pageData.number ? 'btn-primary active' : 'btn-secondary'}" onclick="getCidades(${i})">${i + 1}</button>`;
+        }
+        if (!pageData.last) {
+            html += `<button class="btn btn-secondary" onclick="getCidades(${pageData.number + 1})">Próximo</button>`;
+        }
+        paginationControls.innerHTML = html;
+    }
 
     async function editCidade(id) {
         try {
@@ -173,19 +167,60 @@
       document.getElementById('id').value = '';
     }
 
+    // Inicialização
     document.addEventListener('DOMContentLoaded', () => {
-      getEstados();
-      getCidades();
-    });
+        form = document.getElementById('form-cidade');
+        tableBody = document.querySelector('#tabela-cidades tbody');
+        estadoSelect = document.getElementById('estadoId');
+        paginationControls = document.getElementById('pagination-controls');
 
-    // Mobile nav toggle
-    const navToggle = document.querySelector('.nav-toggle');
-    const navLinks = document.querySelector('.nav-links');
-    if (navToggle) {
-        navToggle.addEventListener('click', () => {
-            navLinks.classList.toggle('open');
+        // Mobile nav toggle
+        const navToggle = document.querySelector('.nav-toggle');
+        const navLinks = document.querySelector('.nav-links');
+        if (navToggle) {
+            navToggle.addEventListener('click', () => {
+                navLinks.classList.toggle('open');
+            });
+        }
+        
+        form.addEventListener('submit', async (e) => {
+          e.preventDefault();
+          const formData = new FormData(form);
+          const data = Object.fromEntries(formData.entries());
+          const id = data.id;
+
+          if (!data.nome || !data.estadoId) {
+            alert('Preencha todos os campos!');
+            return;
+          }
+
+          const payload = {
+            id: data.id || null,
+            nome: data.nome,
+            estado: { id: parseInt(data.estadoId) }
+          };
+
+          const method = id ? 'PUT' : 'POST';
+          const url = id ? `${API_CIDADES_URL}/${id}` : API_CIDADES_URL;
+
+          try {
+            const response = await fetch(url, {
+              method,
+              headers: { 'Content-Type': 'application/json' },
+              body: JSON.stringify(payload),
+            });
+            if (!response.ok) throw new Error('Erro ao salvar cidade');
+            resetForm();
+            getCidades();
+          } catch (error) {
+            console.error(error);
+            alert('Erro ao salvar cidade');
+          }
         });
-    }
+        
+        getEstados();
+        getCidades();
+    });
   </script>
 </body>
 </html>

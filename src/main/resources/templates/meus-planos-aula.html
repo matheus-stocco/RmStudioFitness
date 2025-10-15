@@ -22,14 +22,14 @@
         <div class="planos-aula-list">
             
             <!-- Mensagem se não houver planos -->
-            <div th:if="${#lists.isEmpty(planosDeAula)}" class="card empty-state">
+            <div th:if="${page == null or page.empty}" class="card empty-state">
                 <i class="fas fa-folder-open"></i>
                 <h3 class="card-title">Nenhum Plano de Aula Encontrado</h3>
                 <p class="card-text">Você ainda não possui nenhum plano de aula atribuído.</p>
             </div>
 
             <!-- Loop para exibir cada plano de aula -->
-            <div th:if="${not #lists.isEmpty(planosDeAula)}" th:each="plano : ${planosDeAula}" class="card plano-aula-card">
+            <div th:if="${page != null and !page.empty}" th:each="plano : ${page.content}" class="card plano-aula-card">
                 <div class="card-header">
                     <h3 class="card-title" th:text="${plano.nome}"></h3>
                     <span class="badge" th:text="${'Válido de ' + #temporals.format(plano.dataInicio, 'dd/MM/yy') + ' a ' + #temporals.format(plano.dataFim, 'dd/MM/yy')}"></span>
@@ -56,6 +56,13 @@
                 </div>
             </div>
 
+            <!-- Controles de Paginação -->
+            <div th:if="${page != null and page.totalPages > 1}" class="pagination-controls">
+                <a th:if="${page.hasPrevious()}" th:href="@{/meus-planos-aula(page=${page.number - 1}, size=${page.size})}" class="btn btn-secondary">Anterior</a>
+                <span class="page-info" th:text="'Página ' + (${page.number + 1}) + ' de ' + ${page.totalPages}"></span>
+                <a th:if="${page.hasNext()}" th:href="@{/meus-planos-aula(page=${page.number + 1}, size=${page.size})}" class="btn btn-secondary">Próxima</a>
+            </div>
+            
         </div>
     </div>
 </main>

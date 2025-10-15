@@ -62,50 +62,69 @@
             <tbody></tbody>
           </table>
         </div>
+        <div class="pagination-controls" id="pagination-controls"></div>
       </div>
     </div>
   </main>
 
   <footer class="footer" th:replace="~{index :: footer}"></footer>
 
-  <script>
-    const API_URL = '/api/exercicios';
-    const form = document.getElementById('form-exercicio');
-    const tableBody = document.querySelector('#tabela-exercicios tbody');
-
-    async function fetchData() {
+    <script>
+        const API_URL = '/api/exercicios';
+        let form, tableBody, paginationControls;
+        
+        // Funções globais para serem acessíveis via onclick
+        async function fetchData(page = 0, size = 10) {
       try {
-        const response = await fetch(API_URL);
+        const response = await fetch(`${API_URL}?page=${page}&size=${size}&sort=nome,asc`);
         if (!response.ok) throw new Error('Erro ao buscar exercícios');
-        const data = await response.json();
-        renderTable(data);
-      } catch (error) {
-        console.error('Falha na requisição:', error);
-        tableBody.innerHTML = `<tr><td colspan="3">Erro ao carregar dados.</td></tr>`;
-      }
-    }
+        const pageData = await response.json();
+        renderTable(pageData.content);
+        renderPagination(pageData);
+          } catch (error) {
+            console.error('Falha na requisição:', error);
+            tableBody.innerHTML = `<tr><td colspan="3">Erro ao carregar dados.</td></tr>`;
+          }
+        }
 
-    function renderTable(data) {
-      tableBody.innerHTML = '';
-       if (data.length === 0) {
-        tableBody.innerHTML = `<tr><td colspan="3" style="text-align:center;">Nenhum exercício cadastrado.</td></tr>`;
-        return;
-      }
-      data.forEach(item => {
-        const tr = document.createElement('tr');
-        tr.innerHTML = `
-          <td>${item.nome}</td>
-          <td>${item.grupoMuscular}</td>
-          <td class="cell-actions">
-            <button class="btn btn-secondary" onclick="editItem('${item.id}')"><i class="fas fa-edit"></i></button>
-            <button class="btn btn-secondary" onclick="deleteItem('${item.id}')"><i class="fas fa-trash"></i></button>
-          </td>
-        `;
-        tableBody.appendChild(tr);
-      });
-    }
+        function renderTable(data) {
+          tableBody.innerHTML = '';
+           if (data.length === 0) {
+            tableBody.innerHTML = `<tr><td colspan="3" style="text-align:center;">Nenhum exercício cadastrado.</td></tr>`;
+            return;
+          }
+          data.forEach(item => {
+            const tr = document.createElement('tr');
+            tr.innerHTML = `
+              <td>${item.nome}</td>
+              <td>${item.grupoMuscular}</td>
+              <td class="cell-actions">
+                <button class="btn btn-secondary" onclick="editItem('${item.id}')"><i class="fas fa-edit"></i></button>
+                <button class="btn btn-secondary" onclick="deleteItem('${item.id}')"><i class="fas fa-trash"></i></button>
+              </td>
+            `;
+            tableBody.appendChild(tr);
+          });
+        }
 
-    async function handleSubmit(event) {
+        function renderPagination(pageData) {
+            paginationControls.innerHTML = '';
+            if (pageData.totalPages <= 1) return;
+
+            let html = '';
+            if (!pageData.first) {
+                html += `<button class="btn btn-secondary" onclick="fetchData(${pageData.number - 1})">Anterior</button>`;
+            }
+            for (let i = 0; i < pageData.totalPages; i++) {
+                html += `<button class="btn ${i === pageData.number ? 'btn-primary active' : 'btn-secondary'}" onclick="fetchData(${i})">${i + 1}</button>`;
+            }
+            if (!pageData.last) {
+                html += `<button class="btn btn-secondary" onclick="fetchData(${pageData.number + 1})">Próximo</button>`;
+            }
+            paginationControls.innerHTML = html;
+        }
+
+        async function handleSubmit(event) {
       event.preventDefault();
       const formData = new FormData(form);
       const data = Object.fromEntries(formData.entries());
@@ -128,48 +147,57 @@
       }
     }
 
-    async function editItem(id) {
-      try {
-        const response = await fetch(`${API_URL}/${id}`);
-        if (!response.ok) throw new Error('Exercício não encontrado');
-        const item = await response.json();
-        document.getElementById('id').value = item.id;
-        document.getElementById('nome').value = item.nome;
-        document.getElementById('descricao').value = item.descricao;
-        document.getElementById('grupoMuscular').value = item.grupoMuscular;
-        window.scrollTo(0, 0);
-      } catch (error) {
-        console.error('Falha ao carregar para edição:', error);
-      }
-    }
+        async function editItem(id) {
+          try {
+            const response = await fetch(`${API_URL}/${id}`);
+            if (!response.ok) throw new Error('Exercício não encontrado');
+            const item = await response.json();
+            document.getElementById('id').value = item.id;
+            document.getElementById('nome').value = item.nome;
+            document.getElementById('descricao').value = item.descricao;
+            document.getElementById('grupoMuscular').value = item.grupoMuscular;
+            window.scrollTo(0, 0);
+          } catch (error) {
+            console.error('Falha ao carregar para edição:', error);
+          }
+        }
 
-    async function deleteItem(id) {
-      if (!confirm('Tem certeza que deseja excluir este exercício?')) return;
-      try {
-        const response = await fetch(`${API_URL}/${id}`, { method: 'DELETE' });
-        if (!response.ok) throw new Error('Erro ao excluir');
-        fetchData();
-      } catch (error) {
-        console.error('Falha ao excluir:', error);
-      }
-    }
+        async function deleteItem(id) {
+          if (!confirm('Tem certeza que deseja excluir este exercício?')) return;
+          try {
+            const response = await fetch(`${API_URL}/${id}`, { method: 'DELETE' });
+            if (!response.ok) throw new Error('Erro ao excluir');
+            fetchData();
+          } catch (error) {
+            console.error('Falha ao excluir:', error);
+          }
+        }
 
-    function resetForm() {
-      form.reset();
-      document.getElementById('id').value = '';
-    }
+        function resetForm() {
+          form.reset();
+          document.getElementById('id').value = '';
+        }
 
-    form.addEventListener('submit', handleSubmit);
-    document.addEventListener('DOMContentLoaded', fetchData);
-    
-    // Mobile nav toggle
-    const navToggle = document.querySelector('.nav-toggle');
-    const navLinks = document.querySelector('.nav-links');
-    if (navToggle) {
-        navToggle.addEventListener('click', () => {
-            navLinks.classList.toggle('open');
+        // Inicialização
+        document.addEventListener('DOMContentLoaded', () => {
+            form = document.getElementById('form-exercicio');
+            tableBody = document.querySelector('#tabela-exercicios tbody');
+            paginationControls = document.getElementById('pagination-controls');
+
+            // Mobile nav toggle
+            const navToggle = document.querySelector('.nav-toggle');
+            const navLinks = document.querySelector('.nav-links');
+            if (navToggle) {
+                navToggle.addEventListener('click', () => {
+                    navLinks.classList.toggle('open');
+                });
+            }
+            
+            form.addEventListener('submit', handleSubmit);
+            
+            // Carregar dados ao inicializar
+            fetchData();
         });
-    }
   </script>
 </body>
 </html>

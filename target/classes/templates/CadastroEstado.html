@@ -49,6 +49,7 @@
           </tbody>
         </table>
       </div>
+       <div class="pagination-controls" id="pagination-controls"></div>
       </div>
     </div>
   </main>
@@ -57,18 +58,22 @@
 
   <script>
     const API_URL = '/api/estados';
-    const form = document.getElementById('form-estado');
-    const tableBody = document.querySelector('#tabela-estados tbody');
-
-    async function fetchData() {
+    let form, tableBody, paginationControls;
+    
+    // Funções globais para serem acessíveis via onclick
+    async function fetchData(page = 0, size = 10) {
+      console.log('🔍 Buscando dados de estados...', `${API_URL}?page=${page}&size=${size}&sort=nome,asc`);
       try {
-        const response = await fetch(API_URL);
+        const response = await fetch(`${API_URL}?page=${page}&size=${size}&sort=nome,asc`);
+        console.log('📡 Response status:', response.status);
         if (!response.ok) throw new Error('Erro ao buscar dados');
-        const data = await response.json();
-        renderTable(data);
+        const pageData = await response.json();
+        console.log('📊 Dados recebidos:', pageData);
+        renderTable(pageData.content);
+        renderPagination(pageData);
       } catch (error) {
-        console.error('Falha na requisição:', error);
-        tableBody.innerHTML = `<tr><td colspan="3">Erro ao carregar dados.</td></tr>`;
+        console.error('❌ Falha na requisição:', error);
+        tableBody.innerHTML = `<tr><td colspan="3">Erro ao carregar dados: ${error.message}</td></tr>`;
       }
     }
 
@@ -92,33 +97,21 @@
       });
     }
 
-    async function handleSubmit(event) {
-      event.preventDefault();
-      const formData = new FormData(form);
-      const data = Object.fromEntries(formData.entries());
-      const id = data.id;
+    function renderPagination(pageData) {
+        paginationControls.innerHTML = '';
+        if (pageData.totalPages <= 1) return;
 
-      const payload = {
-        id: data.id || null,
-        nome: data.nome,
-        uf: data.uf
-      };
-
-      const method = id ? 'PUT' : 'POST';
-      const url = id ? `${API_URL}/${id}` : API_URL;
-
-      try {
-        const response = await fetch(url, {
-          method,
-          headers: { 'Content-Type': 'application/json' },
-          body: JSON.stringify(payload),
-        });
-        if (!response.ok) throw new Error('Erro ao salvar');
-        resetForm();
-        fetchData();
-      } catch (error) {
-        console.error('Falha ao salvar:', error);
-      }
+        let html = '';
+        if (!pageData.first) {
+            html += `<button class="btn btn-secondary" onclick="fetchData(${pageData.number - 1})">Anterior</button>`;
+        }
+        for (let i = 0; i < pageData.totalPages; i++) {
+            html += `<button class="btn ${i === pageData.number ? 'btn-primary active' : 'btn-secondary'}" onclick="fetchData(${i})">${i + 1}</button>`;
+        }
+        if (!pageData.last) {
+            html += `<button class="btn btn-secondary" onclick="fetchData(${pageData.number + 1})">Próximo</button>`;
+        }
+        paginationControls.innerHTML = html;
     }
 
     async function editItem(id) {
@@ -155,17 +148,59 @@
       document.getElementById('id').value = '';
     }
 
-    form.addEventListener('submit', handleSubmit);
-    document.addEventListener('DOMContentLoaded', fetchData);
-    
-    // Mobile nav toggle
-    const navToggle = document.querySelector('.nav-toggle');
-    const navLinks = document.querySelector('.nav-links');
-    if (navToggle) {
-        navToggle.addEventListener('click', () => {
-            navLinks.classList.toggle('open');
+        // Inicialização
+        document.addEventListener('DOMContentLoaded', () => {
+            console.log('🚀 Inicializando página de Estados...');
+            form = document.getElementById('form-estado');
+            tableBody = document.querySelector('#tabela-estados tbody');
+            paginationControls = document.getElementById('pagination-controls');
+            
+            console.log('📋 Elementos encontrados:', {
+                form: !!form,
+                tableBody: !!tableBody,
+                paginationControls: !!paginationControls
+            });
+
+        // Mobile nav toggle
+        const navToggle = document.querySelector('.nav-toggle');
+        const navLinks = document.querySelector('.nav-links');
+        if (navToggle) {
+            navToggle.addEventListener('click', () => {
+                navLinks.classList.toggle('open');
+            });
+        }
+        
+        form.addEventListener('submit', async (event) => {
+          event.preventDefault();
+          const formData = new FormData(form);
+          const data = Object.fromEntries(formData.entries());
+          const id = data.id;
+
+          const payload = {
+            id: data.id || null,
+            nome: data.nome,
+            uf: data.uf
+          };
+
+          const method = id ? 'PUT' : 'POST';
+          const url = id ? `${API_URL}/${id}` : API_URL;
+
+          try {
+            const response = await fetch(url, {
+              method,
+              headers: { 'Content-Type': 'application/json' },
+              body: JSON.stringify(payload),
+            });
+            if (!response.ok) throw new Error('Erro ao salvar');
+            resetForm();
+            fetchData();
+          } catch (error) {
+            console.error('Falha ao salvar:', error);
+          }
         });
-    }
+        
+        fetchData();
+    });
   </script>
 </body>
 </html>

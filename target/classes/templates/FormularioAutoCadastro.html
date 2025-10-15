@@ -141,7 +141,8 @@
                     try {
                         const response = await fetch('/api/estados');
                         if (!response.ok) throw new Error('Erro ao buscar estados');
-                        const estados = await response.json();
+                        const pageData = await response.json();
+                        const estados = pageData.content; // Extrai o array do objeto de paginação
                         estadoSelect.innerHTML = '<option value="">Selecione...</option>';
                         estados.forEach(estado => {
                             const option = document.createElement('option');
@@ -165,9 +166,10 @@
                     cidadeSelect.disabled = false;
                     cidadeSelect.innerHTML = '<option value="">Carregando...</option>';
                     try {
-                        const response = await fetch(`/api/cidades?estadoId=${estadoId}`);
+                        const response = await fetch(`/api/cidades?estadoId=${estadoId}&size=1000`); // Adicionado size=1000
                         if (!response.ok) throw new Error('Erro ao buscar cidades');
-                        const cidades = await response.json();
+                        const pageData = await response.json();
+                        const cidades = pageData.content; // Extrai o array do objeto de paginação
                         cidadeSelect.innerHTML = '<option value="">Selecione...</option>';
                         cidades.forEach(cidade => {
                             const option = document.createElement('option');

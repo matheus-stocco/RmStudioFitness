@@ -2,6 +2,7 @@ package com.rmstudio.rmstudiofitness.controladores;
 
 import com.rmstudio.rmstudiofitness.entidades.Estado;
 import com.rmstudio.rmstudiofitness.entidades.Cidade;
+import com.rmstudio.rmstudiofitness.repositorios.EstadoRepository;
 
 import jakarta.persistence.EntityManager;
 import jakarta.persistence.PersistenceContext;
@@ -11,6 +12,9 @@ import jakarta.transaction.Transactional;
 import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
 import org.springframework.web.bind.annotation.*;
+import org.springframework.data.domain.Page;
+import org.springframework.data.domain.Pageable;
+import org.springframework.data.web.PageableDefault;
 
 import java.net.URI;
 import java.util.List;
@@ -30,14 +34,19 @@ import java.util.List;
 @RequestMapping("/api/estados")
 public class ControleEstado {
 
+    private final EstadoRepository estadoRepository;
+
     @PersistenceContext
     private EntityManager em;
 
+    public ControleEstado(EstadoRepository estadoRepository) {
+        this.estadoRepository = estadoRepository;
+    }
+
     // LISTAR
     @GetMapping
-    public List<Estado> listar() {
-        return em.createQuery("SELECT e FROM Estado e ORDER BY e.nome", Estado.class)
-                 .getResultList();
+    public Page<Estado> listar(@PageableDefault(sort = "nome") Pageable pageable) {
+        return estadoRepository.findAllByOrderByNome(pageable);
     }
 
     // BUSCAR POR ID

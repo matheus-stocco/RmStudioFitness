@@ -143,6 +143,7 @@
                             <tbody></tbody>
                         </table>
                     </div>
+                    <div class="pagination-controls" id="pagination-controls"></div>
                 </div>
             </div>
         </div>
@@ -157,26 +158,37 @@
     </footer>
 
     <script>
-        const API_URL = '/api/planoaulas';
+        const API_URL = '/api/planos-aula';
         const API_ALUNOS_URL = '/api/pessoas';
-        const form = document.getElementById('form-plano-aula');
-        const tableBody = document.querySelector('#tabela-planos tbody');
-        const alunoSelect = document.getElementById('alunoId');
-
-        async function fetchPlanos() {
+        let form, tableBody, alunoSelect, paginationControls;
+        
+        // Funções globais para serem acessíveis via onclick
+        async function fetchPlanos(page = 0, size = 10) {
             try {
-                let url = API_URL;
                 const selectedAlunoId = alunoSelect.value;
-                if (selectedAlunoId) {
-                    url += `?alunoId=${selectedAlunoId}`;
-                }
+                let url = `${API_URL}?page=${page}&size=${size}`;
+                let sortParam = 'nome,asc';
 
+                if (selectedAlunoId) {
+                    url += `&alunoId=${selectedAlunoId}`;
+                    sortParam = 'dataInicio,desc';
+                }
+                
+                url += `&sort=${sortParam}`;
+                
+                console.log('Buscando planos:', url);
                 const response = await fetch(url);
+                console.log('Response status:', response.status);
+                
                 if (!response.ok) throw new Error('Erro ao buscar planos');
-                const planos = await response.json();
-                renderTable(planos);
+                const pageData = await response.json();
+                console.log('Page data recebido:', pageData);
+                console.log('Content:', pageData.content);
+                
+                renderTable(pageData.content);
+                renderPagination(pageData);
             } catch (error) {
-                console.error('Falha:', error);
+                console.error('Falha completa:', error);
                 tableBody.innerHTML = `<tr><td colspan="4">Erro ao carregar planos.</td></tr>`;
             }
         }
@@ -185,7 +197,8 @@
             try {
                 const response = await fetch(API_ALUNOS_URL);
                 if (!response.ok) throw new Error('Erro ao buscar alunos');
-                const alunos = await response.json();
+                const pageData = await response.json();
+                const alunos = pageData.content;
                 
                 alunoSelect.innerHTML = '<option value="">Todos os Alunos</option>'; // Opção para limpar o filtro
                 
@@ -199,16 +212,52 @@
         }
 
         function renderTable(planos) {
+            console.log('Renderizando planos:', planos);
             tableBody.innerHTML = '';
-             if (planos.length === 0) {
+            if (!planos || planos.length === 0) {
                 tableBody.innerHTML = `<tr><td colspan="4" style="text-align:center;">Nenhum plano cadastrado.</td></tr>`;
                 return;
             }
             planos.forEach(plano => {
+                console.log('Plano recebido:', plano); // Debug
+                let dataInicio = 'N/A';
+                let dataFim = 'N/A';
+                
+                // Trata dataInicio que pode vir como array [2024, 10, 13] ou string
+                if (plano.dataInicio) {
+                    console.log('dataInicio raw:', plano.dataInicio);
+                    if (Array.isArray(plano.dataInicio)) {
+                        const [ano, mes, dia] = plano.dataInicio;
+                        dataInicio = new Date(ano, mes - 1, dia).toLocaleDateString('pt-BR');
+                    } else if (typeof plano.dataInicio === 'string' && plano.dataInicio !== '') {
+                        const d = new Date(plano.dataInicio);
+                        if (!isNaN(d.getTime())) {
+                            dataInicio = d.toLocaleDateString('pt-BR');
+                        }
+                    }
+                }
+                
+                // Trata dataFim que pode vir como array [2024, 10, 13] ou string
+                if (plano.dataFim) {
+                    console.log('dataFim raw:', plano.dataFim);
+                    if (Array.isArray(plano.dataFim)) {
+                        const [ano, mes, dia] = plano.dataFim;
+                        dataFim = new Date(ano, mes - 1, dia).toLocaleDateString('pt-BR');
+                    } else if (typeof plano.dataFim === 'string' && plano.dataFim !== '') {
+                        const d = new Date(plano.dataFim);
+                        if (!isNaN(d.getTime())) {
+                            dataFim = d.toLocaleDateString('pt-BR');
+                        }
+                    }
+                }
+                
+                const periodo = `${dataInicio} - ${dataFim}`;
+                console.log('Período formatado:', periodo);
+                
                 const tr = document.createElement('tr');
                 tr.innerHTML = `
-                    <td>${plano.nome}</td>
-                    <td>${plano.dataInicio} - ${plano.dataFim}</td>
+                    <td>${plano.nome || 'Sem nome'}</td>
+                    <td>${periodo}</td>
                     <td>${plano.aluno ? plano.aluno.nome : 'N/A'}</td>
                     <td class="cell-actions">
                         <a href="/CadastroItensPlano.html?planoId=${plano.id}" class="btn btn-secondary"><i class="fas fa-plus"></i> Itens</a>
@@ -220,63 +269,70 @@
             });
         }
 
-        form.addEventListener('submit', async (e) => {
-            e.preventDefault();
-            const formData = new FormData(form);
-            const id = formData.get('id');
-
-            const payload = {
-                nome: formData.get('nome'),
-                descricao: formData.get('descricao'),
-                dataInicio: formData.get('dataInicio') ? (formData.get('dataInicio') + 'T00:00:00') : null,
-                dataFim: formData.get('dataFim') ? (formData.get('dataFim') + 'T23:59:59') : null,
-                alunoId: parseInt(formData.get('alunoId'), 10),
-                itens: [] // Itens são gerenciados em outra tela, enviamos uma lista vazia.
-            };
-
-            // Para PUT, não podemos enviar a lista de itens para não sobrescrever
-            if (id) {
-                delete payload.itens;
+        function renderPagination(pageData) {
+            paginationControls.innerHTML = '';
+            if (pageData.totalPages <= 1) return;
+            let html = '';
+            if (!pageData.first) {
+                html += `<button class="btn btn-secondary" onclick="fetchPlanos(${pageData.number - 1})">Anterior</button>`;
             }
-
-            const method = id ? 'PUT' : 'POST';
-            const url = id ? `${API_URL}/${id}` : API_URL;
-
-            try {
-                const response = await fetch(url, {
-                    method,
-                    headers: { 'Content-Type': 'application/json' },
-                    body: JSON.stringify(payload),
-                });
-                if (!response.ok) {
-                    const errorData = await response.json();
-                    throw new Error(errorData.message || 'Erro ao salvar plano');
-                }
-                
-                resetForm();
-                fetchPlanos();
-
-            } catch (error) {
-                console.error(error);
-                alert(error.message);
+            for (let i = 0; i < pageData.totalPages; i++) {
+                html += `<button class="btn ${i === pageData.number ? 'btn-primary active' : 'btn-secondary'}" onclick="fetchPlanos(${i})">${i + 1}</button>`;
             }
-        });
+            if (!pageData.last) {
+                html += `<button class="btn btn-secondary" onclick="fetchPlanos(${pageData.number + 1})">Próximo</button>`;
+            }
+            paginationControls.innerHTML = html;
+        }
 
         async function editPlano(id) {
             try {
+                console.log('Editando plano ID:', id);
                 // Usamos o GET de um plano específico, mas pegamos apenas os dados principais.
                 const response = await fetch(`${API_URL}/${id}`);
                 if (!response.ok) throw new Error('Plano não encontrado');
                 const plano = await response.json();
                 
+                console.log('Plano para edição:', plano);
+                console.log('dataInicio:', plano.dataInicio);
+                console.log('dataFim:', plano.dataFim);
+                console.log('aluno:', plano.aluno);
+                
                 document.getElementById('id').value = plano.id;
-                document.getElementById('nome').value = plano.nome;
-                document.getElementById('descricao').value = plano.descricao;
-                // A data vem como 'YYYY-MM-DDTHH:mm:ss', precisamos apenas de 'YYYY-MM-DD' para o input date.
-                document.getElementById('dataInicio').value = plano.dataInicio ? plano.dataInicio.split('T')[0] : '';
-                document.getElementById('dataFim').value = plano.dataFim ? plano.dataFim.split('T')[0] : '';
+                document.getElementById('nome').value = plano.nome || '';
+                document.getElementById('descricao').value = plano.descricao || '';
+                
+                // Trata as datas que podem vir em diferentes formatos
+                if (plano.dataInicio) {
+                    if (Array.isArray(plano.dataInicio)) {
+                        // Se for array [2024, 10, 13], converte para YYYY-MM-DD
+                        const [ano, mes, dia] = plano.dataInicio;
+                        document.getElementById('dataInicio').value = `${ano}-${String(mes).padStart(2, '0')}-${String(dia).padStart(2, '0')}`;
+                    } else if (typeof plano.dataInicio === 'string') {
+                        // Se for string 'YYYY-MM-DDTHH:mm:ss', pega só a data
+                        document.getElementById('dataInicio').value = plano.dataInicio.split('T')[0];
+                    }
+                } else {
+                    document.getElementById('dataInicio').value = '';
+                }
+                
+                if (plano.dataFim) {
+                    if (Array.isArray(plano.dataFim)) {
+                        // Se for array [2024, 10, 13], converte para YYYY-MM-DD
+                        const [ano, mes, dia] = plano.dataFim;
+                        document.getElementById('dataFim').value = `${ano}-${String(mes).padStart(2, '0')}-${String(dia).padStart(2, '0')}`;
+                    } else if (typeof plano.dataFim === 'string') {
+                        // Se for string 'YYYY-MM-DDTHH:mm:ss', pega só a data
+                        document.getElementById('dataFim').value = plano.dataFim.split('T')[0];
+                    }
+                } else {
+                    document.getElementById('dataFim').value = '';
+                }
+                
                 if(plano.aluno) {
                     document.getElementById('alunoId').value = plano.aluno.id;
+                } else {
+                    console.warn('Plano não tem aluno associado');
                 }
                 window.scrollTo(0, 0);
             } catch (error) {
@@ -300,23 +356,74 @@
             document.getElementById('id').value = '';
         }
 
+        // Inicialização
         document.addEventListener('DOMContentLoaded', () => {
+            form = document.getElementById('form-plano-aula');
+            tableBody = document.querySelector('#tabela-planos tbody');
+            alunoSelect = document.getElementById('alunoId');
+            paginationControls = document.getElementById('pagination-controls');
+
+            // Mobile nav toggle
+            const navToggle = document.querySelector('.nav-toggle');
+            const navLinks = document.querySelector('.nav-links');
+            if (navToggle) {
+                navToggle.addEventListener('click', () => {
+                    navLinks.classList.toggle('open');
+                });
+            }
+
+            // Adiciona o listener para filtrar a lista sempre que um aluno for selecionado.
+            if (alunoSelect) {
+                alunoSelect.addEventListener('change', () => fetchPlanos());
+            } else {
+                console.warn('Elemento #alunoId não encontrado ao inicializar a página.');
+            }
+            
+            form.addEventListener('submit', async (e) => {
+                e.preventDefault();
+                const formData = new FormData(form);
+                const id = formData.get('id');
+
+                const dataInicioValue = formData.get('dataInicio');
+                const dataFimValue = formData.get('dataFim');
+                
+                const payload = {
+                    nome: formData.get('nome'),
+                    descricao: formData.get('descricao'),
+                    dataInicio: dataInicioValue && dataInicioValue.trim() !== '' ? (dataInicioValue + 'T00:00:00') : null,
+                    dataFim: dataFimValue && dataFimValue.trim() !== '' ? (dataFimValue + 'T23:59:59') : null,
+                    alunoId: parseInt(formData.get('alunoId'), 10)
+                };
+                
+                console.log('Payload a ser enviado:', payload);
+
+                const method = id ? 'PUT' : 'POST';
+                const url = id ? `${API_URL}/${id}` : API_URL;
+
+                try {
+                    const response = await fetch(url, {
+                        method,
+                        headers: { 'Content-Type': 'application/json' },
+                        body: JSON.stringify(payload),
+                    });
+                    if (!response.ok) {
+                        const errorData = await response.json();
+                        throw new Error(errorData.message || 'Erro ao salvar plano');
+                    }
+                    
+                    resetForm();
+                    fetchPlanos();
+
+                } catch (error) {
+                    console.error(error);
+                    alert(error.message);
+                }
+            });
+
             fetchAlunos().then(() => {
                 fetchPlanos(); // Carrega os planos (todos, inicialmente) depois que os alunos foram carregados.
             });
-
-            // Adiciona o listener para filtrar a lista sempre que um aluno for selecionado.
-            alunoSelect.addEventListener('change', fetchPlanos);
         });
-        
-        // Mobile nav toggle
-        const navToggle = document.querySelector('.nav-toggle');
-        const navLinks = document.querySelector('.nav-links');
-        if (navToggle) {
-            navToggle.addEventListener('click', () => {
-                navLinks.classList.toggle('open');
-            });
-        }
     </script>
     <script src="/js/app.js"></script>
 </body>

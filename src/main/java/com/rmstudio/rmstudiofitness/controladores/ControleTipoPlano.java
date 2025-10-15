@@ -4,6 +4,9 @@ import com.rmstudio.rmstudiofitness.entidades.TipoPlano;
 import com.rmstudio.rmstudiofitness.repositorios.TipoPlanoRepository;
 import jakarta.transaction.Transactional;
 import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.data.domain.Page;
+import org.springframework.data.domain.Pageable;
+import org.springframework.data.web.PageableDefault;
 import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
 import org.springframework.web.bind.annotation.*;
@@ -11,7 +14,6 @@ import org.springframework.web.server.ResponseStatusException;
 import org.springframework.web.servlet.support.ServletUriComponentsBuilder;
 
 import java.net.URI;
-import java.util.List;
 
 /**
  * API REST para CRUD de TipoPlano.
@@ -35,8 +37,8 @@ public class ControleTipoPlano {
 
     // ---------- LISTAR ----------
     @GetMapping
-    public List<TipoPlano> listar() {
-        return tipoPlanoRepository.findAllByOrderByNome();
+    public Page<TipoPlano> listar(@PageableDefault(sort = "nome") Pageable pageable) {
+        return tipoPlanoRepository.findAllByOrderByNome(pageable);
     }
 
     // ---------- BUSCAR POR ID ----------

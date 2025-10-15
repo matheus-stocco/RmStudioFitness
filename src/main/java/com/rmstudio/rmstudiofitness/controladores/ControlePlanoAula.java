@@ -4,17 +4,22 @@ import com.rmstudio.rmstudiofitness.entidades.PlanoAula;
 import com.rmstudio.rmstudiofitness.entidades.ItemPlanoAula;
 import com.rmstudio.rmstudiofitness.entidades.Exercicio;
 import com.rmstudio.rmstudiofitness.entidades.DiaSemana;
+import com.rmstudio.rmstudiofitness.entidades.Pessoa;
+import com.rmstudio.rmstudiofitness.repositorios.PlanoAulaRepository;
 
 import jakarta.persistence.EntityManager;
 import jakarta.persistence.PersistenceContext;
-import jakarta.persistence.TypedQuery;
 import jakarta.transaction.Transactional;
 
 import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
 import org.springframework.web.bind.annotation.*;
+import org.springframework.data.domain.Page;
+import org.springframework.data.domain.Pageable;
+import org.springframework.data.web.PageableDefault;
 
 import java.net.URI;
+import java.time.LocalDateTime;
 import java.util.List;
 
 /**
@@ -39,17 +44,27 @@ import java.util.List;
 @RequestMapping("/api/planos-aula")
 public class ControlePlanoAula {
 
+    private final PlanoAulaRepository planoAulaRepository;
     @PersistenceContext
     private EntityManager em;
+
+    public ControlePlanoAula(PlanoAulaRepository planoAulaRepository) {
+        this.planoAulaRepository = planoAulaRepository;
+    }
+
+    // DTO para criar/atualizar planos
+    public record PlanoAulaDTO(String nome, String descricao, LocalDateTime dataInicio, LocalDateTime dataFim, Long alunoId) {}
 
     // ======== Planos ========
 
     /** Lista todos os planos ordenados por nome (sem join nos itens para ficar leve). */
     @GetMapping
-    public List<PlanoAula> listarPlanos() {
-        TypedQuery<PlanoAula> q = em.createQuery(
-                "SELECT p FROM PlanoAula p ORDER BY p.nome", PlanoAula.class);
-        return q.getResultList();
+    public Page<PlanoAula> listarPlanos(@RequestParam(name = "alunoId", required = false) Long alunoId,
+                                        @PageableDefault(sort = "nome") Pageable pageable) {
+        if (alunoId != null) {
+            return planoAulaRepository.findByAluno_IdOrderByDataInicioDesc(alunoId, pageable);
+        }
+        return planoAulaRepository.findAllByOrderByNome(pageable);
     }
 
     /** Busca plano por id carregando itens (JOIN FETCH). */
@@ -66,12 +81,26 @@ public class ControlePlanoAula {
     /** Cria um novo plano. Body JSON mínimo: { "nome": "..." } */
     @PostMapping
     @Transactional
-    public ResponseEntity<?> criarPlano(@RequestBody PlanoAula payload) {
-        if (payload == null || isBlank(payload.getNome())) {
+    public ResponseEntity<?> criarPlano(@RequestBody PlanoAulaDTO payload) {
+        if (payload == null || isBlank(payload.nome())) {
             return badRequest("Informe o nome do plano.");
         }
+        if (payload.alunoId() == null) {
+            return badRequest("Informe o aluno.");
+        }
+        
+        Pessoa aluno = em.find(Pessoa.class, payload.alunoId());
+        if (aluno == null) {
+            return badRequest("Aluno não encontrado.");
+        }
+        
         PlanoAula novo = new PlanoAula();
-        novo.setNome(payload.getNome().trim());
+        novo.setNome(payload.nome().trim());
+        novo.setDescricao(payload.descricao());
+        novo.setDataInicio(payload.dataInicio());
+        novo.setDataFim(payload.dataFim());
+        novo.setAluno(aluno);
+        
         em.persist(novo);
         em.flush();
         return ResponseEntity.created(URI.create("/api/planos-aula/" + novo.getId())).body(novo);
@@ -80,13 +109,30 @@ public class ControlePlanoAula {
     /** Atualiza nome do plano. */
     @PutMapping("/{id}")
     @Transactional
-    public ResponseEntity<?> atualizarPlano(@PathVariable Long id, @RequestBody PlanoAula payload) {
+    public ResponseEntity<?> atualizarPlano(@PathVariable Long id, @RequestBody PlanoAulaDTO payload) {
         PlanoAula plano = em.find(PlanoAula.class, id);
         if (plano == null) return ResponseEntity.notFound().build();
-        if (payload == null || isBlank(payload.getNome())) {
+        if (payload == null || isBlank(payload.nome())) {
             return badRequest("Informe o nome do plano.");
         }
-        plano.setNome(payload.getNome().trim());
+        
+        plano.setNome(payload.nome().trim());
+        if (payload.descricao() != null) {
+            plano.setDescricao(payload.descricao());
+        }
+        if (payload.dataInicio() != null) {
+            plano.setDataInicio(payload.dataInicio());
+        }
+        if (payload.dataFim() != null) {
+            plano.setDataFim(payload.dataFim());
+        }
+        if (payload.alunoId() != null) {
+            Pessoa aluno = em.find(Pessoa.class, payload.alunoId());
+            if (aluno != null) {
+                plano.setAluno(aluno);
+            }
+        }
+        
         em.flush();
         return ResponseEntity.ok(plano);
     }
