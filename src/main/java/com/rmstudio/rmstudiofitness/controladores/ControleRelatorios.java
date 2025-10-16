@@ -4,6 +4,11 @@ import com.rmstudio.rmstudiofitness.entidades.Mensalidade;
 import com.rmstudio.rmstudiofitness.entidades.Pessoa;
 import com.rmstudio.rmstudiofitness.repositorios.PessoaRepository;
 import com.rmstudio.rmstudiofitness.servicos.PagamentoService;
+import org.springframework.data.domain.Page;
+import org.springframework.data.domain.PageRequest;
+import org.springframework.data.domain.Pageable;
+import org.springframework.data.domain.Sort;
+import org.springframework.data.web.PageableDefault;
 import org.springframework.security.access.prepost.PreAuthorize;
 import org.springframework.stereotype.Controller;
 import org.springframework.ui.Model;
@@ -33,9 +38,10 @@ public class ControleRelatorios {
     public String relatorioMensalidades(@RequestParam(value = "status", required = false) String status,
                                         @RequestParam(value = "ano", required = false) Integer ano,
                                         @RequestParam(value = "mes", required = false) Integer mes,
+                                        @PageableDefault(size = 15, sort = "dataVencimento", direction = Sort.Direction.DESC) Pageable pageable,
                                         Model model) {
         
-        List<Mensalidade> mensalidades = pagamentoService.buscarMensalidadesParaRelatorio(status, ano, mes);
+        Page<Mensalidade> mensalidades = pagamentoService.buscarMensalidadesParaRelatorio(status, ano, mes, pageable);
         Map<String, BigDecimal> totais = pagamentoService.calcularTotais(ano, mes);
         
         model.addAttribute("mensalidades", mensalidades);
@@ -55,25 +61,26 @@ public class ControleRelatorios {
     @GetMapping("/relatorios/membros")
     public String relatorioMembros(@RequestParam(value = "nome", required = false) String nome,
                                    @RequestParam(value = "status", required = false, defaultValue = "TODOS") String status,
+                                   @PageableDefault(size = 15, sort = "nome") Pageable pageable,
                                    Model model) {
-        List<Pessoa> membros;
+        Page<Pessoa> membros;
         boolean hasNome = nome != null && !nome.trim().isEmpty();
 
         switch (status.toUpperCase()) {
             case "ATIVO":
                 membros = hasNome
-                    ? pessoaRepository.findByNomeContainingIgnoreCaseAndPlanoAtivoIsNotNull(nome)
-                    : pessoaRepository.findByPlanoAtivoIsNotNullOrderByNome();
+                    ? pessoaRepository.findByNomeContainingIgnoreCaseAndPlanoAtivoIsNotNull(nome, pageable)
+                    : pessoaRepository.findByPlanoAtivoIsNotNullOrderByNome(pageable);
                 break;
             case "OCIOSO":
                 membros = hasNome
-                    ? pessoaRepository.findByNomeContainingIgnoreCaseAndPlanoAtivoIsNull(nome)
-                    : pessoaRepository.findByPlanoAtivoIsNullOrderByNome();
+                    ? pessoaRepository.findByNomeContainingIgnoreCaseAndPlanoAtivoIsNull(nome, pageable)
+                    : pessoaRepository.findByPlanoAtivoIsNullOrderByNome(pageable);
                 break;
             default: // "TODOS"
                 membros = hasNome
-                    ? pessoaRepository.findByNomeContainingIgnoreCase(nome)
-                    : pessoaRepository.findAllByOrderByNome();
+                    ? pessoaRepository.findByNomeContainingIgnoreCase(nome, pageable)
+                    : pessoaRepository.findAllByOrderByNome(pageable);
                 break;
         }
 

@@ -31,10 +31,14 @@ public interface PessoaRepository extends JpaRepository<Pessoa, Long> {
     /** Busca todas as pessoas ordenadas por nome */
     List<Pessoa> findAllByOrderByNome();
 
+    Page<Pessoa> findByPlanoAtivoIsNotNullOrderByNome(Pageable pageable);
     List<Pessoa> findByPlanoAtivoIsNotNullOrderByNome();
+    Page<Pessoa> findByNomeContainingIgnoreCaseAndPlanoAtivoIsNotNull(String nome, Pageable pageable);
     List<Pessoa> findByNomeContainingIgnoreCaseAndPlanoAtivoIsNotNull(String nome);
 
+    Page<Pessoa> findByPlanoAtivoIsNullOrderByNome(Pageable pageable);
     List<Pessoa> findByPlanoAtivoIsNullOrderByNome();
+    Page<Pessoa> findByNomeContainingIgnoreCaseAndPlanoAtivoIsNull(String nome, Pageable pageable);
     List<Pessoa> findByNomeContainingIgnoreCaseAndPlanoAtivoIsNull(String nome);
 
     /** Busca pessoa por usuário */

@@ -53,7 +53,7 @@
                         </thead>
                         <tbody>
                             <!-- Os dados dos membros serão inseridos aqui pelo Thymeleaf -->
-                            <tr th:each="membro : ${membros}">
+                            <tr th:each="membro : ${membros.content}">
                                 <td th:text="${membro.id}"></td>
                                 <td th:text="${membro.nome}"></td>
                                 <td th:text="${membro.email}"></td>
@@ -67,12 +67,32 @@
                                     <span th:unless="${membro.planoAtivo != null}" class="status-badge status--cancelado">OCIOSO</span>
                                 </td>
                             </tr>
-                            <tr th:if="${#lists.isEmpty(membros)}">
+                            <tr th:if="${membros.empty}">
                                 <td colspan="7" class="text-center">Nenhum membro encontrado.</td>
                             </tr>
                         </tbody>
                     </table>
                 </div>
+
+                <!-- Controles de Paginação -->
+                <nav aria-label="Page navigation" th:if="${membros.totalPages > 1}">
+                    <ul class="pagination">
+                        <!-- Botão Anterior -->
+                        <li class="page-item" th:classappend="${membros.first} ? 'disabled'">
+                            <a class="page-link" th:href="@{/relatorios/membros(status=${filtroStatus}, nome=${nomePesquisado}, page=${membros.number - 1}, size=${membros.size})}">Anterior</a>
+                        </li>
+
+                        <!-- Números de Página -->
+                        <li class="page-item" th:each="i : ${#numbers.sequence(0, membros.totalPages - 1)}" th:classappend="${i == membros.number} ? 'active'">
+                            <a class="page-link" th:href="@{/relatorios/membros(status=${filtroStatus}, nome=${nomePesquisado}, page=${i}, size=${membros.size})}" th:text="${i + 1}"></a>
+                        </li>
+
+                        <!-- Botão Próximo -->
+                        <li class="page-item" th:classappend="${membros.last} ? 'disabled'">
+                            <a class="page-link" th:href="@{/relatorios/membros(status=${filtroStatus}, nome=${nomePesquisado}, page=${membros.number + 1}, size=${membros.size})}">Próximo</a>
+                        </li>
+                    </ul>
+                </nav>
             </div>
         </div>
     </main>

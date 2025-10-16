@@ -70,4 +70,25 @@ public interface MensalidadeRepository extends JpaRepository<Mensalidade, Long> 
     @Query("SELECT m FROM Mensalidade m JOIN FETCH m.pessoa p JOIN FETCH m.tipoPlano tp ORDER BY m.dataVencimento DESC")
     List<Mensalidade> findAllWithDetails();
 
+     /**
+     * Busca mensalidades para o relatório com filtros e paginação.
+     */
+    @Query(value = "SELECT m FROM Mensalidade m JOIN FETCH m.pessoa p JOIN FETCH m.tipoPlano tp " +
+           "WHERE ( :ano IS NULL OR YEAR(m.dataVencimento) = :ano ) " +
+           "AND ( :mes IS NULL OR MONTH(m.dataVencimento) = :mes ) " +
+           "AND ( :status IS NULL OR :status = 'TODAS' OR " +
+           "      ( :status = 'ATRASADA' AND m.status = 'PENDENTE' AND m.dataVencimento < CURRENT_DATE ) OR " +
+           "      ( :status <> 'ATRASADA' AND m.status = :status) )",
+           countQuery = "SELECT count(m) FROM Mensalidade m " +
+           "WHERE ( :ano IS NULL OR YEAR(m.dataVencimento) = :ano ) " +
+           "AND ( :mes IS NULL OR MONTH(m.dataVencimento) = :mes ) " +
+           "AND ( :status IS NULL OR :status = 'TODAS' OR " +
+           "      ( :status = 'ATRASADA' AND m.status = 'PENDENTE' AND m.dataVencimento < CURRENT_DATE ) OR " +
+           "      ( :status <> 'ATRASADA' AND m.status = :status) )")
+    Page<Mensalidade> findForRelatorio(
+        @Param("ano") Integer ano,
+        @Param("mes") Integer mes,
+        @Param("status") String status,
+        Pageable pageable
+    );
 }

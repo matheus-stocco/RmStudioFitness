@@ -117,7 +117,7 @@
                             </tr>
                         </thead>
                         <tbody>
-                            <tr th:each="m : ${mensalidades}">
+                            <tr th:each="m : ${mensalidades.content}">
                                 <td th:text="${m.pessoa.nome}"></td>
                                 <td th:text="${m.tipoPlano.nome}"></td>
                                 <td th:text="${'R$ ' + #numbers.formatDecimal(m.valor, 1, 'POINT', 2, 'COMMA')}"></td>
@@ -139,12 +139,32 @@
                                     </th:block>
                                 </td>
                             </tr>
-                            <tr th:if="${#lists.isEmpty(mensalidades)}">
+                            <tr th:if="${#lists.isEmpty(mensalidades.content)}">
                                 <td colspan="6" class="text-center">Nenhuma mensalidade encontrada para este filtro.</td>
                             </tr>
                         </tbody>
                     </table>
                 </div>
+
+                 <!-- Controles de Paginação -->
+                 <nav aria-label="Page navigation" th:if="${mensalidades.totalPages > 1}">
+                    <ul class="pagination">
+                        <!-- Botão Anterior -->
+                        <li class="page-item" th:classappend="${mensalidades.first} ? 'disabled'">
+                            <a class="page-link" th:href="@{/relatorios(status=${filtroAtual}, ano=${anoSelecionado}, mes=${mesSelecionado}, page=${mensalidades.number - 1}, size=${mensalidades.size})}">Anterior</a>
+                        </li>
+
+                        <!-- Números de Página -->
+                        <li class="page-item" th:each="i : ${#numbers.sequence(0, mensalidades.totalPages - 1)}" th:classappend="${i == mensalidades.number} ? 'active'">
+                            <a class="page-link" th:href="@{/relatorios(status=${filtroAtual}, ano=${anoSelecionado}, mes=${mesSelecionado}, page=${i}, size=${mensalidades.size})}" th:text="${i + 1}"></a>
+                        </li>
+
+                        <!-- Botão Próximo -->
+                        <li class="page-item" th:classappend="${mensalidades.last} ? 'disabled'">
+                            <a class="page-link" th:href="@{/relatorios(status=${filtroAtual}, ano=${anoSelecionado}, mes=${mesSelecionado}, page=${mensalidades.number + 1}, size=${mensalidades.size})}">Próximo</a>
+                        </li>
+                    </ul>
+                </nav>
             </div>
         </div>
     </main>

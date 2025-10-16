@@ -1708,3 +1708,58 @@ p { margin-bottom: calc(var(--spacing-unit) * 2); }
     background-color: var(--color-primary-dark);
     border-color: var(--color-primary-dark);
 }
+
+/* === ESTILOS DE PAGINAÇÃO === */
+.pagination {
+    display: flex;
+    justify-content: center;
+    align-items: center;
+    list-style: none;
+    padding: 0;
+    margin-top: calc(var(--spacing-unit) * 4);
+    gap: calc(var(--spacing-unit) * 1);
+}
+
+.page-item {
+    margin: 0;
+}
+
+.page-link {
+    display: inline-block;
+    padding: calc(var(--spacing-unit) * 1) calc(var(--spacing-unit) * 2);
+    border-radius: var(--border-radius);
+    font-weight: 600;
+    text-transform: uppercase;
+    letter-spacing: 0.03em;
+    border: 2px solid var(--color-border);
+    background-color: var(--color-secondary);
+    color: var(--color-text-muted);
+    transition: all 0.3s ease;
+    font-size: 0.8rem;
+}
+
+.page-link:hover {
+    background-color: var(--color-primary);
+    border-color: var(--color-primary);
+    color: var(--color-background);
+}
+
+.page-item.active .page-link {
+    background-color: var(--color-primary);
+    border-color: var(--color-primary);
+    color: var(--color-background);
+    cursor: default;
+}
+
+.page-item.disabled .page-link {
+    background-color: transparent;
+    border-color: var(--color-border);
+    color: var(--color-text-muted);
+    opacity: 0.5;
+    cursor: not-allowed;
+}
+
+.page-item.disabled .page-link:hover {
+    background-color: transparent;
+    color: var(--color-text-muted);
+}

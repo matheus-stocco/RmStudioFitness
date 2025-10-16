@@ -19,6 +19,9 @@ import com.rmstudio.rmstudiofitness.paghiper.dto.*;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
+import org.springframework.data.domain.Page;
+import org.springframework.data.domain.Pageable;
+
 import java.util.List;
 import java.util.stream.Collectors;
 import java.math.BigDecimal;
@@ -163,30 +166,9 @@ public class PagamentoService {
     }
 
     @Transactional(readOnly = true)
-    public List<Mensalidade> buscarMensalidadesParaRelatorio(String status, Integer ano, Integer mes) {
-        List<Mensalidade> todasMensalidades = mensalidadeRepository.findAllWithDetails();
-    
-        // Filtro por ano e mês
-        List<Mensalidade> mensalidadesFiltradas = todasMensalidades.stream()
-            .filter(m -> {
-                boolean anoMatch = (ano == null) || (m.getDataVencimento().getYear() == ano);
-                boolean mesMatch = (mes == null) || (m.getDataVencimento().getMonthValue() == mes);
-                return anoMatch && mesMatch;
-            })
-            .collect(Collectors.toList());
-    
-        if (status == null || status.trim().isEmpty() || "TODAS".equalsIgnoreCase(status)) {
-            return mensalidadesFiltradas;
-        }
-    
-        return mensalidadesFiltradas.stream()
-            .filter(m -> {
-                if ("ATRASADA".equalsIgnoreCase(status)) {
-                    return "PENDENTE".equals(m.getStatus()) && m.getDataVencimento().isBefore(LocalDate.now());
-                }
-                return status.equalsIgnoreCase(m.getStatus());
-            })
-            .collect(Collectors.toList());
+    public Page<Mensalidade> buscarMensalidadesParaRelatorio(String status, Integer ano, Integer mes, Pageable pageable) {
+        String statusFilter = (status == null || status.trim().isEmpty()) ? "TODAS" : status.toUpperCase();
+        return mensalidadeRepository.findForRelatorio(ano, mes, statusFilter, pageable);
     }
 
     @Transactional(readOnly = true)
