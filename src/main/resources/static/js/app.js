@@ -99,3 +99,94 @@ function addTooltips() {
 document.addEventListener("DOMContentLoaded", () => {
   addTooltips();
 });
+
+
+// ---------- Gerenciamento de Papéis ----------
+document.addEventListener('DOMContentLoaded', () => {
+    const tabelaUsuariosBody = document.getElementById('tabelaUsuarios');
+    if (!tabelaUsuariosBody) {
+        return; // Só executa na página de gerenciamento
+    }
+
+    const buscaUsuarioInput = document.getElementById('buscaUsuario');
+    const filtroRoleSelect = document.getElementById('filtroRole');
+
+    const buscarUsuarios = async () => {
+        const nome = buscaUsuarioInput.value;
+        const role = filtroRoleSelect.value;
+        
+        try {
+            const response = await fetch(`/api/gerenciamento/usuarios?nome=${encodeURIComponent(nome)}&role=${encodeURIComponent(role)}`);
+            if (!response.ok) {
+                throw new Error('Falha ao buscar usuários');
+            }
+            const usuarios = await response.json();
+            
+            tabelaUsuariosBody.innerHTML = ''; // Limpa a tabela
+            if (usuarios.length === 0) {
+                tabelaUsuariosBody.innerHTML = '<tr><td colspan="4" class="text-center">Nenhum usuário encontrado.</td></tr>';
+                return;
+            }
+
+            usuarios.forEach(usuario => {
+                const roles = usuario.perfis.map(p => p.replace('ROLE_', '')).join(', ');
+                const isPersonal = usuario.perfis.includes('ROLE_PERSONAL');
+                const isAdmin = usuario.perfis.includes('ROLE_ADMIN');
+
+                let botoesAcao = '';
+                if (!isAdmin) {
+                    if (isPersonal) {
+                        botoesAcao = `<button class="btn btn-danger btn-sm btn-remover-personal" data-id="${usuario.id}">Remover PERSONAL</button>`;
+                    } else {
+                        botoesAcao = `<button class="btn btn-success btn-sm btn-adicionar-personal" data-id="${usuario.id}">Tornar PERSONAL</button>`;
+                    }
+                } else {
+                    botoesAcao = '<span class="text-muted">Admin</span>';
+                }
+
+                const linha = `
+                    <tr>
+                        <td>${usuario.nome}</td>
+                        <td>${usuario.email}</td>
+                        <td><span class="role-badge">${roles}</span></td>
+                        <td class="text-center">${botoesAcao}</td>
+                    </tr>`;
+                tabelaUsuariosBody.insertAdjacentHTML('beforeend', linha);
+            });
+        } catch (error) {
+            console.error('Erro:', error);
+            tabelaUsuariosBody.innerHTML = '<tr><td colspan="4" class="text-center text-danger">Erro ao buscar usuários.</td></tr>';
+        }
+    };
+
+    const manipularRole = async (id, acao) => {
+        const url = `/api/gerenciamento/usuarios/${id}/${acao}-role-personal`;
+        try {
+            const response = await fetch(url, { method: 'POST' });
+            if (!response.ok) {
+                throw new Error(`Erro na API ao ${acao === 'adicionar' ? 'adicionar' : 'remover'} papel`);
+            }
+            buscarUsuarios(); // Atualiza a lista
+        } catch (error) {
+            console.error('Erro:', error);
+            alert(`Erro ao ${acao === 'adicionar' ? 'adicionar' : 'remover'} o papel PERSONAL.`);
+        }
+    };
+
+    buscaUsuarioInput.addEventListener('keyup', debounce(buscarUsuarios, 300));
+    filtroRoleSelect.addEventListener('change', buscarUsuarios);
+
+    tabelaUsuariosBody.addEventListener('click', (event) => {
+        const target = event.target;
+        const id = target.dataset.id;
+
+        if (target.classList.contains('btn-adicionar-personal')) {
+            manipularRole(id, 'adicionar');
+        } else if (target.classList.contains('btn-remover-personal')) {
+            manipularRole(id, 'remover');
+        }
+    });
+
+    // Carga inicial
+    buscarUsuarios();
+});

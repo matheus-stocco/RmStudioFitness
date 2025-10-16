@@ -43,6 +43,13 @@ body {
   color: var(--color-text);
   line-height: 1.6;
   font-size: 16px;
+  display: flex;
+  flex-direction: column;
+  min-height: 100vh;
+}
+
+main {
+    flex-grow: 1;
 }
 
 a {
@@ -446,6 +453,40 @@ p { margin-bottom: calc(var(--spacing-unit) * 2); }
   color: var(--color-background);
 }
 
+.btn-success {
+    background-color: #28a745; /* Verde */
+    color: var(--color-text);
+    border-color: #28a745;
+}
+.btn-success:hover {
+    background-color: #218838;
+    border-color: #1e7e34;
+    color: var(--color-text);
+}
+
+.btn-warning {
+    background-color: #e9c46a;
+    color: var(--color-background);
+    border-color: #e9c46a;
+}
+.btn-warning:hover {
+    background-color: #d7b35f;
+    border-color: #d7b35f;
+    color: var(--color-background);
+}
+
+.btn-danger {
+    background-color: #dc3545; /* Vermelho */
+    color: var(--color-text);
+    border-color: #dc3545;
+}
+.btn-danger:hover {
+    background-color: #c82333;
+    border-color: #bd2130;
+    color: var(--color-text);
+}
+
+
 /* --- CARDS --- */
 .cards-grid {
   display: grid;
@@ -501,6 +542,63 @@ p { margin-bottom: calc(var(--spacing-unit) * 2); }
 
 .card-link:hover i {
   transform: translateX(5px);
+}
+
+
+/* --- GERENCIAMENTO DE PAPÉIS --- */
+.gerenciamento-container {
+    padding-top: calc(var(--header-height) + var(--spacing-unit) * 4);
+    padding-bottom: calc(var(--spacing-unit) * 4);
+}
+
+.gerenciamento-container .card {
+    background-color: var(--color-secondary);
+    border: 1px solid var(--color-border);
+}
+
+.gerenciamento-container .form-control,
+.gerenciamento-container .form-select {
+    background-color: #0d0d0d;
+    color: var(--color-text);
+    border-color: var(--color-border);
+}
+
+.gerenciamento-container .form-control:focus,
+.gerenciamento-container .form-select:focus {
+    border-color: var(--color-primary);
+    box-shadow: 0 0 0 3px rgba(255, 107, 53, 0.25);
+}
+
+.gerenciamento-container .table {
+    background-color: var(--color-secondary);
+    color: var(--color-text);
+}
+
+.gerenciamento-container .table thead.table-dark {
+    background-color: #000; /* Preto para o cabeçalho da tabela */
+    color: var(--color-text-muted);
+}
+
+.gerenciamento-container .table tbody tr {
+    border-color: var(--color-border);
+}
+
+.gerenciamento-container .table tbody tr:hover {
+    background-color: rgba(255, 107, 53, 0.08);
+}
+
+.gerenciamento-container .badge.bg-primary {
+    background-color: var(--color-primary) !important;
+    color: var(--color-background);
+    font-weight: 700;
+}
+
+.gerenciamento-container .role-badge {
+    background-color: transparent;
+    color: var(--color-text);
+    font-weight: 500;
+    font-size: 0.9rem;
+    padding: 0;
 }
 
 

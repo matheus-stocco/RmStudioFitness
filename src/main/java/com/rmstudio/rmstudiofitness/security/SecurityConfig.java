@@ -4,6 +4,7 @@ import com.rmstudio.rmstudiofitness.repositorios.PessoaRepository;
 import org.springframework.context.annotation.Bean;
 import org.springframework.context.annotation.Configuration;
 import org.springframework.http.HttpMethod;
+import org.springframework.security.config.annotation.method.configuration.EnableMethodSecurity;
 import org.springframework.security.config.annotation.web.builders.HttpSecurity;
 import org.springframework.security.config.annotation.web.configuration.EnableWebSecurity;
 import org.springframework.security.core.userdetails.UserDetailsService;
@@ -15,6 +16,7 @@ import org.springframework.security.web.SecurityFilterChain;
 
 @Configuration
 @EnableWebSecurity
+@EnableMethodSecurity(prePostEnabled = true)
 public class SecurityConfig {
 
     @Bean
@@ -52,24 +54,28 @@ public class SecurityConfig {
                         .requestMatchers(HttpMethod.POST, "/api/pessoas").permitAll() // Autocadastro
                         .requestMatchers(HttpMethod.POST, "/esqueceu-senha", "/recuperar-senha").permitAll() // Recuperação de senha
 
-                        // --- Permissões para Usuários Autenticados (Regras Específicas Primeiro) ---
-                        .requestMatchers(HttpMethod.POST, "/planos/inscrever/**").authenticated()
-                        .requestMatchers(HttpMethod.POST, "/api/pagamentos/gerar-pix/**").authenticated()
-                        .requestMatchers(HttpMethod.POST, "/api/pagamentos/cancelar-plano").authenticated()
-                        .requestMatchers(HttpMethod.GET, "/api/pagamentos/pagar/**").authenticated()
+                        // --- Permissões para Personal ---
+                        .requestMatchers(
+                            "/avaliacoes", "/planos-aula", "/exercicios", "/itens-plano",
+                            "/CadastroAvaliacaoFisica.html", "/CadastroPlanoAula.html", "/CadastroExercicios.html",
+                            "/CadastroItensPlano.html" // ItensPlano is related to PlanoAula
+                        ).hasAnyRole("ADMIN", "PERSONAL")
+                        .requestMatchers(HttpMethod.GET, "/api/pessoas", "/api/pessoas/alunos").hasAnyRole("ADMIN", "PERSONAL")
+                        .requestMatchers(HttpMethod.GET, "/api/avaliacoes/**", "/api/planos-aula/**", "/api/exercicios/**").hasAnyRole("ADMIN", "PERSONAL")
+                        .requestMatchers(HttpMethod.POST, "/api/avaliacoes/**", "/api/planos-aula/**", "/api/exercicios/**").hasAnyRole("ADMIN", "PERSONAL")
+                        .requestMatchers(HttpMethod.PUT, "/api/avaliacoes/**", "/api/planos-aula/**", "/api/exercicios/**").hasAnyRole("ADMIN", "PERSONAL")
+                        .requestMatchers(HttpMethod.DELETE, "/api/avaliacoes/**", "/api/planos-aula/**", "/api/exercicios/**").hasAnyRole("ADMIN", "PERSONAL")
+
 
                         // --- Permissões de Administrador (Regras Genéricas Depois) ---
                         .requestMatchers(
-                            "/membros", "/tipos-plano", "/avaliacoes", "/cidades",
-                            "/estados", "/exercicios", "/itens-plano", "/planos-aula", "/CadastroPessoas.html",
-                            "/CadastroTipoPlano.html", "/CadastroAvaliacaoFisica.html", "/CadastroCidade.html",
-                            "/CadastroEstado.html", "/CadastroExercicios.html", "/CadastroItensPlano.html",
-                            "/CadastroPlanoAula.html"
+                            "/membros", "/tipos-plano", "/cidades",
+                            "/estados", "/CadastroPessoas.html",
+                            "/CadastroTipoPlano.html", "/CadastroCidade.html",
+                            "/CadastroEstado.html", "/gerenciamento-roles"
                         ).hasRole("ADMIN")
-                        .requestMatchers(HttpMethod.POST, "/api/**").hasRole("ADMIN")
-                        .requestMatchers(HttpMethod.PUT, "/api/**").hasRole("ADMIN")
-                        .requestMatchers(HttpMethod.DELETE, "/api/**").hasRole("ADMIN")
-                        
+                        .requestMatchers("/api/gerenciamento/**", "/api/pagamentos/**", "/api/tipos-plano/**", "/api/cidades/**", "/api/estados/**", "/api/pessoas/**").hasRole("ADMIN")
+
                         // --- Permissões Gerais para Usuários Autenticados ---
                         .requestMatchers("/perfil", "/minhas-avaliacoes", "/meus-planos-aula", "/minhas-mensalidades").authenticated()
                         .anyRequest().authenticated()

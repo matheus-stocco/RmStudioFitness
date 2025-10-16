@@ -211,6 +211,15 @@ public class ControlePlanoAula {
         Exercicio ex = em.find(Exercicio.class, exercicioId);
         if (ex == null) return badRequest("Exercício não encontrado.");
 
+        // Calcula a próxima ordem para o dia específico
+        Integer maxOrdem = em.createQuery(
+                "SELECT MAX(i.ordem) FROM ItemPlanoAula i WHERE i.planoAula.id = :planoId AND i.dia = :dia", Integer.class)
+                .setParameter("planoId", id)
+                .setParameter("dia", dia)
+                .getSingleResult();
+        int proximaOrdem = (maxOrdem == null) ? 1 : maxOrdem + 1;
+
+
         ItemPlanoAula item = new ItemPlanoAula();
         item.setPlanoAula(plano);
         item.setDia(dia);
@@ -218,6 +227,7 @@ public class ControlePlanoAula {
         item.setSeries(series);
         item.setRepeticoes(repeticoes); // O tipo já é String
         item.setObservacoes(observacoes);
+        item.setOrdem(proximaOrdem);
 
         em.persist(item);
         em.flush();

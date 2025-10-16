@@ -44,7 +44,7 @@ public class ItemPlanoAula implements Serializable {
     private String observacoes;
 
     @Column(name = "ordem")
-    private Integer ordem;
+    private Integer ordem = 0;
 
     // ─── Construtores ───────────────────────────────────────────────────────────
 

@@ -25,6 +25,9 @@ public interface PessoaRepository extends JpaRepository<Pessoa, Long> {
     /** Busca pessoa por nome (ignoring case) */
     List<Pessoa> findByNomeContainingIgnoreCase(String nome);
 
+    /** Busca pessoa por nome e perfil (ignoring case) */
+    List<Pessoa> findByNomeContainingIgnoreCaseAndPerfis_Nome(String nome, String perfilNome);
+
     /** Busca todas as pessoas ordenadas por nome */
     List<Pessoa> findAllByOrderByNome();
 

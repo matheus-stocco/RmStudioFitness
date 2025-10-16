@@ -44,17 +44,18 @@
           <a sec:authorize="isAuthenticated()" th:href="@{/meus-planos-aula}">Planos de Aula</a>
           <a sec:authorize="isAuthenticated()" th:href="@{/minhas-mensalidades}">Mensalidades</a>
           <a sec:authorize="isAuthenticated()" th:href="@{/perfil}">Perfil</a>
-          <!-- Dropdown de Gestão para Administradores -->
-          <div sec:authorize="hasRole('ADMIN')" class="nav-dropdown">
+          <!-- Dropdown de Gestão -->
+          <div sec:authorize="hasAnyRole('ADMIN', 'PERSONAL')" class="nav-dropdown">
             <a href="#" class="nav-dropdown-toggle">Gestão <i class="fas fa-caret-down"></i></a>
             <div class="nav-dropdown-menu">
-              <a th:href="@{/membros}">Gestão de Membros</a>
+              <a sec:authorize="hasRole('ADMIN')" th:href="@{/membros}">Gestão de Membros</a>
               <a th:href="@{/avaliacoes}">Gestão de Avaliações Físicas</a>
-              <a th:href="@{/tipos-plano}">Gestão de Planos Monetarios</a>
+              <a sec:authorize="hasRole('ADMIN')" th:href="@{/tipos-plano}">Gestão de Planos Monetarios</a>
               <a th:href="@{/planos-aula}">Gestão de Planos de Aulas</a>
               <a th:href="@{/exercicios}">Gestão de Exercícios</a>
-              <a th:href="@{/cidades}">Gestão de Cidades</a>
-              <a th:href="@{/estados}">Gestão de Estados</a>
+              <a sec:authorize="hasRole('ADMIN')" th:href="@{/cidades}">Gestão de Cidades</a>
+              <a sec:authorize="hasRole('ADMIN')" th:href="@{/estados}">Gestão de Estados</a>
+              <a sec:authorize="hasRole('ADMIN')" th:href="@{/gerenciamento/roles}">Gerenciamento de Papéis</a>
             </div>
           </div>
           <!-- Dropdown de Relatórios para Administradores -->

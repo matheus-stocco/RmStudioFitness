@@ -44,6 +44,10 @@ public class DataInitializer implements CommandLineRunner {
             Perfil userPerfil = new Perfil();
             userPerfil.setNome("ROLE_USER");
             perfilRepository.save(userPerfil);
+
+            Perfil personalPerfil = new Perfil();
+            personalPerfil.setNome("ROLE_PERSONAL");
+            perfilRepository.save(personalPerfil);
         }
 
         if (pessoaRepository.count() == 0) {
