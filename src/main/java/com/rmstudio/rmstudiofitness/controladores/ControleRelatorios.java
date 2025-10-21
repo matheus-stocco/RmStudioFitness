@@ -6,6 +6,7 @@ import com.rmstudio.rmstudiofitness.repositorios.PessoaRepository;
 import com.rmstudio.rmstudiofitness.servicos.PagamentoService;
 
 import org.springframework.data.domain.Page;
+import org.springframework.data.domain.PageRequest;
 import org.springframework.data.domain.Pageable;
 import org.springframework.data.domain.Sort;
 import org.springframework.data.web.PageableDefault;
@@ -14,6 +15,8 @@ import org.springframework.stereotype.Controller;
 import org.springframework.ui.Model;
 import org.springframework.web.bind.annotation.GetMapping;
 import org.springframework.web.bind.annotation.RequestParam;
+import org.springframework.web.bind.annotation.PathVariable;
+import org.springframework.web.server.ResponseStatusException;
 
 import java.util.List;
 import java.math.BigDecimal;
@@ -30,6 +33,7 @@ import java.time.LocalDateTime;
 import java.util.HashMap;
 import com.lowagie.text.DocumentException;
 import org.springframework.http.HttpStatus;
+import com.rmstudio.rmstudiofitness.dtos.ResumoFinanceiroDTO;
 
 
 @Controller
@@ -51,11 +55,13 @@ public class ControleRelatorios {
         @RequestParam(value = "status", required = false) String status,
         @RequestParam(value = "ano", required = false) Integer ano,
         @RequestParam(value = "mes", required = false) Integer mes,
-        @PageableDefault(size = 15, sort = "dataVencimento", direction = Sort.Direction.DESC) Pageable pageable,
+        @RequestParam(value = "alunoNome", required = false) String alunoNome,
+        @PageableDefault(size = 15) Pageable pageable,
         Model model
     ) {
 
-        Page<Mensalidade> mensalidades = pagamentoService.buscarMensalidadesParaRelatorio(status, ano, mes, pageable);
+        Pageable pageableSemOrdenacao = PageRequest.of(pageable.getPageNumber(), pageable.getPageSize());
+        Page<Mensalidade> mensalidades = pagamentoService.buscarMensalidadesParaRelatorio(status, ano, mes, alunoNome, pageableSemOrdenacao);
         Map<String, BigDecimal> totais = pagamentoService.calcularTotais(ano, mes);
         
         model.addAttribute("mensalidades", mensalidades);
@@ -64,7 +70,20 @@ public class ControleRelatorios {
         model.addAttribute("previsaoArrecadacao", totais.get("previsaoArrecadacao"));
         model.addAttribute("anoSelecionado", ano != null ? ano : LocalDate.now().getYear());
         model.addAttribute("mesSelecionado", mes != null ? mes : LocalDate.now().getMonthValue());
+        model.addAttribute("alunoNomePesquisado", alunoNome);
 
+        // Se a busca retornar mensalidades de apenas um aluno, disponibiliza-o para o botão de PDF
+        if (alunoNome != null && !alunoNome.isBlank()) {
+            List<Pessoa> alunosEncontrados = mensalidades.getContent().stream()
+                .map(Mensalidade::getPessoa)
+                .distinct()
+                .toList();
+            
+            if (alunosEncontrados.size() == 1) {
+                model.addAttribute("alunoUnico", alunosEncontrados.get(0));
+            }
+        }
+        
         // Para popular os filtros de ano e mês na view
         List<Integer> anos = IntStream.rangeClosed(2023, LocalDate.now().getYear() + 1).boxed().collect(Collectors.toList());
         model.addAttribute("anos", anos);
@@ -168,6 +187,64 @@ public class ControleRelatorios {
 
         } catch (IOException | DocumentException e) {
             // Log do erro
+            return new ResponseEntity<>(HttpStatus.INTERNAL_SERVER_ERROR);
+        }
+    }
+
+    @GetMapping("/relatorios/mensalidades/pdf")
+    public ResponseEntity<byte[]> gerarRelatorioFinanceiroPdf(
+        @RequestParam(value = "ano", required = false) Integer ano) {
+
+        ResumoFinanceiroDTO resumo = pagamentoService.calcularResumoFinanceiroAnual(ano);
+        
+        Map<String, Object> dados = new HashMap<>();
+        dados.put("resumo", resumo);
+        dados.put("dataGeracao", LocalDateTime.now());
+
+        try {
+            byte[] pdfBytes = pdfService.gerarPdfDeHtml("relatorios/relatorio-financeiro-pdf", dados);
+            
+            HttpHeaders headers = new HttpHeaders();
+            headers.setContentType(MediaType.APPLICATION_PDF);
+            String filename = "relatorio-financeiro-" + resumo.getAno() + ".pdf";
+            headers.setContentDispositionFormData("attachment", filename);
+            headers.setCacheControl("must-revalidate, post-check=0, pre-check=0");
+            
+            return new ResponseEntity<>(pdfBytes, headers, HttpStatus.OK);
+
+        } catch (IOException | DocumentException e) {
+            // Log do erro e
+            e.printStackTrace();
+            return new ResponseEntity<>(HttpStatus.INTERNAL_SERVER_ERROR);
+        }
+    }
+
+    @GetMapping("/relatorios/mensalidades/aluno/{alunoId}/pdf")
+    @PreAuthorize("hasRole('ADMIN')")
+    public ResponseEntity<byte[]> gerarRelatorioAlunoPdf(@PathVariable Long alunoId) {
+        Pessoa aluno = pessoaRepository.findByIdWithDetails(alunoId)
+            .orElseThrow(() -> new ResponseStatusException(HttpStatus.NOT_FOUND, "Aluno não encontrado."));
+
+        List<Mensalidade> mensalidades = pagamentoService.findMensalidadesByPessoaId(alunoId);
+
+        Map<String, Object> dados = new HashMap<>();
+        dados.put("aluno", aluno);
+        dados.put("mensalidades", mensalidades);
+        dados.put("dataGeracao", LocalDateTime.now());
+
+        try {
+            byte[] pdfBytes = pdfService.gerarPdfDeHtml("relatorios/relatorio-mensalidades-aluno-pdf", dados);
+
+            HttpHeaders headers = new HttpHeaders();
+            headers.setContentType(MediaType.APPLICATION_PDF);
+            String filename = "relatorio-mensalidades-" + aluno.getNome().replaceAll("\\s+", "-") + ".pdf";
+            headers.setContentDispositionFormData("attachment", filename);
+            headers.setCacheControl("must-revalidate, post-check=0, pre-check=0");
+
+            return new ResponseEntity<>(pdfBytes, headers, HttpStatus.OK);
+
+        } catch (IOException | DocumentException e) {
+            e.printStackTrace();
             return new ResponseEntity<>(HttpStatus.INTERNAL_SERVER_ERROR);
         }
     }

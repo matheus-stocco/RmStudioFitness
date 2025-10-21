@@ -78,28 +78,47 @@
                 <div class="filters-container">
                     <form th:action="@{/relatorios/mensalidades}" method="get" class="report-filters">
                         <div class="filter-group">
+                            <label for="alunoNome">Aluno:</label>
+                            <div class="input-group">
+                                <input type="text" name="alunoNome" id="alunoNome" class="form-control" th:value="${alunoNomePesquisado}" placeholder="Nome do Aluno">
+                                <button type="submit" class="btn btn-primary"><i class="fas fa-search"></i></button>
+                            </div>
+                        </div>
+                        <div class="filter-group">
                             <label for="ano">Ano:</label>
-                            <select name="ano" id="ano" class="form-control">
+                            <select name="ano" id="ano" class="form-control" onchange="this.form.submit()">
                                 <option th:each="a : ${anos}" th:value="${a}" th:text="${a}" th:selected="${a == anoSelecionado}"></option>
                             </select>
                         </div>
                         <div class="filter-group">
                             <label for="mes">Mês:</label>
-                            <select name="mes" id="mes" class="form-control">
+                            <select name="mes" id="mes" class="form-control" onchange="this.form.submit()">
                                 <option value="">Todos</option>
                                 <option th:each="m : ${#numbers.sequence(1, 12)}" th:value="${m}" th:text="${#temporals.create(2000, m, 1, 0, 0).month.getDisplayName('FULL', new java.util.Locale('pt', 'BR'))}" th:selected="${m == mesSelecionado}"></option>
                             </select>
                         </div>
                         <input type="hidden" name="status" th:value="${filtroAtual}" />
-                        <button type="submit" class="btn btn-primary">Filtrar</button>
                     </form>
     
                     <div class="status-filters">
-                        <a th:href="@{/relatorios/mensalidades(status='TODAS', ano=${anoSelecionado}, mes=${mesSelecionado})}" class="btn" th:classappend="${filtroAtual == 'TODAS'} ? 'btn-primary' : 'btn-secondary'">Todas</a>
-                        <a th:href="@{/relatorios/mensalidades(status='PAGO', ano=${anoSelecionado}, mes=${mesSelecionado})}" class="btn" th:classappend="${filtroAtual == 'PAGO'} ? 'btn-primary' : 'btn-secondary'">Pagas</a>
-                        <a th:href="@{/relatorios/mensalidades(status='PENDENTE', ano=${anoSelecionado}, mes=${mesSelecionado})}" class="btn" th:classappend="${filtroAtual == 'PENDENTE'} ? 'btn-primary' : 'btn-secondary'">Pendentes</a>
-                        <a th:href="@{/relatorios/mensalidades(status='ATRASADA', ano=${anoSelecionado}, mes=${mesSelecionado})}" class="btn" th:classappend="${filtroAtual == 'ATRASADA'} ? 'btn-primary' : 'btn-secondary'">Atrasadas</a>
-                        <a th:href="@{/relatorios/mensalidades(status='CANCELADO', ano=${anoSelecionado}, mes=${mesSelecionado})}" class="btn" th:classappend="${filtroAtual == 'CANCELADO'} ? 'btn-primary' : 'btn-secondary'">Canceladas</a>
+                        <a th:href="@{/relatorios/mensalidades(status='TODAS', ano=${anoSelecionado}, mes=${mesSelecionado}, alunoNome=${alunoNomePesquisado})}" class="btn" th:classappend="${filtroAtual == 'TODAS'} ? 'btn-primary' : 'btn-secondary'">Todas</a>
+                        <a th:href="@{/relatorios/mensalidades(status='PAGO', ano=${anoSelecionado}, mes=${mesSelecionado}, alunoNome=${alunoNomePesquisado})}" class="btn" th:classappend="${filtroAtual == 'PAGO'} ? 'btn-primary' : 'btn-secondary'">Pagas</a>
+                        <a th:href="@{/relatorios/mensalidades(status='PENDENTE', ano=${anoSelecionado}, mes=${mesSelecionado}, alunoNome=${alunoNomePesquisado})}" class="btn" th:classappend="${filtroAtual == 'PENDENTE'} ? 'btn-primary' : 'btn-secondary'">Pendentes</a>
+                        <a th:href="@{/relatorios/mensalidades(status='ATRASADA', ano=${anoSelecionado}, mes=${mesSelecionado}, alunoNome=${alunoNomePesquisado})}" class="btn" th:classappend="${filtroAtual == 'ATRASADA'} ? 'btn-primary' : 'btn-secondary'">Atrasadas</a>
+                        <a th:href="@{/relatorios/mensalidades(status='CANCELADO', ano=${anoSelecionado}, mes=${mesSelecionado}, alunoNome=${alunoNomePesquisado})}" class="btn" th:classappend="${filtroAtual == 'CANCELADO'} ? 'btn-primary' : 'btn-secondary'">Canceladas</a>
+                    </div>
+                     <!-- Botão para Gerar PDF Financeiro -->
+                     <div class="pdf-export" th:if="${alunoUnico == null}">
+                        <a th:href="@{/relatorios/mensalidades/pdf(ano=${anoSelecionado})}" class="btn btn-danger" target="_blank">
+                            <i class="fas fa-file-pdf"></i> Gerar Resumo em PDF
+                        </a>
+                    </div>
+
+                    <!-- Botão para Gerar PDF do Aluno (condicional) -->
+                    <div class="pdf-export" th:if="${alunoUnico != null}">
+                        <a th:href="@{/relatorios/mensalidades/aluno/{id}/pdf(id=${alunoUnico.id})}" class="btn btn-success" target="_blank">
+                            <i class="fas fa-file-pdf"></i> Gerar PDF de <span th:text="${alunoUnico.primeiroNome()}"></span>
+                        </a>
                     </div>
                 </div>
 

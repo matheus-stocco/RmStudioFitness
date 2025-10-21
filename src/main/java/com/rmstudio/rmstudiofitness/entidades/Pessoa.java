@@ -20,6 +20,8 @@ import java.util.HashSet;
 import org.springframework.security.core.GrantedAuthority;
 import org.springframework.security.core.userdetails.UserDetails;
 import com.fasterxml.jackson.annotation.JsonManagedReference;
+import org.hibernate.annotations.JdbcTypeCode;
+import org.hibernate.type.SqlTypes;
 
 @Entity
 @Table(name = "pessoa")
@@ -30,11 +32,11 @@ public class Pessoa implements UserDetails {
     @Id @GeneratedValue(strategy = GenerationType.IDENTITY)
     private Long id;
 
+    @JdbcTypeCode(SqlTypes.VARCHAR)
+    private String nome;
+
     @Column(name = "usuario", nullable = false, unique = true, length = 30)
     private String usuario;
-
-    @Column(name = "nome", nullable = false, length = 50)
-    private String nome;
 
     @Column(name = "senha", nullable = false, length = 100)
     private String senha;
@@ -306,6 +308,15 @@ public class Pessoa implements UserDetails {
         if (getIdade() != null) info.append(" (").append(getIdade()).append(" anos)");
         if (cidade != null) info.append(" - ").append(cidade.getNomeCompleto());
         return info.toString();
+    }
+
+    @Transient
+    public String primeiroNome() {
+        if (this.nome != null && !this.nome.trim().isEmpty()) {
+            String[] partes = this.nome.trim().split("\\s+");
+            return partes[0];
+        }
+        return "";
     }
 
     // equals/hashCode por id

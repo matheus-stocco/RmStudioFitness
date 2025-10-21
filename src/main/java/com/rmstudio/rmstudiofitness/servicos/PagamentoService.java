@@ -20,6 +20,7 @@ import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
 import org.springframework.data.domain.Page;
+import org.springframework.data.domain.PageImpl;
 import org.springframework.data.domain.Pageable;
 
 import java.util.List;
@@ -27,6 +28,9 @@ import java.util.stream.Collectors;
 import java.math.BigDecimal;
 import java.math.RoundingMode;
 import java.util.Map;
+import com.rmstudio.rmstudiofitness.dtos.ResumoFinanceiroDTO;
+import java.util.Comparator;
+import java.util.LinkedHashMap;
 
 
 @Service
@@ -166,9 +170,23 @@ public class PagamentoService {
     }
 
     @Transactional(readOnly = true)
-    public Page<Mensalidade> buscarMensalidadesParaRelatorio(String status, Integer ano, Integer mes, Pageable pageable) {
+    public Page<Mensalidade> buscarMensalidadesParaRelatorio(String status, Integer ano, Integer mes, String alunoNome, Pageable pageable) {
         String statusFilter = (status == null || status.trim().isEmpty()) ? "TODAS" : status.toUpperCase();
-        return mensalidadeRepository.findForRelatorio(ano, mes, statusFilter, pageable);
+        Page<Mensalidade> pageDeMensalidades = mensalidadeRepository.findForRelatorio(ano, mes, statusFilter, alunoNome, pageable);
+
+        List<Long> ids = pageDeMensalidades.getContent().stream()
+                .map(Mensalidade::getId)
+                .collect(Collectors.toList());
+
+        if (ids.isEmpty()){
+            return pageDeMensalidades;
+        }
+
+        List<Mensalidade> mensalidadesCompletas = mensalidadeRepository.findAllWithDetailsByIds(ids);
+
+        // O PageImpl espera que a lista de conteúdo já esteja na ordem correta, o que é garantido
+        // porque ambas as consultas (nativa e JPQL) ordenam por data de vencimento.
+        return new PageImpl<>(mensalidadesCompletas, pageDeMensalidades.getPageable(), pageDeMensalidades.getTotalElements());
     }
 
     @Transactional(readOnly = true)
@@ -290,5 +308,100 @@ public class PagamentoService {
                 m.getValor().multiply(new java.math.BigDecimal(100)).intValue() // Convertendo para centavos
             ))
         );
+    }
+
+    @Transactional(readOnly = true)
+    public ResumoFinanceiroDTO calcularResumoFinanceiroAnual(Integer ano) {
+        int anoCalculo = (ano != null) ? ano : LocalDate.now().getYear();
+        List<Mensalidade> mensalidades = mensalidadeRepository.findByYearWithDetails(anoCalculo);
+        LocalDate hoje = LocalDate.now();
+
+        // 1. Total Arrecadado (Apenas mensalidades PAGAS no ano)
+        BigDecimal totalArrecadado = mensalidades.stream()
+            .filter(m -> "PAGO".equals(m.getStatus()))
+            .map(Mensalidade::getValor)
+            .reduce(BigDecimal.ZERO, BigDecimal::add);
+
+        // 2. Contagem por Status
+        long pagas = mensalidades.stream().filter(m -> "PAGO".equals(m.getStatus())).count();
+        long pendentes = mensalidades.stream().filter(m -> "PENDENTE".equals(m.getStatus()) && !m.getDataVencimento().isBefore(hoje)).count();
+        long atrasadas = mensalidades.stream().filter(m -> "PENDENTE".equals(m.getStatus()) && m.getDataVencimento().isBefore(hoje)).count();
+        long canceladas = mensalidades.stream().filter(m -> "CANCELADO".equals(m.getStatus())).count();
+
+        // 3. Faturamento por Plano
+        // Garante que todos os planos sejam listados, mesmo que com valor zero.
+        Map<String, BigDecimal> faturamentoPorPlano = tipoPlanoRepository.findAll().stream()
+            .collect(Collectors.toMap(
+                TipoPlano::getNome,
+                p -> BigDecimal.ZERO
+            ));
+
+        mensalidades.stream()
+            .filter(m -> "PAGO".equals(m.getStatus()))
+            .forEach(m -> faturamentoPorPlano.merge(m.getTipoPlano().getNome(), m.getValor(), BigDecimal::add));
+
+        // Ordena o mapa final por valor (decrescente) e depois por nome (crescente para desempate)
+        Map<String, BigDecimal> faturamentoOrdenado = faturamentoPorPlano.entrySet().stream()
+            .sorted(Map.Entry.<String, BigDecimal>comparingByValue(Comparator.reverseOrder())
+                .thenComparing(Map.Entry.comparingByKey()))
+            .collect(Collectors.toMap(
+                Map.Entry::getKey,
+                Map.Entry::getValue,
+                (e1, e2) -> e1,
+                LinkedHashMap::new
+            ));
+
+        // 4. Defasagem por Plano (valores em atraso)
+        Map<String, BigDecimal> defasagemPorPlano = tipoPlanoRepository.findAll().stream()
+            .collect(Collectors.toMap(
+                TipoPlano::getNome,
+                p -> BigDecimal.ZERO
+            ));
+
+        mensalidades.stream()
+            .filter(m -> "PENDENTE".equals(m.getStatus()) && m.getDataVencimento().isBefore(hoje))
+            .forEach(m -> defasagemPorPlano.merge(m.getTipoPlano().getNome(), m.getValor(), BigDecimal::add));
+
+        Map<String, BigDecimal> defasagemOrdenada = defasagemPorPlano.entrySet().stream()
+            .sorted(Map.Entry.<String, BigDecimal>comparingByValue(Comparator.reverseOrder())
+                .thenComparing(Map.Entry.comparingByKey()))
+            .collect(Collectors.toMap(
+                Map.Entry::getKey,
+                Map.Entry::getValue,
+                (e1, e2) -> e1,
+                LinkedHashMap::new
+            ));
+
+        // 5. Arrecadação Mensal (para o gráfico)
+        Map<Integer, BigDecimal> arrecadacaoMensal = mensalidades.stream()
+            .filter(m -> "PAGO".equals(m.getStatus()))
+            .collect(Collectors.groupingBy(
+                m -> m.getDataPagamento().getMonthValue(),
+                Collectors.mapping(Mensalidade::getValor, Collectors.reducing(BigDecimal.ZERO, BigDecimal::add))
+            ));
+        
+        // Garante que todos os 12 meses estão presentes no mapa para o gráfico
+        for (int i = 1; i <= 12; i++) {
+            arrecadacaoMensal.putIfAbsent(i, BigDecimal.ZERO);
+        }
+
+        ResumoFinanceiroDTO dto = new ResumoFinanceiroDTO();
+        dto.setAno(anoCalculo);
+        dto.setTotalArrecadado(totalArrecadado);
+        dto.setTotalMensalidadesPagas(pagas);
+        dto.setTotalMensalidadesPendentes(pendentes);
+        dto.setTotalMensalidadesAtrasadas(atrasadas);
+        dto.setTotalMensalidadesCanceladas(canceladas);
+        dto.setFaturamentoPorPlano(faturamentoOrdenado);
+        dto.setDefasagemPorPlano(defasagemOrdenada);
+        dto.setArrecadacaoMensal(arrecadacaoMensal);
+        
+        // Média mensal baseada nos meses que já passaram ou no mês atual
+        int mesesConsiderados = (anoCalculo < hoje.getYear()) ? 12 : hoje.getMonthValue();
+        dto.setMediaMensal(
+            totalArrecadado.divide(BigDecimal.valueOf(mesesConsiderados), 2, RoundingMode.HALF_UP)
+        );
+
+        return dto;
     }
 }

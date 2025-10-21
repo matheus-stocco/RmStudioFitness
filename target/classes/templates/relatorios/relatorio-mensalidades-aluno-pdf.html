@@ -1,0 +1,138 @@
+<!DOCTYPE html>
+<html xmlns:th="http://www.thymeleaf.org">
+<head>
+    <meta charset="UTF-8" />
+    <title>Relatório de Mensalidades do Aluno</title>
+    <style>
+        body {
+            font-family: Arial, sans-serif;
+            font-size: 11px;
+            color: #333;
+        }
+        .container {
+            width: 95%;
+            margin: 0 auto;
+        }
+        h1 {
+            text-align: center;
+            color: #FF6B35;
+            border-bottom: 2px solid #FF6B35;
+            padding-bottom: 10px;
+            margin-bottom: 20px;
+        }
+        .report-info {
+            text-align: right;
+            margin-bottom: 20px;
+            font-size: 10px;
+            color: #555;
+        }
+        .student-details {
+            border: 1px solid #ddd;
+            background-color: #f9f9f9;
+            padding: 15px;
+            margin-bottom: 25px;
+            border-radius: 5px;
+            line-height: 1.6;
+        }
+        .student-details h2 {
+            margin-top: 0;
+            margin-bottom: 10px;
+            color: #FF6B35;
+            font-size: 16px;
+        }
+        .detail-grid {
+            display: grid;
+            grid-template-columns: 1fr 1fr;
+            gap: 0 20px;
+        }
+        table {
+            width: 100%;
+            border-collapse: collapse;
+            margin-top: 20px;
+        }
+        th, td {
+            border: 1px solid #ddd;
+            padding: 7px;
+            text-align: left;
+        }
+        thead {
+            background-color: #f2f2f2;
+        }
+        .status-badge {
+            padding: 3px 8px;
+            border-radius: 10px;
+            font-size: 0.8rem;
+            font-weight: 700;
+            color: #fff;
+            display: inline-block;
+            text-transform: uppercase;
+        }
+        .status-pendente { background-color: #f0ad4e; }
+        .status-pago { background-color: #5cb85c; }
+        .status-atrasado { background-color: #d9534f; }
+        .status-cancelado { background-color: #6c757d; }
+    </style>
+</head>
+<body>
+    <div class="container">
+        <h1>Relatório de Mensalidades</h1>
+        <div class="report-info">
+            <strong>Gerado em:</strong> <span th:text="${#temporals.format(dataGeracao, 'dd/MM/yyyy HH:mm')}"></span>
+        </div>
+
+        <!-- Detalhes do Aluno -->
+        <div class="student-details">
+            <h2 th:text="${aluno.nome}"></h2>
+            <div class="detail-grid">
+                <div><strong>CPF:</strong> <span th:text="${aluno.getCpfFormatado()}"></span></div>
+                <div><strong>Email:</strong> <span th:text="${aluno.email}"></span></div>
+                <div><strong>Data de Nascimento:</strong> <span th:text="${aluno.getDataNascimentoFormatada()}"></span></div>
+                <div><strong>Telefone:</strong> <span th:text="${aluno.telefone}"></span></div>
+                <div><strong>Membro desde:</strong> <span th:text="${aluno.getDataCadastroFormatada()}"></span></div>
+                <div><strong>Plano Ativo:</strong> <span th:text="${aluno.planoAtivo != null ? aluno.planoAtivo.nome : 'Nenhum'}"></span></div>
+            </div>
+        </div>
+
+        <!-- Tabela de Mensalidades -->
+        <table>
+            <thead>
+                <tr>
+                    <th>ID</th>
+                    <th>Plano</th>
+                    <th>Valor</th>
+                    <th>Vencimento</th>
+                    <th>Data Pagamento</th>
+                    <th>Status</th>
+                </tr>
+            </thead>
+            <tbody>
+                <tr th:each="m : ${mensalidades}">
+                    <td th:text="${m.id}"></td>
+                    <td th:text="${m.tipoPlano.nome}"></td>
+                    <td th:text="'R$ ' + ${#numbers.formatDecimal(m.valor, 1, 'POINT', 2, 'COMMA')}"></td>
+                    <td th:text="${#temporals.format(m.dataVencimento, 'dd/MM/yyyy')}"></td>
+                    <td th:text="${m.dataPagamento != null ? #temporals.format(m.dataPagamento, 'dd/MM/yyyy') : '---'}"></td>
+                    <td>
+                        <th:block th:switch="${m.status}">
+                            <span th:case="'PENDENTE'">
+                                <th:block th:if="${m.dataVencimento.isBefore(#temporals.createNow().toLocalDate())}">
+                                    <span class="status-badge status-atrasado">ATRASADO</span>
+                                </th:block>
+                                <th:block th:unless="${m.dataVencimento.isBefore(#temporals.createNow().toLocalDate())}">
+                                    <span class="status-badge status-pendente">PENDENTE</span>
+                                </th:block>
+                            </span>
+                            <span th:case="'PAGO'" class="status-badge status-pago">PAGO</span>
+                            <span th:case="'CANCELADO'" class="status-badge status-cancelado">CANCELADO</span>
+                            <span th:case="*" class="status-badge" th:text="${m.status}"></span>
+                        </th:block>
+                    </td>
+                </tr>
+                <tr th:if="${#lists.isEmpty(mensalidades)}">
+                    <td colspan="6" style="text-align: center;">Nenhuma mensalidade encontrada para este aluno.</td>
+                </tr>
+            </tbody>
+        </table>
+    </div>
+</body>
+</html>

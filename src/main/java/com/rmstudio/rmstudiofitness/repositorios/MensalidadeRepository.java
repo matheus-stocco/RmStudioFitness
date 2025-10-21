@@ -70,25 +70,38 @@ public interface MensalidadeRepository extends JpaRepository<Mensalidade, Long> 
     @Query("SELECT m FROM Mensalidade m JOIN FETCH m.pessoa p JOIN FETCH m.tipoPlano tp ORDER BY m.dataVencimento DESC")
     List<Mensalidade> findAllWithDetails();
 
+    /**
+     * Busca todas as mensalidades de um determinado ano.
+     */
+    @Query("SELECT m FROM Mensalidade m JOIN FETCH m.pessoa p JOIN FETCH m.tipoPlano tp WHERE YEAR(m.dataVencimento) = :ano")
+    List<Mensalidade> findByYearWithDetails(@Param("ano") int ano);
+
      /**
      * Busca mensalidades para o relatório com filtros e paginação.
      */
-    @Query(value = "SELECT m FROM Mensalidade m JOIN FETCH m.pessoa p JOIN FETCH m.tipoPlano tp " +
-           "WHERE ( :ano IS NULL OR YEAR(m.dataVencimento) = :ano ) " +
-           "AND ( :mes IS NULL OR MONTH(m.dataVencimento) = :mes ) " +
+    @Query(value = "SELECT m.* FROM mensalidade m " +
+           "JOIN pessoa p ON m.pessoa_id = p.id " +
+           "WHERE ( :ano IS NULL OR EXTRACT(YEAR FROM m.data_vencimento) = :ano ) " +
+           "AND ( :mes IS NULL OR EXTRACT(MONTH FROM m.data_vencimento) = :mes ) " +
+           "AND ( :alunoNome IS NULL OR LOWER(CAST(p.nome AS TEXT)) LIKE LOWER(CONCAT('%', :alunoNome, '%'))) " +
            "AND ( :status IS NULL OR :status = 'TODAS' OR " +
-           "      ( :status = 'ATRASADA' AND m.status = 'PENDENTE' AND m.dataVencimento < CURRENT_DATE ) OR " +
+           "      ( :status = 'ATRASADA' AND m.status = 'PENDENTE' AND m.data_vencimento < CURRENT_DATE ) OR " +
+           "      ( :status <> 'ATRASADA' AND m.status = :status) ) " +
+           "ORDER BY m.data_vencimento DESC",
+           countQuery = "SELECT count(*) FROM mensalidade m " +
+           "JOIN pessoa p ON m.pessoa_id = p.id " +
+           "WHERE ( :ano IS NULL OR EXTRACT(YEAR FROM m.data_vencimento) = :ano ) " +
+           "AND ( :mes IS NULL OR EXTRACT(MONTH FROM m.data_vencimento) = :mes ) " +
+           "AND ( :alunoNome IS NULL OR LOWER(CAST(p.nome AS TEXT)) LIKE LOWER(CONCAT('%', :alunoNome, '%'))) " +
+           "AND ( :status IS NULL OR :status = 'TODAS' OR " +
+           "      ( :status = 'ATRASADA' AND m.status = 'PENDENTE' AND m.data_vencimento < CURRENT_DATE ) OR " +
            "      ( :status <> 'ATRASADA' AND m.status = :status) )",
-           countQuery = "SELECT count(m) FROM Mensalidade m " +
-           "WHERE ( :ano IS NULL OR YEAR(m.dataVencimento) = :ano ) " +
-           "AND ( :mes IS NULL OR MONTH(m.dataVencimento) = :mes ) " +
-           "AND ( :status IS NULL OR :status = 'TODAS' OR " +
-           "      ( :status = 'ATRASADA' AND m.status = 'PENDENTE' AND m.dataVencimento < CURRENT_DATE ) OR " +
-           "      ( :status <> 'ATRASADA' AND m.status = :status) )")
+           nativeQuery = true)
     Page<Mensalidade> findForRelatorio(
         @Param("ano") Integer ano,
         @Param("mes") Integer mes,
         @Param("status") String status,
+        @Param("alunoNome") String alunoNome,
         Pageable pageable
     );
 }
