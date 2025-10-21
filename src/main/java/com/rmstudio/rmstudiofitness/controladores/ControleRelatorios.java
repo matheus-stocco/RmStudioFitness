@@ -88,6 +88,21 @@ public class ControleRelatorios {
                 break;
         }
 
+        // Novas estatísticas
+        long totalAtivos = pessoaRepository.countByPlanoAtivoIsNotNull();
+        long totalOciosos = pessoaRepository.countByPlanoAtivoIsNull();
+        long totalMembros = totalAtivos + totalOciosos; // Calculando o total a partir dos status
+        long totalMasculino = pessoaRepository.countByGenero("M");
+        long totalFeminino = pessoaRepository.countByGenero("F");
+        long totalOutro = pessoaRepository.countByGenero("O");
+
+        model.addAttribute("totalMembros", totalMembros);
+        model.addAttribute("totalAtivos", totalAtivos);
+        model.addAttribute("totalOciosos", totalOciosos);
+        model.addAttribute("totalMasculino", totalMasculino);
+        model.addAttribute("totalFeminino", totalFeminino);
+        model.addAttribute("totalOutro", totalOutro);
+
         model.addAttribute("membros", membros);
         model.addAttribute("nomePesquisado", nome);
         model.addAttribute("filtroStatus", status.toUpperCase());

@@ -15,6 +15,38 @@
         <div class="container-fluid">
             <h1 class="page-title"><i class="fas fa-users"></i> Relatório de Membros Cadastrados</h1>
 
+            <!-- Cards de Resumo -->
+            <div class="summary-cards">
+                <div class="summary-card">
+                    <div class="card-icon"><i class="fas fa-users"></i></div>
+                    <div class="card-content">
+                        <span class="card-title">Total de Membros</span>
+                        <span class="card-value" th-text="${totalMembros}"></span>
+                    </div>
+                </div>
+                <div class="summary-card">
+                    <div class="card-icon"><i class="fas fa-venus-mars"></i></div>
+                    <div class="card-content">
+                        <span class="card-title">Gênero</span>
+                        <span class="card-value-small" th:text="'M: ' + ${totalMasculino} + ' | F: ' + ${totalFeminino} + ' | O: ' + ${totalOutro}"></span>
+                    </div>
+                </div>
+                <div class="summary-card">
+                    <div class="card-icon"><i class="fas fa-user-check"></i></div>
+                    <div class="card-content">
+                        <span class="card-title">Ativos</span>
+                        <span class="card-value" th:text="${totalAtivos}"></span>
+                    </div>
+                </div>
+                <div class="summary-card">
+                    <div class="card-icon"><i class="fas fa-user-clock"></i></div>
+                    <div class="card-content">
+                        <span class="card-title">Ociosos</span>
+                        <span class="card-value" th:text="${totalOciosos}"></span>
+                    </div>
+                </div>
+            </div>
+
             <div class="card form-card card--wide">
                 <div class="report-filters" style="justify-content: space-between; align-items: center; flex-wrap: wrap; margin-bottom: 24px;">
                     <!-- Filtros de Status -->

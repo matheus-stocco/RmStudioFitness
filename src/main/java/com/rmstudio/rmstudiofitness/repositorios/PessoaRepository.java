@@ -96,4 +96,11 @@ public interface PessoaRepository extends JpaRepository<Pessoa, Long> {
 
     @Query("SELECT DISTINCT p FROM Pessoa p LEFT JOIN FETCH p.planosDeAula pa LEFT JOIN FETCH pa.itens i LEFT JOIN FETCH i.exercicio WHERE p.usuario = :usuario")
     Optional<Pessoa> findByUsuarioWithPlanosDeAula(@Param("usuario") String usuario);
+
+    /** Contagem de membros por status (ativo/ocioso) */
+    long countByPlanoAtivoIsNotNull();
+    long countByPlanoAtivoIsNull();
+
+    /** Contagem de membros por gênero */
+    long countByGenero(String genero);
 }
