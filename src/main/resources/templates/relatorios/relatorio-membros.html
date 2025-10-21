@@ -74,33 +74,62 @@
                     <table class="table">
                         <thead>
                             <tr>
-                                <th>ID</th>
-                                <th>Nome</th>
-                                <th>Email</th>
+                                <th th:with="sortField='id', currentSort=${membros.sort.getOrderFor(sortField)}, nextDirection=${(currentSort != null && currentSort.isAscending()) ? 'desc' : 'asc'}, sortParam=${sortField + ',' + nextDirection}">
+                                    <a th:href="@{/relatorios/membros(status=${filtroStatus}, nome=${nomePesquisado}, sort=${sortParam})}">
+                                        ID <i class="fas" th:classappend="${currentSort == null ? 'fa-sort' : (currentSort.isAscending() ? 'fa-sort-up' : 'fa-sort-down')}"></i>
+                                    </a>
+                                </th>
+                                <th th:with="sortField='nome', currentSort=${membros.sort.getOrderFor(sortField)}, nextDirection=${(currentSort != null && currentSort.isAscending()) ? 'desc' : 'asc'}, sortParam=${sortField + ',' + nextDirection}">
+                                    <a th:href="@{/relatorios/membros(status=${filtroStatus}, nome=${nomePesquisado}, sort=${sortParam})}">
+                                        NOME <i class="fas" th:classappend="${currentSort == null ? 'fa-sort' : (currentSort.isAscending() ? 'fa-sort-up' : 'fa-sort-down')}"></i>
+                                    </a>
+                                </th>
+                                <th th:with="sortField='email', currentSort=${membros.sort.getOrderFor(sortField)}, nextDirection=${(currentSort != null && currentSort.isAscending()) ? 'desc' : 'asc'}, sortParam=${sortField + ',' + nextDirection}">
+                                    <a th:href="@{/relatorios/membros(status=${filtroStatus}, nome=${nomePesquisado}, sort=${sortParam})}">
+                                        EMAIL <i class="fas" th:classappend="${currentSort == null ? 'fa-sort' : (currentSort.isAscending() ? 'fa-sort-up' : 'fa-sort-down')}"></i>
+                                    </a>
+                                </th>
                                 <th>CPF</th>
-                                <th>Telefone</th>
-                                <th>Data de Cadastro</th>
-                                <th>Status</th>
+                                <th>TELEFONE</th>
+                                <th th:with="sortField='dataNascimento', currentSort=${membros.sort.getOrderFor(sortField)}, nextDirection=${(currentSort != null && currentSort.isAscending()) ? 'desc' : 'asc'}, sortParam=${sortField + ',' + nextDirection}">
+                                    <a th:href="@{/relatorios/membros(status=${filtroStatus}, nome=${nomePesquisado}, sort=${sortParam})}">
+                                        DATA DE NASCIMENTO <i class="fas" th:classappend="${currentSort == null ? 'fa-sort' : (currentSort.isAscending() ? 'fa-sort-up' : 'fa-sort-down')}"></i>
+                                    </a>
+                                </th>
+                                 <th th:with="sortField='genero', currentSort=${membros.sort.getOrderFor(sortField)}, nextDirection=${(currentSort != null && currentSort.isAscending()) ? 'desc' : 'asc'}, sortParam=${sortField + ',' + nextDirection}">
+                                    <a th:href="@{/relatorios/membros(status=${filtroStatus}, nome=${nomePesquisado}, sort=${sortParam})}">
+                                        GÊNERO <i class="fas" th:classappend="${currentSort == null ? 'fa-sort' : (currentSort.isAscending() ? 'fa-sort-up' : 'fa-sort-down')}"></i>
+                                    </a>
+                                </th>
+                                <th th:with="sortField='dataCadastro', currentSort=${membros.sort.getOrderFor(sortField)}, nextDirection=${(currentSort != null && currentSort.isAscending()) ? 'desc' : 'asc'}, sortParam=${sortField + ',' + nextDirection}">
+                                    <a th:href="@{/relatorios/membros(status=${filtroStatus}, nome=${nomePesquisado}, sort=${sortParam})}">
+                                        DATA DE CADASTRO <i class="fas" th:classappend="${currentSort == null ? 'fa-sort' : (currentSort.isAscending() ? 'fa-sort-up' : 'fa-sort-down')}"></i>
+                                    </a>
+                                </th>
+                                <th th:with="sortField='planoAtivo', currentSort=${membros.sort.getOrderFor(sortField)}, nextDirection=${(currentSort != null && currentSort.isAscending()) ? 'desc' : 'asc'}, sortParam=${sortField + ',' + nextDirection}">
+                                    <a th:href="@{/relatorios/membros(status=${filtroStatus}, nome=${nomePesquisado}, sort=${sortParam})}">
+                                        STATUS <i class="fas" th:classappend="${currentSort == null ? 'fa-sort' : (currentSort.isAscending() ? 'fa-sort-up' : 'fa-sort-down')}"></i>
+                                    </a>
+                                </th>
                             </tr>
                         </thead>
                         <tbody>
-                            <!-- Os dados dos membros serão inseridos aqui pelo Thymeleaf -->
                             <tr th:each="membro : ${membros.content}">
                                 <td th:text="${membro.id}"></td>
                                 <td th:text="${membro.nome}"></td>
                                 <td th:text="${membro.email}"></td>
-                                <td th:text="${membro.cpf}"></td>
+                                <td th:text="${membro.getCpfFormatado()}"></td>
                                 <td th:text="${membro.telefone}"></td>
-                                <td th:text="${#temporals.format(membro.dataCadastro, 'dd/MM/yyyy HH:mm')}"></td>
+                                <td th:text="${membro.getDataNascimentoFormatada()}"></td>
+                                <td th:text="${membro.getGeneroDescricao()}"></td>
+                                <td th:text="${membro.getDataCadastroFormatada()}"></td>
                                 <td>
-                                    <!-- Se o membro tem um plano ativo, status é 'ATIVO' -->
-                                    <span th:if="${membro.planoAtivo != null}" class="status-badge status--pago">ATIVO</span>
-                                    <!-- Se não tem, status é 'OCIOSO' -->
-                                    <span th:unless="${membro.planoAtivo != null}" class="status-badge status--cancelado">OCIOSO</span>
+                                    <span class="status-badge" th:classappend="${membro.planoAtivo != null} ? 'status-ativo' : 'status-ocioso'"
+                                          th:text="${membro.planoAtivo != null} ? 'ATIVO' : 'OCIOSO'"></span>
                                 </td>
                             </tr>
-                            <tr th:if="${membros.empty}">
-                                <td colspan="7" class="text-center">Nenhum membro encontrado.</td>
+                            <tr th:if="${#lists.isEmpty(membros.content)}">
+                                <td colspan="10" class="text-center">Nenhum membro encontrado para este filtro.</td>
                             </tr>
                         </tbody>
                     </table>

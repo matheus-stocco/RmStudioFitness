@@ -16,9 +16,6 @@ import java.util.Optional;
 @Repository
 public interface PessoaRepository extends JpaRepository<Pessoa, Long> {
 
-    /** Busca todas as pessoas ordenadas por nome com paginação */
-    Page<Pessoa> findAllByOrderByNome(Pageable pageable);
-
     /** Busca pessoa por nome (ignoring case) com paginação */
     Page<Pessoa> findByNomeContainingIgnoreCase(String nome, Pageable pageable);
 
@@ -31,12 +28,12 @@ public interface PessoaRepository extends JpaRepository<Pessoa, Long> {
     /** Busca todas as pessoas ordenadas por nome */
     List<Pessoa> findAllByOrderByNome();
 
-    Page<Pessoa> findByPlanoAtivoIsNotNullOrderByNome(Pageable pageable);
+    Page<Pessoa> findByPlanoAtivoIsNotNull(Pageable pageable);
     List<Pessoa> findByPlanoAtivoIsNotNullOrderByNome();
     Page<Pessoa> findByNomeContainingIgnoreCaseAndPlanoAtivoIsNotNull(String nome, Pageable pageable);
     List<Pessoa> findByNomeContainingIgnoreCaseAndPlanoAtivoIsNotNull(String nome);
 
-    Page<Pessoa> findByPlanoAtivoIsNullOrderByNome(Pageable pageable);
+    Page<Pessoa> findByPlanoAtivoIsNull(Pageable pageable);
     List<Pessoa> findByPlanoAtivoIsNullOrderByNome();
     Page<Pessoa> findByNomeContainingIgnoreCaseAndPlanoAtivoIsNull(String nome, Pageable pageable);
     List<Pessoa> findByNomeContainingIgnoreCaseAndPlanoAtivoIsNull(String nome);

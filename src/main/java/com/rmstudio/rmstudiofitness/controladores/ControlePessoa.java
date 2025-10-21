@@ -84,7 +84,7 @@ public class ControlePessoa {
         if (q != null && !q.trim().isEmpty()){
             return pessoaRepository.findByNomeContainingIgnoreCase(q.trim(), pageable);
         }
-        return pessoaRepository.findAllByOrderByNome(pageable);
+        return pessoaRepository.findAll(pageable);
     }
 
     // ===== DETALHE =====

@@ -74,17 +74,17 @@ public class ControleRelatorios {
             case "ATIVO":
                 membros = hasNome
                     ? pessoaRepository.findByNomeContainingIgnoreCaseAndPlanoAtivoIsNotNull(nome, pageable)
-                    : pessoaRepository.findByPlanoAtivoIsNotNullOrderByNome(pageable);
+                    : pessoaRepository.findByPlanoAtivoIsNotNull(pageable);
                 break;
             case "OCIOSO":
                 membros = hasNome
                     ? pessoaRepository.findByNomeContainingIgnoreCaseAndPlanoAtivoIsNull(nome, pageable)
-                    : pessoaRepository.findByPlanoAtivoIsNullOrderByNome(pageable);
+                    : pessoaRepository.findByPlanoAtivoIsNull(pageable);
                 break;
             default: // "TODOS"
                 membros = hasNome
                     ? pessoaRepository.findByNomeContainingIgnoreCase(nome, pageable)
-                    : pessoaRepository.findAllByOrderByNome(pageable);
+                    : pessoaRepository.findAll(pageable);
                 break;
         }
 
