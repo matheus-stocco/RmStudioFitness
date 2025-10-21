@@ -6,51 +6,306 @@
     <title>Gerenciamento de Papéis - RM Studio Fitness</title>
     <link rel="stylesheet" th:href="@{/css/style.css}">
     <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
+    <style>
+        body {
+            background: linear-gradient(135deg, #0a0a0a 0%, #1a1a1a 100%);
+            min-height: 100vh;
+            display: flex;
+            flex-direction: column;
+        }
+
+        .gerenciamento-container {
+            max-width: 1400px;
+            margin: 110px auto 40px;
+            padding: 20px;
+            flex: 1;
+        }
+
+        .page-title {
+            text-align: center;
+            font-size: 2em;
+            color: #f78400;
+            margin-bottom: 40px;
+            font-weight: 600;
+            text-transform: uppercase;
+            letter-spacing: 1px;
+        }
+
+        /* Card de Filtros */
+        .filter-card {
+            background: rgba(26, 26, 26, 0.95);
+            border: 1px solid rgba(247, 132, 0, 0.2);
+            border-radius: 16px;
+            padding: 25px;
+            margin-bottom: 30px;
+        }
+
+        .filter-row {
+            display: grid;
+            grid-template-columns: 2fr 1fr;
+            gap: 20px;
+            align-items: end;
+        }
+
+        .form-group {
+            display: flex;
+            flex-direction: column;
+            gap: 8px;
+        }
+
+        .form-label {
+            font-size: 0.85em;
+            color: #999;
+            text-transform: uppercase;
+            font-weight: 600;
+            letter-spacing: 0.5px;
+        }
+
+        .form-control,
+        .form-select {
+            background: rgba(42, 42, 42, 0.8);
+            border: 1px solid rgba(255, 255, 255, 0.1);
+            border-radius: 8px;
+            padding: 12px 15px;
+            color: #fff;
+            font-size: 0.95em;
+            transition: all 0.3s ease;
+        }
+
+        .form-control:focus,
+        .form-select:focus {
+            outline: none;
+            border-color: #f78400;
+            background: rgba(42, 42, 42, 1);
+            box-shadow: 0 0 0 3px rgba(247, 132, 0, 0.1);
+        }
+
+        .form-control::placeholder {
+            color: #666;
+        }
+
+        /* Tabela */
+        .table-card {
+            background: rgba(26, 26, 26, 0.95);
+            border: 1px solid rgba(247, 132, 0, 0.2);
+            border-radius: 16px;
+            overflow: hidden;
+        }
+
+        .table-responsive {
+            overflow-x: auto;
+        }
+
+        .table {
+            width: 100%;
+            margin: 0;
+            border-collapse: collapse;
+        }
+
+        .table thead {
+            background: linear-gradient(135deg, rgba(247, 132, 0, 0.15) 0%, rgba(247, 132, 0, 0.08) 100%);
+        }
+
+        .table thead th {
+            padding: 18px 20px;
+            text-align: left;
+            font-size: 0.85em;
+            color: #f78400;
+            text-transform: uppercase;
+            font-weight: 600;
+            letter-spacing: 0.5px;
+            border-bottom: 2px solid rgba(247, 132, 0, 0.3);
+        }
+
+        .table thead th.text-center {
+            text-align: center;
+        }
+
+        .table tbody tr {
+            border-bottom: 1px solid rgba(255, 255, 255, 0.05);
+            transition: all 0.3s ease;
+        }
+
+        .table tbody tr:hover {
+            background: rgba(247, 132, 0, 0.05);
+        }
+
+        .table tbody td {
+            padding: 18px 20px;
+            color: #ccc;
+            font-size: 0.95em;
+        }
+
+        .table tbody td.text-center {
+            text-align: center;
+        }
+
+        /* Badges de Papéis */
+        .role-badges {
+            display: flex;
+            gap: 8px;
+            flex-wrap: wrap;
+        }
+
+        .badge {
+            padding: 6px 12px;
+            border-radius: 6px;
+            font-size: 0.8em;
+            font-weight: 600;
+            text-transform: uppercase;
+            letter-spacing: 0.3px;
+        }
+
+        .badge-user {
+            background: linear-gradient(135deg, #6c757d 0%, #5a6268 100%);
+            color: white;
+        }
+
+        .badge-personal {
+            background: linear-gradient(135deg, #28a745 0%, #20c997 100%);
+            color: white;
+        }
+
+        .badge-admin {
+            background: linear-gradient(135deg, #dc3545 0%, #c82333 100%);
+            color: white;
+        }
+
+        /* Botões de Ação */
+        .btn {
+            padding: 8px 16px;
+            border-radius: 8px;
+            font-size: 0.85em;
+            font-weight: 600;
+            text-transform: uppercase;
+            letter-spacing: 0.3px;
+            border: none;
+            cursor: pointer;
+            transition: all 0.3s ease;
+            display: inline-flex;
+            align-items: center;
+            gap: 6px;
+        }
+
+        .btn-success {
+            background: linear-gradient(135deg, #28a745 0%, #20c997 100%);
+            color: white;
+        }
+
+        .btn-success:hover {
+            transform: translateY(-2px);
+            box-shadow: 0 5px 15px rgba(40, 167, 69, 0.3);
+        }
+
+        .btn-danger {
+            background: linear-gradient(135deg, #dc3545 0%, #c82333 100%);
+            color: white;
+        }
+
+        .btn-danger:hover {
+            transform: translateY(-2px);
+            box-shadow: 0 5px 15px rgba(220, 53, 69, 0.3);
+        }
+
+        .btn-secondary {
+            background: rgba(108, 117, 125, 0.8);
+            color: white;
+            cursor: not-allowed;
+            opacity: 0.6;
+        }
+
+        /* Responsividade */
+        @media (max-width: 992px) {
+            .filter-row {
+                grid-template-columns: 1fr;
+            }
+
+            .table {
+                font-size: 0.9em;
+            }
+
+            .table thead th,
+            .table tbody td {
+                padding: 12px 15px;
+            }
+        }
+
+        @media (max-width: 768px) {
+            .gerenciamento-container {
+                margin-top: 90px;
+                padding: 15px;
+            }
+
+            .page-title {
+                font-size: 1.5em;
+                margin-bottom: 30px;
+            }
+
+            .filter-card {
+                padding: 20px;
+            }
+
+            .role-badges {
+                flex-direction: column;
+            }
+
+            .btn {
+                font-size: 0.8em;
+                padding: 6px 12px;
+            }
+        }
+    </style>
 </head>
 <body>
 
-    <header th:replace="~{index :: header}"></header>
+    <header class="header" th:replace="~{index :: header}"></header>
 
-    <main class="container mt-5 gerenciamento-container">
-        <h1 class="mb-4 page-title">Gerenciamento de Papéis de Usuário</h1>
+    <main class="gerenciamento-container">
+        <h1 class="page-title">
+            <i class="fas fa-user-shield"></i> Gerenciamento de Papéis de Usuário
+        </h1>
 
-        <div class="card">
-            <div class="card-body">
-                <div class="row g-3 mb-4">
-                    <div class="col-md-6">
-                        <label for="buscaUsuario" class="form-label">Buscar por Nome</label>
-                        <input type="text" id="buscaUsuario" class="form-control" placeholder="Digite o nome do usuário...">
-                    </div>
-                    <div class="col-md-4">
-                        <label for="filtroRole" class="form-label">Filtrar por Papel</label>
-                        <select id="filtroRole" class="form-select">
-                            <option value="">Todos</option>
-                            <option value="ROLE_USER">Apenas USER</option>
-                            <option value="ROLE_PERSONAL">Apenas PERSONAL</option>
-                        </select>
-                    </div>
+        <div class="filter-card">
+            <div class="filter-row">
+                <div class="form-group">
+                    <label for="buscaUsuario" class="form-label">
+                        <i class="fas fa-search"></i> Buscar por Nome
+                    </label>
+                    <input type="text" id="buscaUsuario" class="form-control" placeholder="Digite o nome do usuário...">
                 </div>
-
-                <div class="table-responsive">
-                    <table class="table table-hover align-middle">
-                        <thead class="table-dark">
-                            <tr>
-                                <th>Nome</th>
-                                <th>Email</th>
-                                <th>Papéis</th>
-                                <th class="text-center">Ações</th>
-                            </tr>
-                        </thead>
-                        <tbody id="tabelaUsuarios">
-                            <!-- Usuários serão inseridos aqui via JavaScript -->
-                        </tbody>
-                    </table>
+                <div class="form-group">
+                    <label for="filtroRole" class="form-label">
+                        <i class="fas fa-filter"></i> Filtrar por Papel
+                    </label>
+                    <select id="filtroRole" class="form-select">
+                        <option value="">Todos</option>
+                        <option value="ROLE_USER">Apenas USER</option>
+                        <option value="ROLE_PERSONAL">Apenas PERSONAL</option>
+                    </select>
                 </div>
+            </div>
+        </div>
+
+        <div class="table-card">
+            <div class="table-responsive">
+                <table class="table">
+                    <thead>
+                        <tr>
+                            <th>Nome</th>
+                            <th>Email</th>
+                            <th>Papéis</th>
+                            <th class="text-center">Ações</th>
+                        </tr>
+                    </thead>
+                    <tbody id="tabelaUsuarios">
+                        <!-- Usuários serão inseridos aqui via JavaScript -->
+                    </tbody>
+                </table>
             </div>
         </div>
     </main>
 
-    <footer th:replace="~{index :: footer}"></footer>
+    <footer class="footer" style="margin-top: auto;" th:replace="~{index :: footer}"></footer>
 
     <script th:src="@{/js/app.js}"></script>
 </body>
