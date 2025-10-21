@@ -378,6 +378,35 @@
             margin-right: 8px;
         }
 
+        /* Estilos para o Autocomplete */
+        .autocomplete-suggestions {
+            position: absolute;
+            border: 1px solid var(--color-border);
+            z-index: 1000;
+            background-color: var(--color-secondary);
+            border-radius: var(--border-radius);
+            margin-top: 4px;
+            max-height: 200px;
+            overflow-y: auto;
+            display: none; /* Escondido por padrão */
+            top: 100%; /* Posição logo abaixo do .input-group */
+            left: 0;
+            box-shadow: 0 8px 16px rgba(0,0,0,0.5);
+        }
+
+        .autocomplete-suggestion-item {
+            padding: 12px;
+            cursor: pointer;
+            transition: all 0.2s ease;
+            font-size: 0.9rem;
+        }
+
+        .autocomplete-suggestion-item:hover,
+        .autocomplete-suggestion-item.active {
+            background-color: var(--color-primary);
+            color: var(--color-background);
+        }
+
         /* Responsividade */
         @media (max-width: 992px) {
             .filters-row {
@@ -502,7 +531,7 @@
                 <div class="summary-card">
                     <div class="card-icon"><i class="fas fa-file-invoice-dollar"></i></div>
                     <div class="card-content">
-                        <span class="card-title" th:text="'Previsão (' + ${#temporals.format(#temporals.create(anoSelecionado, mesSelecionado, 1), 'MMMM yyyy')} + ')'"></span>
+                        <span class="card-title" th:text="${mesSelecionado != null} ? 'Previsão (' + ${#temporals.format(#temporals.create(anoSelecionado, mesSelecionado, 1), 'MMMM yyyy')} + ')' : 'Previsão (Anual)'"></span>
                         <span class="card-value" th:text="'R$ ' + ${#numbers.formatDecimal(previsaoArrecadacao, 1, 'POINT', 2, 'COMMA')}"></span>
                     </div>
                 </div>
@@ -722,26 +751,27 @@
         document.addEventListener('DOMContentLoaded', function() {
             const alunoNomeInput = document.getElementById('alunoNome');
             const form = alunoNomeInput.closest('form');
-            let suggestionsContainer = document.getElementById('autocomplete-suggestions');
-            if (!suggestionsContainer) {
-                suggestionsContainer = document.createElement('div');
-                suggestionsContainer.id = 'autocomplete-suggestions';
-                alunoNomeInput.parentNode.appendChild(suggestionsContainer);
+            const inputGroup = alunoNomeInput.closest('.input-group');
+            let suggestionsContainer;
+
+            function createSuggestionsContainer() {
+                // Evita criar duplicatas
+                if (!document.getElementById('autocomplete-suggestions')) {
+                    suggestionsContainer = document.createElement('div');
+                    suggestionsContainer.id = 'autocomplete-suggestions';
+                    suggestionsContainer.className = 'autocomplete-suggestions';
+                    inputGroup.appendChild(suggestionsContainer);
+                } else {
+                    suggestionsContainer = document.getElementById('autocomplete-suggestions');
+                }
             }
 
-            // Estilos para o container de sugestões
-            suggestionsContainer.style.position = 'absolute';
-            suggestionsContainer.style.border = '1px solid var(--color-border)';
-            suggestionsContainer.style.zIndex = '1000';
-            suggestionsContainer.style.backgroundColor = 'var(--color-secondary)';
-            suggestionsContainer.style.width = alunoNomeInput.offsetWidth + 'px';
-            suggestionsContainer.style.borderRadius = 'var(--border-radius)';
-            suggestionsContainer.style.marginTop = '4px';
-            suggestionsContainer.style.maxHeight = '200px';
-            suggestionsContainer.style.overflowY = 'auto';
+            createSuggestionsContainer();
 
             alunoNomeInput.addEventListener('input', function() {
                 const term = alunoNomeInput.value;
+                // Garante que a largura da caixa de sugestões seja sempre a mesma do input
+                suggestionsContainer.style.width = alunoNomeInput.offsetWidth + 'px';
 
                 if (term.length < 2) {
                     suggestionsContainer.innerHTML = '';
@@ -749,30 +779,25 @@
                     return;
                 }
 
-                fetch(`/relatorios/alunos/buscar?term=${term}`)
-                    .then(response => response.json())
+                fetch(`/relatorios/alunos/buscar?term=${encodeURIComponent(term)}`)
+                    .then(response => {
+                        if (!response.ok) {
+                            throw new Error('A resposta da rede não foi OK');
+                        }
+                        return response.json();
+                    })
                     .then(data => {
                         suggestionsContainer.innerHTML = '';
                         if (data.length > 0) {
                             suggestionsContainer.style.display = 'block';
                             data.forEach(aluno => {
                                 const suggestionItem = document.createElement('div');
+                                suggestionItem.className = 'autocomplete-suggestion-item';
                                 suggestionItem.textContent = aluno.nome;
-                                suggestionItem.style.padding = '10px';
-                                suggestionItem.style.cursor = 'pointer';
-                                suggestionItem.addEventListener('mouseenter', () => {
-                                    suggestionItem.style.backgroundColor = 'var(--color-primary)';
-                                    suggestionItem.style.color = 'var(--color-background)';
-                                });
-                                suggestionItem.addEventListener('mouseleave', () => {
-                                    suggestionItem.style.backgroundColor = 'var(--color-secondary)';
-                                    suggestionItem.style.color = 'var(--color-text)';
-                                });
                                 suggestionItem.addEventListener('click', function() {
                                     alunoNomeInput.value = aluno.nome;
-                                    suggestionsContainer.innerHTML = '';
                                     suggestionsContainer.style.display = 'none';
-                                    form.submit(); // Submete o formulário ao selecionar
+                                    form.submit();
                                 });
                                 suggestionsContainer.appendChild(suggestionItem);
                             });
@@ -780,12 +805,25 @@
                              suggestionsContainer.style.display = 'none';
                         }
                     })
-                    .catch(error => console.error('Erro ao buscar alunos:', error));
+                    .catch(error => {
+                        console.error('Erro ao buscar alunos:', error);
+                        suggestionsContainer.style.display = 'none';
+                    });
             });
 
+            // Evento para esconder as sugestões se clicar fora
             document.addEventListener('click', function(e) {
-                if (e.target !== alunoNomeInput) {
-                    suggestionsContainer.style.display = 'none';
+                if (!inputGroup.contains(e.target)) {
+                    if(suggestionsContainer) {
+                       suggestionsContainer.style.display = 'none';
+                    }
+                }
+            });
+
+            // Ajusta a largura da caixa de sugestões se a janela for redimensionada
+             window.addEventListener('resize', () => {
+                if (suggestionsContainer) {
+                    suggestionsContainer.style.width = alunoNomeInput.offsetWidth + 'px';
                 }
             });
         });

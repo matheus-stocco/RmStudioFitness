@@ -70,7 +70,7 @@ public class ControleRelatorios {
         model.addAttribute("totalArrecadado", totais.get("totalArrecadado"));
         model.addAttribute("previsaoArrecadacao", totais.get("previsaoArrecadacao"));
         model.addAttribute("anoSelecionado", ano != null ? ano : LocalDate.now().getYear());
-        model.addAttribute("mesSelecionado", mes != null ? mes : LocalDate.now().getMonthValue());
+        model.addAttribute("mesSelecionado", mes); // Alterado para passar o mês selecionado (pode ser null)
         model.addAttribute("alunoNomePesquisado", alunoNome);
 
         // Se a busca retornar mensalidades de apenas um aluno, disponibiliza-o para o botão de PDF
