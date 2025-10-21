@@ -76,7 +76,7 @@
             <div class="card form-card card--wide">
                 <!-- Filtros -->
                 <div class="filters-container">
-                    <form th:action="@{/relatorios}" method="get" class="report-filters">
+                    <form th:action="@{/relatorios/mensalidades}" method="get" class="report-filters">
                         <div class="filter-group">
                             <label for="ano">Ano:</label>
                             <select name="ano" id="ano" class="form-control">
@@ -95,11 +95,11 @@
                     </form>
     
                     <div class="status-filters">
-                        <a th:href="@{/relatorios(status='TODAS', ano=${anoSelecionado}, mes=${mesSelecionado})}" class="btn" th:classappend="${filtroAtual == 'TODAS'} ? 'btn-primary' : 'btn-secondary'">Todas</a>
-                        <a th:href="@{/relatorios(status='PAGO', ano=${anoSelecionado}, mes=${mesSelecionado})}" class="btn" th:classappend="${filtroAtual == 'PAGO'} ? 'btn-primary' : 'btn-secondary'">Pagas</a>
-                        <a th:href="@{/relatorios(status='PENDENTE', ano=${anoSelecionado}, mes=${mesSelecionado})}" class="btn" th:classappend="${filtroAtual == 'PENDENTE'} ? 'btn-primary' : 'btn-secondary'">Pendentes</a>
-                        <a th:href="@{/relatorios(status='ATRASADA', ano=${anoSelecionado}, mes=${mesSelecionado})}" class="btn" th:classappend="${filtroAtual == 'ATRASADA'} ? 'btn-primary' : 'btn-secondary'">Atrasadas</a>
-                        <a th:href="@{/relatorios(status='CANCELADO', ano=${anoSelecionado}, mes=${mesSelecionado})}" class="btn" th:classappend="${filtroAtual == 'CANCELADO'} ? 'btn-primary' : 'btn-secondary'">Canceladas</a>
+                        <a th:href="@{/relatorios/mensalidades(status='TODAS', ano=${anoSelecionado}, mes=${mesSelecionado})}" class="btn" th:classappend="${filtroAtual == 'TODAS'} ? 'btn-primary' : 'btn-secondary'">Todas</a>
+                        <a th:href="@{/relatorios/mensalidades(status='PAGO', ano=${anoSelecionado}, mes=${mesSelecionado})}" class="btn" th:classappend="${filtroAtual == 'PAGO'} ? 'btn-primary' : 'btn-secondary'">Pagas</a>
+                        <a th:href="@{/relatorios/mensalidades(status='PENDENTE', ano=${anoSelecionado}, mes=${mesSelecionado})}" class="btn" th:classappend="${filtroAtual == 'PENDENTE'} ? 'btn-primary' : 'btn-secondary'">Pendentes</a>
+                        <a th:href="@{/relatorios/mensalidades(status='ATRASADA', ano=${anoSelecionado}, mes=${mesSelecionado})}" class="btn" th:classappend="${filtroAtual == 'ATRASADA'} ? 'btn-primary' : 'btn-secondary'">Atrasadas</a>
+                        <a th:href="@{/relatorios/mensalidades(status='CANCELADO', ano=${anoSelecionado}, mes=${mesSelecionado})}" class="btn" th:classappend="${filtroAtual == 'CANCELADO'} ? 'btn-primary' : 'btn-secondary'">Canceladas</a>
                     </div>
                 </div>
 
@@ -151,17 +151,17 @@
                     <ul class="pagination">
                         <!-- Botão Anterior -->
                         <li class="page-item" th:classappend="${mensalidades.first} ? 'disabled'">
-                            <a class="page-link" th:href="@{/relatorios(status=${filtroAtual}, ano=${anoSelecionado}, mes=${mesSelecionado}, page=${mensalidades.number - 1}, size=${mensalidades.size})}">Anterior</a>
+                            <a class="page-link" th:href="@{/relatorios/mensalidades(status=${filtroAtual}, ano=${anoSelecionado}, mes=${mesSelecionado}, page=${mensalidades.number - 1}, size=${mensalidades.size})}">Anterior</a>
                         </li>
 
                         <!-- Números de Página -->
                         <li class="page-item" th:each="i : ${#numbers.sequence(0, mensalidades.totalPages - 1)}" th:classappend="${i == mensalidades.number} ? 'active'">
-                            <a class="page-link" th:href="@{/relatorios(status=${filtroAtual}, ano=${anoSelecionado}, mes=${mesSelecionado}, page=${i}, size=${mensalidades.size})}" th:text="${i + 1}"></a>
+                            <a class="page-link" th:href="@{/relatorios/mensalidades(status=${filtroAtual}, ano=${anoSelecionado}, mes=${mesSelecionado}, page=${i}, size=${mensalidades.size})}" th:text="${i + 1}"></a>
                         </li>
 
                         <!-- Botão Próximo -->
                         <li class="page-item" th:classappend="${mensalidades.last} ? 'disabled'">
-                            <a class="page-link" th:href="@{/relatorios(status=${filtroAtual}, ano=${anoSelecionado}, mes=${mesSelecionado}, page=${mensalidades.number + 1}, size=${mensalidades.size})}">Próximo</a>
+                            <a class="page-link" th:href="@{/relatorios/mensalidades(status=${filtroAtual}, ano=${anoSelecionado}, mes=${mesSelecionado}, page=${mensalidades.number + 1}, size=${mensalidades.size})}">Próximo</a>
                         </li>
                     </ul>
                 </nav>

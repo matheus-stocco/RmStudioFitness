@@ -4,6 +4,8 @@ import com.rmstudio.rmstudiofitness.entidades.Mensalidade;
 import com.rmstudio.rmstudiofitness.entidades.Pessoa;
 import com.rmstudio.rmstudiofitness.repositorios.PessoaRepository;
 import com.rmstudio.rmstudiofitness.servicos.PagamentoService;
+import com.rmstudio.rmstudiofitness.repositorios.MensalidadeRepository;
+
 import org.springframework.data.domain.Page;
 import org.springframework.data.domain.Pageable;
 import org.springframework.data.domain.Sort;
@@ -21,6 +23,7 @@ import java.util.stream.Collectors;
 import java.util.stream.IntStream;
 import java.time.LocalDate;
 
+
 @Controller
 @PreAuthorize("hasRole('ADMIN')") // Garante que apenas administradores podem acessar
 public class ControleRelatorios {
@@ -28,18 +31,20 @@ public class ControleRelatorios {
     private final PagamentoService pagamentoService;
     private final PessoaRepository pessoaRepository;
 
-    public ControleRelatorios(PagamentoService pagamentoService, PessoaRepository pessoaRepository) {
+    public ControleRelatorios(PagamentoService pagamentoService, PessoaRepository pessoaRepository, MensalidadeRepository mensalidadeRepository) {
         this.pagamentoService = pagamentoService;
         this.pessoaRepository = pessoaRepository;
     }
 
-    @GetMapping("/relatorios")
-    public String relatorioMensalidades(@RequestParam(value = "status", required = false) String status,
-                                        @RequestParam(value = "ano", required = false) Integer ano,
-                                        @RequestParam(value = "mes", required = false) Integer mes,
-                                        @PageableDefault(size = 15, sort = "dataVencimento", direction = Sort.Direction.DESC) Pageable pageable,
-                                        Model model) {
-        
+    @GetMapping("/relatorios/mensalidades")
+    public String relatorioMensalidades(
+        @RequestParam(value = "status", required = false) String status,
+        @RequestParam(value = "ano", required = false) Integer ano,
+        @RequestParam(value = "mes", required = false) Integer mes,
+        @PageableDefault(size = 15, sort = "dataVencimento", direction = Sort.Direction.DESC) Pageable pageable,
+        Model model
+    ) {
+
         Page<Mensalidade> mensalidades = pagamentoService.buscarMensalidadesParaRelatorio(status, ano, mes, pageable);
         Map<String, BigDecimal> totais = pagamentoService.calcularTotais(ano, mes);
         
@@ -54,7 +59,7 @@ public class ControleRelatorios {
         List<Integer> anos = IntStream.rangeClosed(2023, LocalDate.now().getYear() + 1).boxed().collect(Collectors.toList());
         model.addAttribute("anos", anos);
         
-        return "relatorios";
+        return "relatorios/relatorio-mensalidades";
     }
 
     @GetMapping("/relatorios/membros")
