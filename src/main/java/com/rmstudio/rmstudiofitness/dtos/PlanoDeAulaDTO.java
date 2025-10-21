@@ -2,29 +2,24 @@ package com.rmstudio.rmstudiofitness.dtos;
 
 import com.rmstudio.rmstudiofitness.entidades.PlanoDeAula;
 
-import java.time.format.DateTimeFormatter;
+import java.time.LocalDateTime;
 
 public class PlanoDeAulaDTO {
 
     private Long id;
     private String nome;
     private String descricao;
-    private String dataInicio;
-    private String dataFim;
+    private LocalDateTime dataInicio;
+    private LocalDateTime dataFim;
     private AlunoDTO aluno;
 
     // Construtor que converte a entidade para DTO
     public PlanoDeAulaDTO(PlanoDeAula planoDeAula) {
-        DateTimeFormatter formatter = DateTimeFormatter.ofPattern("dd/MM/yyyy");
         this.id = planoDeAula.getId();
         this.nome = planoDeAula.getNome();
         this.descricao = planoDeAula.getDescricao();
-        if (planoDeAula.getDataInicio() != null) {
-            this.dataInicio = planoDeAula.getDataInicio().format(formatter);
-        }
-        if (planoDeAula.getDataFim() != null) {
-            this.dataFim = planoDeAula.getDataFim().format(formatter);
-        }
+        this.dataInicio = planoDeAula.getDataInicio();
+        this.dataFim = planoDeAula.getDataFim();
         if (planoDeAula.getAluno() != null) {
             this.aluno = new AlunoDTO(planoDeAula.getAluno().getId(), planoDeAula.getAluno().getNome());
         }
@@ -43,11 +38,11 @@ public class PlanoDeAulaDTO {
         return descricao;
     }
 
-    public String getDataInicio() {
+    public LocalDateTime getDataInicio() {
         return dataInicio;
     }
 
-    public String getDataFim() {
+    public LocalDateTime getDataFim() {
         return dataFim;
     }
 

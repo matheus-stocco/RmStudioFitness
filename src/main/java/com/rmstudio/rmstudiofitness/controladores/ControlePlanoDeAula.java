@@ -10,9 +10,14 @@ import jakarta.persistence.PersistenceContext;
 import jakarta.transaction.Transactional;
 import org.springframework.http.ResponseEntity;
 import org.springframework.web.bind.annotation.*;
+import org.springframework.data.domain.Page;
+import org.springframework.data.domain.PageImpl;
+import org.springframework.data.domain.Pageable;
+import org.springframework.data.domain.Sort;
 
 import java.net.URI;
 import java.time.LocalDateTime;
+import java.time.format.DateTimeFormatter;
 import java.util.List;
 import java.util.stream.Collectors;
 
@@ -20,10 +25,10 @@ import java.util.stream.Collectors;
  * Controlador REST para gerenciar os Planos de Aula.
  * Esta classe define os endpoints (URLs) da API para criar, ler, atualizar e deletar (CRUD)
  * os planos de treino dos alunos.
- * Responde às requisições que começam com /api/planoaulas.
+ * Responde às requisições que começam com /api/planos-aula.
  */
 @RestController
-@RequestMapping("/api/planoaulas")
+@RequestMapping("/api/planos-aula")
 public class ControlePlanoDeAula {
 
     @PersistenceContext
@@ -40,7 +45,7 @@ public class ControlePlanoDeAula {
 
     /**
      * Endpoint para CRIAR um novo plano de aula.
-     * Mapeado para requisições POST em /api/planoaulas.
+     * Mapeado para requisições POST em /api/planos-aula.
      * @param payload O corpo da requisição contendo os dados do novo plano.
      * @return Uma resposta HTTP 201 (Created) com os dados do plano criado ou 400 (Bad Request) se houver erro.
      */
@@ -82,12 +87,12 @@ public class ControlePlanoDeAula {
         
         PlanoDeAulaDTO dto = new PlanoDeAulaDTO(plano);
 
-        return ResponseEntity.created(URI.create("/api/planoaulas/" + plano.getId())).body(dto);
+        return ResponseEntity.created(URI.create("/api/planos-aula/" + plano.getId())).body(dto);
     }
 
     /**
      * Endpoint para ATUALIZAR um plano de aula existente.
-     * Mapeado para requisições PUT em /api/planoaulas/{id}.
+     * Mapeado para requisições PUT em /api/planos-aula/{id}.
      * @param id O ID do plano a ser atualizado.
      * @param payload O corpo da requisição com os novos dados do plano.
      * @return Uma resposta HTTP 200 (OK) com os dados do plano atualizado ou 404 (Not Found).
@@ -137,7 +142,7 @@ public class ControlePlanoDeAula {
 
     /**
      * Endpoint para ADICIONAR um novo item (exercício) a um plano existente.
-     * Mapeado para POST em /api/planoaulas/{id}/itens
+     * Mapeado para POST em /api/planos-aula/{id}/itens
      */
     @PostMapping("/{id}/itens")
     @Transactional
@@ -162,12 +167,12 @@ public class ControlePlanoDeAula {
 
         ItemPlanoDTO itemDTO = new ItemPlanoDTO(item.getId(), exercicio.getId(), exercicio.getNome(), item.getSeries(), item.getRepeticoes(), item.getDiaSemana());
         
-        return ResponseEntity.created(URI.create("/api/planoaulas/" + id + "/itens/" + item.getId())).body(itemDTO);
+        return ResponseEntity.created(URI.create("/api/planos-aula/" + id + "/itens/" + item.getId())).body(itemDTO);
     }
 
     /**
      * Endpoint para DELETAR um item (exercício) de um plano.
-     * Mapeado para DELETE em /api/planoaulas/{planoId}/itens/{itemId}
+     * Mapeado para DELETE em /api/planos-aula/{planoId}/itens/{itemId}
      */
     @DeleteMapping("/{planoId}/itens/{itemId}")
     @Transactional
@@ -183,7 +188,7 @@ public class ControlePlanoDeAula {
 
     /**
      * Endpoint para BUSCAR um plano de aula detalhado pelo ID.
-     * Mapeado para requisições GET em /api/planoaulas/{id}.
+     * Mapeado para requisições GET em /api/planos-aula/{id}.
      * @param id O ID do plano a ser buscado.
      * @return Uma resposta HTTP 200 (OK) com o plano detalhado ou 404 (Not Found).
      */
@@ -208,12 +213,16 @@ public class ControlePlanoDeAula {
             
         PlanoDeAulaDTO planoDTO = new PlanoDeAulaDTO(plano);
 
+        DateTimeFormatter formatter = DateTimeFormatter.ofPattern("yyyy-MM-dd");
+        String dataInicioStr = plano.getDataInicio() != null ? plano.getDataInicio().format(formatter) : null;
+        String dataFimStr = plano.getDataFim() != null ? plano.getDataFim().format(formatter) : null;
+
         PlanoDeAulaDetalhadoDTO dto = new PlanoDeAulaDetalhadoDTO(
             plano.getId(),
             plano.getNome(),
             plano.getDescricao(),
-            planoDTO.getDataInicio(),
-            planoDTO.getDataFim(),
+            dataInicioStr,
+            dataFimStr,
             planoDTO.getAluno(),
             itensDTO
         );
@@ -223,38 +232,65 @@ public class ControlePlanoDeAula {
 
     /**
      * Endpoint para LISTAR os planos de aula.
-     * Mapeado para requisições GET em /api/planoaulas.
+     * Mapeado para requisições GET em /api/planos-aula.
      * Pode opcionalmente filtrar por aluno através do parâmetro de URL 'alunoId'.
      * @param alunoId ID do aluno para filtrar os planos (opcional).
      * @return Uma lista de planos de aula (versão simplificada).
      */
     @GetMapping
-    public ResponseEntity<List<PlanoDeAulaDTO>> listarPlanos(@RequestParam(name = "alunoId", required = false) Long alunoId) {
-        String jpql = "SELECT p FROM PlanoDeAula p JOIN FETCH p.aluno";
+    public ResponseEntity<Page<PlanoDeAulaDTO>> listarPlanos(
+        @RequestParam(name = "alunoId", required = false) Long alunoId,
+        Pageable pageable) {
         
+        // Base da query para contar o total de elementos
+        String countQueryStr = "SELECT count(p.id) FROM PlanoDeAula p";
+        
+        // Base da query para buscar os dados
+        String jpql = "SELECT p FROM PlanoDeAula p JOIN FETCH p.aluno";
+
         if (alunoId != null) {
+            countQueryStr += " WHERE p.aluno.id = :alunoId";
             jpql += " WHERE p.aluno.id = :alunoId";
         }
-        
+
+        // Constrói a cláusula ORDER BY manualmente para evitar o uso de APIs internas
+        Sort sort = pageable.getSort();
+        if (sort.isSorted()) {
+            String orderBy = sort.stream()
+                .map(order -> "p." + order.getProperty() + " " + order.getDirection().name())
+                .collect(Collectors.joining(", "));
+            jpql += " ORDER BY " + orderBy;
+        }
+
+        // Cria e configura a query de contagem
+        var countQuery = em.createQuery(countQueryStr);
+        if (alunoId != null) {
+            countQuery.setParameter("alunoId", alunoId);
+        }
+        long total = (long) countQuery.getSingleResult();
+
+        // Cria e configura a query principal com paginação
         var query = em.createQuery(jpql, PlanoDeAula.class);
-        
         if (alunoId != null) {
             query.setParameter("alunoId", alunoId);
         }
-        
+        query.setFirstResult((int) pageable.getOffset());
+        query.setMaxResults(pageable.getPageSize());
+
         List<PlanoDeAula> planos = query.getResultList();
         
-        // Converte a lista de entidades para uma lista de DTOs
         List<PlanoDeAulaDTO> dtos = planos.stream()
                                           .map(PlanoDeAulaDTO::new)
                                           .collect(Collectors.toList());
         
-        return ResponseEntity.ok(dtos);
+        Page<PlanoDeAulaDTO> page = new PageImpl<>(dtos, pageable, total);
+        
+        return ResponseEntity.ok(page);
     }
 
     /**
      * Endpoint para DELETAR um plano de aula.
-     * Mapeado para requisições DELETE em /api/planoaulas/{id}.
+     * Mapeado para requisições DELETE em /api/planos-aula/{id}.
      * @param id O ID do plano a ser deletado.
      * @return Uma resposta HTTP 204 (No Content) em caso de sucesso.
      */

@@ -6,69 +6,204 @@
     <title>Meus Planos de Aula - RMStudio Fitness</title>
     <link rel="stylesheet" href="/css/style.css">
     <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
+    <style>
+        body {
+            background: linear-gradient(135deg, #0a0a0a 0%, #1a1a1a 100%);
+        }
+
+        .main-content {
+            max-width: 900px;
+            /* margin-top considera a altura do header fixo (70px) + um espaçamento (40px) */
+            margin: 110px auto 40px;
+            padding: 20px;
+        }
+
+        .page-title {
+            text-align: center;
+            margin-bottom: 50px;
+            font-size: 2em;
+            color: #f78400;
+            font-weight: 700;
+            letter-spacing: 1px;
+        }
+
+        .page-title i {
+            margin-right: 15px;
+        }
+
+        .plans-container {
+            display: flex;
+            flex-direction: column;
+            gap: 20px;
+            align-items: center;
+        }
+
+        .plan-card {
+            background: rgba(26, 26, 26, 0.8);
+            border: 1px solid rgba(255, 255, 255, 0.1);
+            border-radius: 16px;
+            padding: 30px;
+            width: 100%;
+            max-width: 750px;
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            transition: all 0.3s ease;
+            box-shadow: 0 4px 15px rgba(0, 0, 0, 0.3);
+        }
+
+        .plan-card:hover {
+            transform: translateY(-3px);
+            box-shadow: 0 8px 25px rgba(247, 132, 0, 0.2);
+            border-color: rgba(247, 132, 0, 0.5);
+        }
+
+        .plan-details {
+            flex: 1;
+        }
+
+        .plan-details h3 {
+            margin: 0 0 12px 0;
+            color: #f78400;
+            font-size: 1.5em;
+            font-weight: 600;
+            letter-spacing: 0.5px;
+        }
+
+        .plan-details p {
+            margin: 0;
+            color: #ccc;
+            font-size: 0.95em;
+            line-height: 1.6;
+        }
+
+        .plan-details strong {
+            color: #fff;
+            font-weight: 500;
+        }
+
+        .plan-actions {
+            margin-left: 25px;
+        }
+
+        .btn {
+            display: inline-flex;
+            align-items: center;
+            gap: 8px;
+            padding: 12px 28px;
+            border-radius: 8px;
+            text-decoration: none;
+            font-weight: 500;
+            transition: all 0.3s ease;
+            font-size: 0.95em;
+        }
+
+        .btn-primary {
+            background: linear-gradient(135deg, #f78400 0%, #ff9800 100%);
+            color: #000;
+            border: none;
+        }
+
+        .btn-primary:hover {
+            background: linear-gradient(135deg, #ff9800 0%, #ffa726 100%);
+            transform: scale(1.05);
+            box-shadow: 0 5px 20px rgba(247, 132, 0, 0.4);
+        }
+
+        .empty-state {
+            text-align: center;
+            padding: 80px 40px;
+            background: rgba(26, 26, 26, 0.6);
+            border: 2px dashed rgba(255, 255, 255, 0.1);
+            border-radius: 16px;
+            max-width: 600px;
+            margin: 0 auto;
+        }
+
+        .empty-state h2 {
+            font-size: 3em;
+            color: #f78400;
+            margin: 0 0 20px 0;
+        }
+
+        .empty-state p {
+            color: #ccc;
+            font-size: 1.1em;
+            margin: 0;
+        }
+
+        /* Responsividade */
+        @media (max-width: 768px) {
+            .main-content {
+                padding: 15px;
+                margin: 20px auto;
+            }
+
+            .page-title {
+                font-size: 1.6em;
+                margin-bottom: 30px;
+            }
+
+            .plan-card {
+                flex-direction: column;
+                padding: 25px;
+                text-align: center;
+            }
+
+            .plan-actions {
+                margin-left: 0;
+                margin-top: 20px;
+            }
+
+            .btn {
+                width: 100%;
+                justify-content: center;
+            }
+
+            .empty-state {
+                padding: 60px 25px;
+            }
+        }
+    </style>
 </head>
-<body class="plan-body">
+<body style="display: flex; flex-direction: column; min-height: 100vh;">
+    <header class="header" th:replace="~{index :: header}"></header>
 
-<!-- Reutiliza o cabeçalho do index.html -->
-<header th:replace="~{index :: header}"></header>
+    <main class="main-content">
+        <div class="container">
+            <h1 class="page-title"><i class="fas fa-clipboard-list"></i> Meus Planos de Aula</h1>
 
-<main class="form-page-container">
-    <div class="container">
-        <h1 class="page-title">
-            <i class="fas fa-clipboard-list"></i>
-            Meus Planos de Aula
-        </h1>
-
-        <div class="planos-aula-list">
-            
-            <!-- Mensagem se não houver planos -->
-            <div th:if="${page == null or page.empty}" class="card empty-state">
-                <i class="fas fa-folder-open"></i>
-                <h3 class="card-title">Nenhum Plano de Aula Encontrado</h3>
-                <p class="card-text">Você ainda não possui nenhum plano de aula atribuído.</p>
+            <div th:if="${#lists.isEmpty(planos)}">
+                <div class="empty-state">
+                    <h2><i class="fas fa-exclamation-circle"></i></h2>
+                    <p>Você ainda não possui nenhum plano de aula cadastrado.</p>
+                </div>
             </div>
 
-            <!-- Loop para exibir cada plano de aula -->
-            <div th:if="${page != null and !page.empty}" th:each="plano : ${page.content}" class="card plano-aula-card">
-                <div class="card-header">
-                    <h3 class="card-title" th:text="${plano.nome}"></h3>
-                    <span class="badge" th:text="${'Válido de ' + #temporals.format(plano.dataInicio, 'dd/MM/yy') + ' a ' + #temporals.format(plano.dataFim, 'dd/MM/yy')}"></span>
-                </div>
-                <div class="card-body">
-                    <p class="card-text" th:text="${plano.descricao}"></p>
-                    
-                    <div th:if="${plano.itens != null and not #lists.isEmpty(plano.itens)}">
-                        <h4 class="exercicios-header">Exercícios do Plano</h4>
-                        
-                        <!-- Loop através dos dias da semana agrupados -->
-                        <div th:each="entry : ${plano.getItensAgrupadosPorDia()}">
-                            <h5 class="dia-semana-header" th:text="${entry.key}"></h5>
-                            <ul class="exercicios-list">
-                                <!-- Loop através dos exercícios para o dia atual -->
-                                <li th:each="item : ${entry.value}">
-                                    <strong th:text="${item.exercicio.nome}"></strong>
-                                    <span th:text="${' - ' + item.series + 'x' + item.repeticoes}"></span>
-                                    <small th:if="${item.observacoes != null and !item.observacoes.trim().isEmpty()}" th:text="${' - ' + item.observacoes}"></small>
-                                </li>
-                            </ul>
-                        </div>
+            <div th:unless="${#lists.isEmpty(planos)}" class="plans-container">
+                <div th:each="plano : ${planos}" class="plan-card">
+                    <div class="plan-details">
+                        <h3 th:text="${plano.nome}">Nome do Plano</h3>
+                        <p>
+                            <strong>Período:</strong>
+                            <span th:text="${plano.getDataInicioFormatada()}">01/01/2024</span> - 
+                            <span th:text="${plano.getDataFimFormatada()}">31/01/2024</span>
+                        </p>
+                    </div>
+                    <div class="plan-actions">
+                        <a th:href="@{/visualizar-plano-aula(planoId=${plano.id})}" class="btn btn-primary">
+                            <i class="fas fa-eye"></i> Ver Detalhes
+                        </a>
                     </div>
                 </div>
             </div>
-
-            <!-- Controles de Paginação -->
-            <div th:if="${page != null and page.totalPages > 1}" class="pagination-controls">
-                <a th:if="${page.hasPrevious()}" th:href="@{/meus-planos-aula(page=${page.number - 1}, size=${page.size})}" class="btn btn-secondary">Anterior</a>
-                <span class="page-info" th:text="'Página ' + (${page.number + 1}) + ' de ' + ${page.totalPages}"></span>
-                <a th:if="${page.hasNext()}" th:href="@{/meus-planos-aula(page=${page.number + 1}, size=${page.size})}" class="btn btn-secondary">Próxima</a>
-            </div>
-            
         </div>
-    </div>
-</main>
+    </main>
 
-<!-- Reutiliza o rodapé do index.html -->
-<footer th:replace="~{index :: footer}"></footer>
-
+    <footer class="footer" style="margin-top: auto;">
+        <div class="container">
+            <p>&copy; 2024 RMStudio Fitness. Todos os direitos reservados.</p>
+        </div>
+    </footer>
 </body>
 </html>

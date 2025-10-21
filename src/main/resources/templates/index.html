@@ -39,13 +39,18 @@
           <a th:href="@{/}">Home</a>
           <a th:href="@{/planos}">Planos</a>
           <a th:href="@{/quem-somos}">Quem Somos</a>
-          <!-- Link visível apenas para usuários autenticados (logados) -->
+          
+          <!-- Links visíveis apenas para usuários autenticados -->
           <a sec:authorize="isAuthenticated()" th:href="@{/minhas-avaliacoes}">Avaliações</a>
+          
+          <!-- Link unificado para Planos de Aula -->
           <a sec:authorize="isAuthenticated()" th:href="@{/meus-planos-aula}">Planos de Aula</a>
+
           <a sec:authorize="isAuthenticated()" th:href="@{/minhas-mensalidades}">Mensalidades</a>
           <a sec:authorize="isAuthenticated()" th:href="@{/perfil}">Perfil</a>
-          <!-- Dropdown de Gestão -->
-          <div sec:authorize="hasAnyRole('ADMIN', 'PERSONAL')" class="nav-dropdown">
+
+          <!-- Dropdown de Gestão para Admin -->
+          <div sec:authorize="hasRole('ADMIN')" class="nav-dropdown">
             <a href="#" class="nav-dropdown-toggle">Gestão <i class="fas fa-caret-down"></i></a>
             <div class="nav-dropdown-menu">
               <a sec:authorize="hasRole('ADMIN')" th:href="@{/membros}">Gestão de Membros</a>

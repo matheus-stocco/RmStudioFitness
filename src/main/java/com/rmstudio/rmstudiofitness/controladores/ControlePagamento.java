@@ -45,7 +45,7 @@ public class ControlePagamento {
     @GetMapping("/api/pagamentos/pagar/{id}")
     public String pagarMensalidade(@PathVariable Long id, Model model, Authentication authentication) {
         String username = authentication.getName();
-        Pessoa pessoa = pessoaRepository.findByUsuario(username)
+        Pessoa pessoa = pessoaRepository.findByUsername(username)
                 .orElseThrow(() -> new ResponseStatusException(HttpStatus.NOT_FOUND, "Usuário não encontrado."));
 
         Mensalidade mensalidade = pagamentoService.findMensalidadeParaPagamento(id);
@@ -79,7 +79,7 @@ public class ControlePagamento {
         }
 
         String username = authentication.getName();
-        Pessoa pessoa = pessoaRepository.findByUsuario(username)
+        Pessoa pessoa = pessoaRepository.findByUsername(username)
             .orElseThrow(() -> new ResponseStatusException(HttpStatus.NOT_FOUND, "Usuário não encontrado."));
 
         pagamentoService.atribuirPlano(pessoa.getId(), planoId);
@@ -95,7 +95,7 @@ public class ControlePagamento {
     public String gerarPix(@PathVariable Long mensalidadeId, Authentication authentication) {
         // Validação de segurança: garantir que o usuário logado é o dono da mensalidade (opcional mas recomendado)
         String username = authentication.getName();
-        Pessoa pessoa = pessoaRepository.findByUsuario(username)
+        Pessoa pessoa = pessoaRepository.findByUsername(username)
             .orElseThrow(() -> new ResponseStatusException(HttpStatus.NOT_FOUND, "Usuário não encontrado."));
         
         Mensalidade mensalidade = mensalidadeRepository.findByIdWithPessoa(mensalidadeId)
@@ -117,7 +117,7 @@ public class ControlePagamento {
         }
 
         String username = authentication.getName();
-        Pessoa pessoa = pessoaRepository.findByUsuario(username)
+        Pessoa pessoa = pessoaRepository.findByUsername(username)
             .orElseThrow(() -> new ResponseStatusException(HttpStatus.NOT_FOUND, "Usuário não encontrado."));
 
         try {

@@ -1,14 +1,10 @@
 package com.rmstudio.rmstudiofitness.controladores;
 
-import com.rmstudio.rmstudiofitness.entidades.DiaSemana;
 import com.rmstudio.rmstudiofitness.entidades.Pessoa;
-import com.rmstudio.rmstudiofitness.entidades.PlanoAula;
 import com.rmstudio.rmstudiofitness.repositorios.AvaliacaoFisicaRepository;
 import com.rmstudio.rmstudiofitness.repositorios.EstadoRepository;
-import com.rmstudio.rmstudiofitness.repositorios.ExercicioRepository;
 import com.rmstudio.rmstudiofitness.repositorios.MensalidadeRepository;
 import com.rmstudio.rmstudiofitness.repositorios.PessoaRepository;
-import com.rmstudio.rmstudiofitness.repositorios.PlanoAulaRepository;
 import com.rmstudio.rmstudiofitness.repositorios.TipoPlanoRepository;
 import com.rmstudio.rmstudiofitness.servicos.PagamentoService;
 import com.rmstudio.rmstudiofitness.entidades.Mensalidade;
@@ -23,7 +19,6 @@ import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.data.domain.Page;
 import org.springframework.data.domain.PageImpl;
 import org.springframework.data.domain.Pageable;
-import org.springframework.data.domain.Sort;
 import org.springframework.data.web.PageableDefault;
 import org.springframework.security.core.Authentication;
 import org.springframework.stereotype.Controller;
@@ -36,6 +31,11 @@ import org.springframework.http.HttpStatus;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
+import com.rmstudio.rmstudiofitness.entidades.PlanoDeAula;
+import com.rmstudio.rmstudiofitness.repositorios.ExercicioRepository;
+
+import jakarta.persistence.EntityManager;
+
 @Controller
 public class ControleNavegacao {
 
@@ -46,8 +46,9 @@ public class ControleNavegacao {
     private final TipoPlanoRepository tipoPlanoRepository;
     private final AvaliacaoFisicaRepository avaliacaoFisicaRepository;
     private final MensalidadeRepository mensalidadeRepository;
-    private final PlanoAulaRepository planoAulaRepository;
+    private final EntityManager entityManager;
     private final ExercicioRepository exercicioRepository;
+
 
     @Autowired
     public ControleNavegacao(PessoaRepository pessoaRepository,
@@ -56,14 +57,14 @@ public class ControleNavegacao {
                              PagamentoService pagamentoService,
                              AvaliacaoFisicaRepository avaliacaoFisicaRepository,
                              MensalidadeRepository mensalidadeRepository,
-                             PlanoAulaRepository planoAulaRepository,
+                             EntityManager entityManager,
                              ExercicioRepository exercicioRepository) {
         this.pessoaRepository = pessoaRepository;
         this.estadoRepository = estadoRepository;
         this.tipoPlanoRepository = tipoPlanoRepository;
         this.avaliacaoFisicaRepository = avaliacaoFisicaRepository;
         this.mensalidadeRepository = mensalidadeRepository;
-        this.planoAulaRepository = planoAulaRepository;
+        this.entityManager = entityManager;
         this.exercicioRepository = exercicioRepository;
     }
     
@@ -112,7 +113,7 @@ public class ControleNavegacao {
         if (authentication != null && authentication.isAuthenticated()) {
             String username = authentication.getName();
             // A busca já carrega o planoAtivo por causa do JOIN FETCH no repositório
-            Pessoa pessoa = pessoaRepository.findByUsuario(username)
+            Pessoa pessoa = pessoaRepository.findByUsername(username)
                 .orElseThrow(() -> new ResponseStatusException(HttpStatus.NOT_FOUND, "Usuário não encontrado"));
             model.addAttribute("planoAtivo", pessoa.getPlanoAtivo());
         } else {
@@ -154,14 +155,25 @@ public class ControleNavegacao {
     @GetMapping({"/itens-plano", "/CadastroItensPlano.html"})
     @Transactional(readOnly = true)
     public String cadastroItensPlano(@RequestParam("planoId") Long planoId, Model model) {
-        PlanoAula planoAula = planoAulaRepository.findByIdWithItens(planoId)
-            .orElseThrow(() -> new ResponseStatusException(HttpStatus.NOT_FOUND, "Plano de Aula não encontrado"));
+        
+        String jpql = "SELECT DISTINCT p FROM PlanoDeAula p " +
+                      "LEFT JOIN FETCH p.aluno " +
+                      "LEFT JOIN FETCH p.itens i " + 
+                      "LEFT JOIN FETCH i.exercicio " +
+                      "WHERE p.id = :planoId";
+        List<PlanoDeAula> resultado = entityManager.createQuery(jpql, PlanoDeAula.class)
+            .setParameter("planoId", planoId)
+            .getResultList();
 
-        model.addAttribute("planoAula", planoAula);
+        if (resultado.isEmpty()) {
+            throw new ResponseStatusException(HttpStatus.NOT_FOUND, "Plano de Aula não encontrado");
+        }
+        PlanoDeAula planoDeAula = resultado.get(0);
+
+        model.addAttribute("planoAula", planoDeAula); // Usando 'planoAula' para manter compatibilidade com o template
         model.addAttribute("exercicios", exercicioRepository.findAllByOrderByNome());
         model.addAttribute("gruposMusculares", exercicioRepository.findDistinctGruposMusculares());
-        model.addAttribute("diasDaSemana", DiaSemana.values());
-
+        
         return "CadastroItensPlano";
     }
 
@@ -173,6 +185,49 @@ public class ControleNavegacao {
     @GetMapping({"/tipos-plano", "/CadastroTipoPlano.html"})
     public String cadastroTipoPlano() {
         return "CadastroTipoPlano";
+    }
+
+    @GetMapping("/meus-planos-aula")
+    @Transactional(readOnly = true)
+    public String meusPlanosDeAula(Authentication authentication, Model model) {
+        if (authentication == null) {
+            return "redirect:/login";
+        }
+
+        String username = authentication.getName();
+        Pessoa aluno = pessoaRepository.findByUsername(username)
+                .orElseThrow(() -> new ResponseStatusException(HttpStatus.NOT_FOUND, "Aluno não encontrado"));
+
+        String jpql = "SELECT p FROM PlanoDeAula p WHERE p.aluno.id = :alunoId ORDER BY p.dataInicio DESC";
+        List<PlanoDeAula> planos = entityManager.createQuery(jpql, PlanoDeAula.class)
+                .setParameter("alunoId", aluno.getId())
+                .getResultList();
+
+        model.addAttribute("planos", planos);
+        return "meus-planos-aula";
+    }
+
+    @GetMapping("/visualizar-plano-aula")
+    @Transactional(readOnly = true)
+    public String visualizarPlanoDeAula(@RequestParam("planoId") Long planoId, Authentication authentication, Model model) {
+        if (authentication == null) {
+            return "redirect:/login";
+        }
+
+        String username = authentication.getName();
+        Pessoa aluno = pessoaRepository.findByUsername(username)
+                .orElseThrow(() -> new ResponseStatusException(HttpStatus.NOT_FOUND, "Aluno não encontrado"));
+
+        String jpql = "SELECT p FROM PlanoDeAula p LEFT JOIN FETCH p.itens i LEFT JOIN FETCH i.exercicio WHERE p.id = :planoId AND p.aluno.id = :alunoId";
+        PlanoDeAula plano = entityManager.createQuery(jpql, PlanoDeAula.class)
+                .setParameter("planoId", planoId)
+                .setParameter("alunoId", aluno.getId())
+                .getResultStream()
+                .findFirst()
+                .orElseThrow(() -> new ResponseStatusException(HttpStatus.NOT_FOUND, "Plano de aula não encontrado ou não pertence a este aluno."));
+
+        model.addAttribute("planoAula", plano);
+        return "visualizar-plano-aula";
     }
 
     /**
@@ -193,7 +248,7 @@ public class ControleNavegacao {
         logger.debug("Buscando pessoa com usuário: {}", username);
         
         try {
-            Pessoa pessoa = pessoaRepository.findByUsuario(username)
+            Pessoa pessoa = pessoaRepository.findByUsername(username)
                 .orElseThrow(() -> new ResponseStatusException(HttpStatus.NOT_FOUND, "Usuário não encontrado."));
             
             logger.debug("Pessoa encontrada: ID={}, Nome={}", pessoa.getId(), pessoa.getNome());
@@ -256,7 +311,7 @@ public class ControleNavegacao {
         if (authentication != null && authentication.isAuthenticated()) {
             String username = authentication.getName();
             
-            Pessoa pessoa = pessoaRepository.findByUsuario(username)
+            Pessoa pessoa = pessoaRepository.findByUsername(username)
                 .orElseThrow(() -> new ResponseStatusException(HttpStatus.NOT_FOUND, "Usuário não encontrado."));
 
             Page<com.rmstudio.rmstudiofitness.entidades.AvaliacaoFisica> page = avaliacaoFisicaRepository
@@ -265,33 +320,5 @@ public class ControleNavegacao {
             model.addAttribute("page", page);
         }
         return "minhas-avaliacoes";
-    }
- 
-    @GetMapping("/meus-planos-aula")
-    @Transactional(readOnly = true)
-    public String meusPlanosAula(Model model, Authentication authentication,
-                                 @PageableDefault(size = 5, sort = "dataInicio", direction = Sort.Direction.DESC) Pageable pageable) {
-        if (authentication != null && authentication.isAuthenticated()) {
-            String username = authentication.getName();
-            Pessoa pessoa = pessoaRepository.findByUsuario(username)
-                .orElseThrow(() -> new ResponseStatusException(HttpStatus.NOT_FOUND, "Usuário não encontrado."));
-            
-            // Etapa 1: Busca paginada apenas dos Planos de Aula
-            Page<PlanoAula> planosPage = planoAulaRepository.findByAlunoOrderByDataInicioDesc(pessoa, pageable);
-
-            // Etapa 2: Busca dos detalhes (itens e exercícios) para os planos da página atual
-            List<Long> ids = planosPage.getContent().stream().map(PlanoAula::getId).collect(Collectors.toList());
-            Page<PlanoAula> pageWithDetails;
-
-            if (!ids.isEmpty()) {
-                List<PlanoAula> planosComDetalhes = planoAulaRepository.findAllWithDetailsByIds(ids);
-                pageWithDetails = new PageImpl<>(planosComDetalhes, pageable, planosPage.getTotalElements());
-            } else {
-                pageWithDetails = Page.empty(pageable);
-            }
-
-            model.addAttribute("page", pageWithDetails);
-        }
-        return "meus-planos-aula";
     }
 }

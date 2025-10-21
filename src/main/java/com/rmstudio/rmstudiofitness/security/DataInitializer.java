@@ -72,7 +72,7 @@ public class DataInitializer implements CommandLineRunner {
             Perfil adminPerfil = perfilRepository.findAll().stream().filter(p -> p.getNome().equals("ROLE_ADMIN")).findFirst().orElseThrow();
 
             Pessoa admin = new Pessoa();
-            admin.setUsuario("admin");
+            admin.setUsername("admin");
             admin.setSenha(passwordEncoder.encode("admin"));
             admin.setNome("Administrador");
             admin.setEmail("admin@rmstudio.com");

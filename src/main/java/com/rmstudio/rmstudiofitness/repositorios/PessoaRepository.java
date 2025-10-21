@@ -39,17 +39,14 @@ public interface PessoaRepository extends JpaRepository<Pessoa, Long> {
     List<Pessoa> findByNomeContainingIgnoreCaseAndPlanoAtivoIsNull(String nome);
 
     /** Busca pessoa por usuário */
-    @Query("SELECT p FROM Pessoa p LEFT JOIN FETCH p.planoAtivo WHERE p.usuario = :usuario")
-    Optional<Pessoa> findByUsuario(@Param("usuario") String usuario);
+    @Query("SELECT p FROM Pessoa p LEFT JOIN FETCH p.planoAtivo WHERE p.username = :username")
+    Optional<Pessoa> findByUsername(@Param("username") String username);
 
     /** Busca pessoa por email */
     Optional<Pessoa> findByEmail(String email);
 
     /** Busca pessoa por CPF */
     Optional<Pessoa> findByCpf(String cpf);
-
-    /** Verifica se existe pessoa com usuário */
-    boolean existsByUsuario(String usuario);
 
     /** Verifica se existe pessoa com email */
     boolean existsByEmail(String email);
@@ -88,11 +85,11 @@ public interface PessoaRepository extends JpaRepository<Pessoa, Long> {
     @Query("SELECT p FROM Pessoa p LEFT JOIN FETCH p.avaliacoes WHERE p.id = :id")
     Optional<Pessoa> findByIdWithAvaliacoes(@Param("id") Long id);
 
-    @Query("SELECT p FROM Pessoa p LEFT JOIN FETCH p.avaliacoes WHERE p.usuario = :usuario")
-    Optional<Pessoa> findByUsuarioWithAvaliacoes(@Param("usuario") String usuario);
+    @Query("SELECT p FROM Pessoa p LEFT JOIN FETCH p.avaliacoes WHERE p.username = :username")
+    Optional<Pessoa> findByUsernameWithAvaliacoes(@Param("username") String username);
 
-    @Query("SELECT DISTINCT p FROM Pessoa p LEFT JOIN FETCH p.planosDeAula pa LEFT JOIN FETCH pa.itens i LEFT JOIN FETCH i.exercicio WHERE p.usuario = :usuario")
-    Optional<Pessoa> findByUsuarioWithPlanosDeAula(@Param("usuario") String usuario);
+    @Query("SELECT DISTINCT p FROM Pessoa p LEFT JOIN FETCH p.planosDeAula pa LEFT JOIN FETCH pa.itens i LEFT JOIN FETCH i.exercicio WHERE p.username = :username")
+    Optional<Pessoa> findByUsuarioWithPlanosDeAula(@Param("username") String username);
 
     /** Contagem de membros por status (ativo/ocioso) */
     long countByPlanoAtivoIsNotNull();
@@ -104,4 +101,9 @@ public interface PessoaRepository extends JpaRepository<Pessoa, Long> {
     /** Busca top 10 pessoas por nome e tipo (ALUNO ou FUNCIONARIO) */
     @Query("SELECT p FROM Pessoa p JOIN p.perfis perf WHERE lower(p.nome) LIKE lower(concat('%', :nome, '%')) AND perf.nome = :tipoPessoa")
     List<Pessoa> findTop10ByNomeContainingIgnoreCaseAndTiposPessoa(@Param("nome") String nome, @Param("tipoPessoa") String tipoPessoa);
+
+    boolean existsByUsername(String username);
+
+    @Query("SELECT p FROM Pessoa p JOIN p.perfis per WHERE per.nome = 'ROLE_ALUNO'")
+    List<Pessoa> findAllAlunos();
 }

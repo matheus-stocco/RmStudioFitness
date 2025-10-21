@@ -1,0 +1,216 @@
+<!DOCTYPE html>
+<html lang="pt-BR" xmlns:th="http://www.thymeleaf.org">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Detalhes do Plano de Aula - RMStudio Fitness</title>
+    <link rel="stylesheet" href="/css/style.css">
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
+    <style>
+        body {
+            background: linear-gradient(135deg, #0a0a0a 0%, #1a1a1a 100%);
+            min-height: 100vh;
+        }
+
+        .main-content {
+            max-width: 1400px;
+            margin: 110px auto 40px;
+            padding: 20px;
+        }
+
+        .workout-header {
+            text-align: center;
+            margin-bottom: 30px;
+            padding: 25px 20px;
+            background: rgba(26, 26, 26, 0.8);
+            border-radius: 16px;
+            border: 1px solid rgba(255, 255, 255, 0.1);
+        }
+
+        .workout-header h1 {
+            font-size: 1.8em;
+            color: #f78400;
+            margin: 0 0 10px 0;
+        }
+
+        .workout-header p {
+            font-size: 1em;
+            color: #ccc;
+            margin: 5px 0;
+        }
+
+        .workouts-grid {
+            display: grid;
+            grid-template-columns: repeat(2, 1fr);
+            gap: 20px;
+            margin-bottom: 40px;
+            justify-items: center;
+            align-items: start;
+        }
+
+        /* Quando tiver número ímpar de itens, o último centraliza */
+        .workout-day-card:only-child,
+        .workout-day-card:last-child:nth-child(odd) {
+            grid-column: 1 / -1;
+            max-width: 650px;
+            width: 100%;
+        }
+
+        .workout-day-card {
+            background: rgba(26, 26, 26, 0.6);
+            border: 1px solid rgba(255, 255, 255, 0.1);
+            border-radius: 16px;
+            overflow: hidden;
+            width: 100%;
+            max-width: 650px;
+        }
+
+        .workout-day-header {
+            background: linear-gradient(135deg, #f78400 0%, #ff9800 100%);
+            padding: 12px 20px;
+            text-align: center;
+        }
+
+        .workout-day-title {
+            font-size: 1em;
+            font-weight: 700;
+            color: #000;
+            margin: 0;
+            letter-spacing: 2px;
+        }
+
+        .exercises-table {
+            width: 100%;
+            border-collapse: collapse;
+        }
+
+        .exercises-table thead tr {
+            background: rgba(0, 0, 0, 0.3);
+        }
+
+        .exercises-table th {
+            padding: 10px 12px;
+            text-align: left;
+            font-size: 0.65em;
+            text-transform: uppercase;
+            letter-spacing: 1.3px;
+            color: #f78400;
+            white-space: nowrap;
+        }
+
+        .exercises-table th:nth-child(2),
+        .exercises-table th:nth-child(3) {
+            text-align: center;
+            width: 70px;
+        }
+
+        .exercises-table td {
+            padding: 12px;
+            color: #fff;
+            font-size: 0.85em;
+            border-bottom: 1px solid rgba(255, 255, 255, 0.05);
+        }
+
+        .exercises-table td:nth-child(2),
+        .exercises-table td:nth-child(3) {
+            text-align: center;
+        }
+
+        .exercises-table tbody tr:last-child td {
+            border-bottom: none;
+        }
+        
+        .back-button-container {
+            text-align: center;
+            margin-top: 30px;
+        }
+
+        /* Responsivo para telas menores */
+        @media (max-width: 1200px) {
+            .workouts-grid {
+                grid-template-columns: 1fr;
+            }
+
+            .workout-day-card:only-child,
+            .workout-day-card:last-child:nth-child(odd) {
+                grid-column: auto;
+            }
+        }
+
+        @media (max-width: 768px) {
+            .main-content {
+                padding: 15px;
+            }
+
+            .workout-header {
+                padding: 20px 15px;
+            }
+
+            .workout-header h1 {
+                font-size: 1.5em;
+            }
+
+            .exercises-table th {
+                font-size: 0.6em;
+                padding: 8px 10px;
+            }
+
+            .exercises-table td {
+                font-size: 0.8em;
+                padding: 10px;
+            }
+        }
+    </style>
+</head>
+<body style="display: flex; flex-direction: column; min-height: 100vh;">
+    <header class="header" th:replace="~{index :: header}"></header>
+
+    <main class="main-content">
+        <div class="workout-header">
+            <h1 th:text="${planoAula.nome}">Nome do Plano de Aula</h1>
+            <p>
+                <strong>Período:</strong>
+                <span th:text="${planoAula.getDataInicioFormatada()}">01/01/2024</span> a
+                <span th:text="${planoAula.getDataFimFormatada()}">31/01/2024</span>
+            </p>
+            <p th:if="${planoAula.descricao}" th:text="${planoAula.descricao}" style="margin-top: 10px;"></p>
+        </div>
+
+        <div class="workouts-grid">
+            <div th:each="entry : ${planoAula.getItensAgrupadosPorDia()}" class="workout-day-card">
+                <div class="workout-day-header">
+                    <h3 class="workout-day-title" th:text="${entry.key}">TREINO A</h3>
+                </div>
+                <table class="exercises-table">
+                    <thead>
+                        <tr>
+                            <th>Exercício</th>
+                            <th>Séries</th>
+                            <th>Rep.</th>
+                        </tr>
+                    </thead>
+                    <tbody>
+                        <tr th:each="item : ${entry.value}">
+                            <td th:text="${item.exercicio.nome}">Supino Reto</td>
+                            <td th:text="${item.series}">4</td>
+                            <td th:text="${item.repeticoes}">10</td>
+                        </tr>
+                    </tbody>
+                </table>
+            </div>
+        </div>
+        
+        <div class="back-button-container">
+            <a href="/meus-planos-aula" class="btn btn-secondary">
+                <i class="fas fa-arrow-left"></i> Voltar para Meus Planos
+            </a>
+        </div>
+    </main>
+
+    <footer class="footer" style="margin-top: auto;">
+        <div class="container">
+            <p>&copy; 2024 RMStudio Fitness. Todos os direitos reservados.</p>
+        </div>
+    </footer>
+</body>
+</html>

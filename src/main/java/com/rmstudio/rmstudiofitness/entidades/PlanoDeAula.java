@@ -3,9 +3,9 @@ package com.rmstudio.rmstudiofitness.entidades;
 import jakarta.persistence.*;
 import java.io.Serializable;
 import java.time.LocalDateTime;
+import java.time.format.DateTimeFormatter;
 import java.util.Arrays;
 import java.util.Collections;
-import java.util.Comparator;
 import java.util.HashSet;
 import java.util.LinkedHashMap;
 import java.util.List;
@@ -53,23 +53,26 @@ public class PlanoDeAula implements Serializable {
         // Usa um mapa que preserva a ordem de inserção para manter os dias ordenados
         final Map<String, List<ItemPlanoDeAula>> grouped = new LinkedHashMap<>();
 
-        // Define a ordem correta dos dias da semana
+        // Define a ordem correta dos dias da semana (sem -FEIRA)
         final List<String> dayOrder = Arrays.asList("SEGUNDA", "TERÇA", "QUARTA", "QUINTA", "SEXTA", "SÁBADO", "DOMINGO");
 
         // Agrupa os itens pelo dia da semana
         Map<String, List<ItemPlanoDeAula>> itemsByDay = itens.stream()
             .collect(Collectors.groupingBy(ItemPlanoDeAula::getDiaSemana));
 
-        // Ordena os dias agrupados de acordo com a lista `dayOrder` e os insere no mapa final
-        itemsByDay.keySet().stream()
-            .sorted(Comparator.comparingInt(day -> {
-                if (day == null) return dayOrder.size();
-                // Normaliza o nome do dia para a comparação (ex: "Segunda-feira" -> "SEGUNDA")
-                String normalized = day.toUpperCase().replace("-FEIRA", "");
-                int index = dayOrder.indexOf(normalized);
-                return index == -1 ? dayOrder.size() : index; // Dias desconhecidos vão para o final
-            }))
-            .forEach(day -> grouped.put(day, itemsByDay.get(day)));
+        // Ordena os dias agrupados de acordo com a lista `dayOrder` e adiciona "-FEIRA" apenas para dias de semana
+        dayOrder.stream()
+            .filter(itemsByDay::containsKey) // Apenas dias que têm itens
+            .forEach(day -> {
+                String displayDay;
+                // Adiciona -FEIRA apenas para Segunda a Sexta
+                if (day.equals("SÁBADO") || day.equals("DOMINGO")) {
+                    displayDay = day;
+                } else {
+                    displayDay = day + "-FEIRA";
+                }
+                grouped.put(displayDay, itemsByDay.get(day));
+            });
             
         return grouped;
     }
@@ -144,6 +147,16 @@ public class PlanoDeAula implements Serializable {
     public void addItem(ItemPlanoDeAula item) {
         this.itens.add(item);
         item.setPlanoDeAula(this);
+    }
+
+    public String getDataInicioFormatada() {
+        if (dataInicio == null) return "N/A";
+        return dataInicio.format(DateTimeFormatter.ofPattern("dd/MM/yyyy"));
+    }
+
+    public String getDataFimFormatada() {
+        if (dataFim == null) return "N/A";
+        return dataFim.format(DateTimeFormatter.ofPattern("dd/MM/yyyy"));
     }
 
     public LocalDateTime getDataCriacao() {

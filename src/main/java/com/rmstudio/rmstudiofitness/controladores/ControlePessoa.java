@@ -100,7 +100,7 @@ public class ControlePessoa {
     @Transactional
     public ResponseEntity<?> criar(@RequestBody PessoaPayload body) {
 
-        if (pessoaRepository.existsByUsuario(body.usuario().trim())) {
+        if (pessoaRepository.existsByUsername(body.usuario().trim())) {
             return ResponseEntity.status(HttpStatus.BAD_REQUEST).body("Este nome de usuário já está em uso.");
         }
         if (body.email() != null && pessoaRepository.existsByEmail(body.email().trim())) {
@@ -119,7 +119,7 @@ public class ControlePessoa {
             .orElseThrow(() -> new IllegalStateException("Perfil ROLE_USER não encontrado."));
 
         Pessoa p = new Pessoa();
-        p.setUsuario(body.usuario().trim());
+        p.setUsername(body.usuario().trim());
         p.setSenha(passwordEncoder.encode(body.senha())); // Criptografa a senha
         p.setNome(body.nome().trim());
         p.setEmail(body.email().trim());
@@ -156,7 +156,7 @@ public class ControlePessoa {
         Pessoa existente = pessoaRepository.findById(id)
                 .orElseThrow(() -> new ResponseStatusException(HttpStatus.NOT_FOUND, "Pessoa não encontrada"));
 
-        if (!isBlank(body.usuario())) existente.setUsuario(body.usuario().trim());
+        if (!isBlank(body.usuario())) existente.setUsername(body.usuario().trim());
         if (!isBlank(body.senha())) existente.setSenha(passwordEncoder.encode(body.senha())); // Senha é criptografada
         if (!isBlank(body.nome())) existente.setNome(body.nome().trim());
         if (!isBlank(body.email())) existente.setEmail(body.email().trim());

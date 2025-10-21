@@ -36,7 +36,7 @@ public class Pessoa implements UserDetails {
     private String nome;
 
     @Column(name = "usuario", nullable = false, unique = true, length = 30)
-    private String usuario;
+    private String username;
 
     @Column(name = "senha", nullable = false, length = 100)
     private String senha;
@@ -96,9 +96,9 @@ public class Pessoa implements UserDetails {
         this.ativo = true;
     }
 
-    public Pessoa(String usuario, String nome, String email, Cidade cidade) {
+    public Pessoa(String username, String nome, String email, Cidade cidade) {
         this();
-        this.usuario = usuario;
+        this.username = username;
         this.nome = nome;
         this.email = email;
         this.cidade = cidade;
@@ -114,8 +114,8 @@ public class Pessoa implements UserDetails {
     public Long getId() { return id; }
     public void setId(Long id) { this.id = id; }
 
-    public String getUsuario() { return usuario; }
-    public void setUsuario(String usuario) { this.usuario = usuario; }
+    public String getUsername() { return username; }
+    public void setUsername(String username) { this.username = username; }
 
     public String getNome() { return nome; }
     public void setNome(String nome) { this.nome = nome; }
@@ -194,11 +194,6 @@ public class Pessoa implements UserDetails {
     }
 
     @Override
-    public String getUsername() {
-        return this.usuario;
-    }
-
-    @Override
     public boolean isAccountNonExpired() {
         return true;
     }
@@ -259,7 +254,7 @@ public class Pessoa implements UserDetails {
 
     @Transient
     public boolean isValid() {
-        return usuario != null && !usuario.trim().isEmpty() &&
+        return username != null && !username.trim().isEmpty() &&
                nome != null && !nome.trim().isEmpty() &&
                senha != null && !senha.trim().isEmpty() &&
                email != null && !email.trim().isEmpty() &&
@@ -293,7 +288,7 @@ public class Pessoa implements UserDetails {
 
     public void normalizar() {
         if (nome != null) nome = nome.trim();
-        if (usuario != null) usuario = usuario.trim().toLowerCase();
+        if (username != null) username = username.trim().toLowerCase();
         if (email != null) email = email.trim().toLowerCase();
         if (genero != null) genero = genero.toUpperCase();
         if (cpf != null) cpf = cpf.replaceAll("[^0-9]", "");
@@ -332,7 +327,7 @@ public class Pessoa implements UserDetails {
 
     @Override
     public String toString() {
-        return "Pessoa{id=" + id + ", nome='" + nome + "', usuario='" + usuario +
+        return "Pessoa{id=" + id + ", nome='" + nome + "', username='" + username +
                "', email='" + email + "', ativo=" + ativo + "}";
     }
 }

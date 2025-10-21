@@ -260,7 +260,7 @@
                     <td>${periodo}</td>
                     <td>${plano.aluno ? plano.aluno.nome : 'N/A'}</td>
                     <td class="cell-actions">
-                        <a href="/CadastroItensPlano.html?planoId=${plano.id}" class="btn btn-secondary"><i class="fas fa-plus"></i> Itens</a>
+                        <a href="/itens-plano?planoId=${plano.id}" class="btn btn-secondary"><i class="fas fa-plus"></i> Itens</a>
                         <button class="btn btn-secondary" onclick="editPlano('${plano.id}')"><i class="fas fa-edit"></i></button>
                         <button class="btn btn-secondary" onclick="deletePlano('${plano.id}')"><i class="fas fa-trash"></i></button>
                     </td>
@@ -305,7 +305,7 @@
                 // Trata as datas que podem vir em diferentes formatos
                 if (plano.dataInicio) {
                     if (Array.isArray(plano.dataInicio)) {
-                        // Se for array [2024, 10, 13], converte para YYYY-MM-DD
+                        // Se for array [2024, 10, 13, H, M, S], converte para YYYY-MM-DD
                         const [ano, mes, dia] = plano.dataInicio;
                         document.getElementById('dataInicio').value = `${ano}-${String(mes).padStart(2, '0')}-${String(dia).padStart(2, '0')}`;
                     } else if (typeof plano.dataInicio === 'string') {
@@ -318,7 +318,7 @@
                 
                 if (plano.dataFim) {
                     if (Array.isArray(plano.dataFim)) {
-                        // Se for array [2024, 10, 13], converte para YYYY-MM-DD
+                        // Se for array [2024, 10, 13, H, M, S], converte para YYYY-MM-DD
                         const [ano, mes, dia] = plano.dataFim;
                         document.getElementById('dataFim').value = `${ano}-${String(mes).padStart(2, '0')}-${String(dia).padStart(2, '0')}`;
                     } else if (typeof plano.dataFim === 'string') {
