@@ -16,6 +16,7 @@ import org.springframework.ui.Model;
 import org.springframework.web.bind.annotation.GetMapping;
 import org.springframework.web.bind.annotation.RequestParam;
 import org.springframework.web.bind.annotation.PathVariable;
+import org.springframework.web.bind.annotation.ResponseBody;
 import org.springframework.web.server.ResponseStatusException;
 
 import java.util.List;
@@ -89,6 +90,12 @@ public class ControleRelatorios {
         model.addAttribute("anos", anos);
         
         return "relatorios/relatorio-mensalidades";
+    }
+
+    @GetMapping("/relatorios/alunos/buscar")
+    @ResponseBody
+    public List<Pessoa> buscarAlunos(@RequestParam("term") String termo) {
+        return pessoaRepository.findTop10ByNomeContainingIgnoreCaseAndTiposPessoa(termo, "ALUNO");
     }
 
     @GetMapping("/relatorios/membros")

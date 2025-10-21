@@ -100,4 +100,8 @@ public interface PessoaRepository extends JpaRepository<Pessoa, Long> {
 
     /** Contagem de membros por gênero */
     long countByGenero(String genero);
+
+    /** Busca top 10 pessoas por nome e tipo (ALUNO ou FUNCIONARIO) */
+    @Query("SELECT p FROM Pessoa p JOIN p.perfis perf WHERE lower(p.nome) LIKE lower(concat('%', :nome, '%')) AND perf.nome = :tipoPessoa")
+    List<Pessoa> findTop10ByNomeContainingIgnoreCaseAndTiposPessoa(@Param("nome") String nome, @Param("tipoPessoa") String tipoPessoa);
 }

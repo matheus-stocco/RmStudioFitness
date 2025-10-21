@@ -150,6 +150,7 @@
         .input-group {
             display: flex;
             gap: 8px;
+            position: relative; /* Necessário para o posicionamento absoluto do autocompletar */
         }
 
         .input-group .form-control {
@@ -594,22 +595,22 @@
 
                     <!-- Linha 3: Ações de PDF -->
                     <div class="pdf-actions">
-                        <!-- Botão para Gerar PDF Financeiro -->
-                        <div class="pdf-export" th:if="${alunoUnico == null}">
+                        <!-- Botão para Gerar PDF Financeiro (Sempre visível) -->
+                        <div class="pdf-export">
                             <a th:href="@{/relatorios/mensalidades/pdf(ano=${anoSelecionado})}" 
                                class="btn btn-danger" target="_blank"
-                               title="Gerar relatório completo em PDF">
+                               title="Gerar relatório financeiro completo em PDF">
                                 <i class="fas fa-file-pdf"></i> 
                                 Gerar Resumo em PDF
                             </a>
                         </div>
 
-                        <!-- Botão para Gerar PDF do Aluno (condicional) -->
+                        <!-- Botão para Gerar PDF do Aluno (Condicional) -->
                         <div class="pdf-export" th:if="${alunoUnico != null}">
                             <a th:href="@{/relatorios/mensalidades/aluno/{id}/pdf(id=${alunoUnico.id})}" 
                                class="btn btn-success" target="_blank"
                                th:title="'Gerar PDF das mensalidades de ' + ${alunoUnico.primeiroNome()}">
-                                <i class="fas fa-file-pdf"></i> 
+                                <i class="fas fa-user-check"></i> 
                                 Gerar PDF de <span th:text="${alunoUnico.primeiroNome()}"></span>
                             </a>
                         </div>
@@ -716,6 +717,79 @@
     </main>
 
     <footer class="footer" th:replace="~{index :: footer}"></footer>
+
+    <script>
+        document.addEventListener('DOMContentLoaded', function() {
+            const alunoNomeInput = document.getElementById('alunoNome');
+            const form = alunoNomeInput.closest('form');
+            let suggestionsContainer = document.getElementById('autocomplete-suggestions');
+            if (!suggestionsContainer) {
+                suggestionsContainer = document.createElement('div');
+                suggestionsContainer.id = 'autocomplete-suggestions';
+                alunoNomeInput.parentNode.appendChild(suggestionsContainer);
+            }
+
+            // Estilos para o container de sugestões
+            suggestionsContainer.style.position = 'absolute';
+            suggestionsContainer.style.border = '1px solid var(--color-border)';
+            suggestionsContainer.style.zIndex = '1000';
+            suggestionsContainer.style.backgroundColor = 'var(--color-secondary)';
+            suggestionsContainer.style.width = alunoNomeInput.offsetWidth + 'px';
+            suggestionsContainer.style.borderRadius = 'var(--border-radius)';
+            suggestionsContainer.style.marginTop = '4px';
+            suggestionsContainer.style.maxHeight = '200px';
+            suggestionsContainer.style.overflowY = 'auto';
+
+            alunoNomeInput.addEventListener('input', function() {
+                const term = alunoNomeInput.value;
+
+                if (term.length < 2) {
+                    suggestionsContainer.innerHTML = '';
+                    suggestionsContainer.style.display = 'none';
+                    return;
+                }
+
+                fetch(`/relatorios/alunos/buscar?term=${term}`)
+                    .then(response => response.json())
+                    .then(data => {
+                        suggestionsContainer.innerHTML = '';
+                        if (data.length > 0) {
+                            suggestionsContainer.style.display = 'block';
+                            data.forEach(aluno => {
+                                const suggestionItem = document.createElement('div');
+                                suggestionItem.textContent = aluno.nome;
+                                suggestionItem.style.padding = '10px';
+                                suggestionItem.style.cursor = 'pointer';
+                                suggestionItem.addEventListener('mouseenter', () => {
+                                    suggestionItem.style.backgroundColor = 'var(--color-primary)';
+                                    suggestionItem.style.color = 'var(--color-background)';
+                                });
+                                suggestionItem.addEventListener('mouseleave', () => {
+                                    suggestionItem.style.backgroundColor = 'var(--color-secondary)';
+                                    suggestionItem.style.color = 'var(--color-text)';
+                                });
+                                suggestionItem.addEventListener('click', function() {
+                                    alunoNomeInput.value = aluno.nome;
+                                    suggestionsContainer.innerHTML = '';
+                                    suggestionsContainer.style.display = 'none';
+                                    form.submit(); // Submete o formulário ao selecionar
+                                });
+                                suggestionsContainer.appendChild(suggestionItem);
+                            });
+                        } else {
+                             suggestionsContainer.style.display = 'none';
+                        }
+                    })
+                    .catch(error => console.error('Erro ao buscar alunos:', error));
+            });
+
+            document.addEventListener('click', function(e) {
+                if (e.target !== alunoNomeInput) {
+                    suggestionsContainer.style.display = 'none';
+                }
+            });
+        });
+    </script>
 
 </body>
 </html>
