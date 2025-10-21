@@ -21,7 +21,7 @@
                     <div class="card-icon"><i class="fas fa-users"></i></div>
                     <div class="card-content">
                         <span class="card-title">Total de Membros</span>
-                        <span class="card-value" th-text="${totalMembros}"></span>
+                        <span class="card-value">[[${totalMembros}]]</span>
                     </div>
                 </div>
                 <div class="summary-card">
@@ -48,26 +48,30 @@
             </div>
 
             <div class="card form-card card--wide">
-                <div class="report-filters" style="justify-content: space-between; align-items: center; flex-wrap: wrap; margin-bottom: 24px;">
-                    <!-- Filtros de Status -->
-                    <div class="status-filters" style="display: flex; gap: 12px;">
+                <div class="filters-container">
+                    <div class="status-filters">
                         <a th:href="@{/relatorios/membros(status='TODOS')}"
-                           th:classappend="${filtroStatus == 'TODOS'} ? 'btn-primary' : 'btn-secondary'"
-                           class="btn">Todos</a>
+                           class="btn" th:classappend="${filtroStatus == 'TODOS'} ? 'btn-primary' : 'btn-secondary'">Todos</a>
                         <a th:href="@{/relatorios/membros(status='ATIVO')}"
-                           th:classappend="${filtroStatus == 'ATIVO'} ? 'btn-primary' : 'btn-secondary'"
-                           class="btn">Ativos</a>
+                           class="btn" th:classappend="${filtroStatus == 'ATIVO'} ? 'btn-primary' : 'btn-secondary'">Ativos</a>
                         <a th:href="@{/relatorios/membros(status='OCIOSO')}"
-                           th:classappend="${filtroStatus == 'OCIOSO'} ? 'btn-primary' : 'btn-secondary'"
-                           class="btn">Ociosos</a>
+                           class="btn" th:classappend="${filtroStatus == 'OCIOSO'} ? 'btn-primary' : 'btn-secondary'">Ociosos</a>
                     </div>
+                    
+                    <div class="filter-actions">
+                        <form th:action="@{/relatorios/membros}" method="get" class="search-form">
+                            <input type="hidden" name="status" th:value="${filtroStatus}" />
+                            <input type="text" name="nome" th:value="${nomePesquisado}" placeholder="Pesquisar por nome..." class="form-control">
+                            <button type="submit" class="btn btn-primary"><i class="fas fa-search"></i></button>
+                        </form>
 
-                    <!-- Formulário de Pesquisa -->
-                    <form th:action="@{/relatorios/membros}" method="get" class="search-form" style="max-width: 400px;">
-                        <input type="hidden" name="status" th:value="${filtroStatus}" />
-                        <input type="text" name="nome" placeholder="Pesquisar por nome..." class="form-control" th:value="${nomePesquisado}">
-                        <button type="submit" class="btn btn-primary"><i class="fas fa-search"></i></button>
-                    </form>
+                        <!-- Botão para gerar PDF -->
+                        <a th:href="@{/relatorios/membros/pdf(status=${filtroStatus}, nome=${nomePesquisado}, sort=${param.sort})}" 
+                           class="btn btn-secondary" 
+                           title="Gerar Relatório em PDF">
+                           <i class="fas fa-file-pdf"></i>
+                        </a>
+                    </div>
                 </div>
 
                 <div class="table-responsive">

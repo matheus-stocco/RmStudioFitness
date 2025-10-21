@@ -4,7 +4,6 @@ import com.rmstudio.rmstudiofitness.entidades.Mensalidade;
 import com.rmstudio.rmstudiofitness.entidades.Pessoa;
 import com.rmstudio.rmstudiofitness.repositorios.PessoaRepository;
 import com.rmstudio.rmstudiofitness.servicos.PagamentoService;
-import com.rmstudio.rmstudiofitness.repositorios.MensalidadeRepository;
 
 import org.springframework.data.domain.Page;
 import org.springframework.data.domain.Pageable;
@@ -22,6 +21,15 @@ import java.util.Map;
 import java.util.stream.Collectors;
 import java.util.stream.IntStream;
 import java.time.LocalDate;
+import com.rmstudio.rmstudiofitness.servicos.PdfService;
+import org.springframework.http.HttpHeaders;
+import org.springframework.http.MediaType;
+import org.springframework.http.ResponseEntity;
+import java.io.IOException;
+import java.time.LocalDateTime;
+import java.util.HashMap;
+import com.lowagie.text.DocumentException;
+import org.springframework.http.HttpStatus;
 
 
 @Controller
@@ -30,10 +38,12 @@ public class ControleRelatorios {
 
     private final PagamentoService pagamentoService;
     private final PessoaRepository pessoaRepository;
+    private final PdfService pdfService;
 
-    public ControleRelatorios(PagamentoService pagamentoService, PessoaRepository pessoaRepository, MensalidadeRepository mensalidadeRepository) {
+    public ControleRelatorios(PagamentoService pagamentoService, PessoaRepository pessoaRepository, PdfService pdfService) {
         this.pagamentoService = pagamentoService;
         this.pessoaRepository = pessoaRepository;
+        this.pdfService = pdfService;
     }
 
     @GetMapping("/relatorios/mensalidades")
@@ -107,5 +117,58 @@ public class ControleRelatorios {
         model.addAttribute("nomePesquisado", nome);
         model.addAttribute("filtroStatus", status.toUpperCase());
         return "relatorios/relatorio-membros";
+    }
+
+    @GetMapping("/relatorios/membros/pdf")
+    public ResponseEntity<byte[]> gerarRelatorioMembrosPdf(
+            @RequestParam(value = "nome", required = false) String nome,
+            @RequestParam(value = "status", required = false, defaultValue = "TODOS") String status,
+            @RequestParam(value = "sort", defaultValue = "nome,asc") String sort) {
+
+        String[] sortParams = sort.split(",");
+        Sort.Order order = new Sort.Order(Sort.Direction.fromString(sortParams[1]), sortParams[0]);
+        List<Pessoa> membros = pessoaRepository.findAll(Sort.by(order)); // Exemplo simplificado, precisaria implementar a lógica de filtro completa
+
+        // Lógica de filtro (simplificada para o exemplo, idealmente seria refatorada)
+        final String finalStatus = status.toUpperCase();
+        List<Pessoa> membrosFiltrados = membros.stream()
+                .filter(p -> {
+                    boolean matchStatus = "TODOS".equals(finalStatus) ||
+                                          ("ATIVO".equals(finalStatus) && p.getPlanoAtivo() != null) ||
+                                          ("OCIOSO".equals(finalStatus) && p.getPlanoAtivo() == null);
+                    boolean matchNome = (nome == null || nome.trim().isEmpty()) ||
+                                        p.getNome().toLowerCase().contains(nome.toLowerCase());
+                    return matchStatus && matchNome;
+                })
+                .collect(Collectors.toList());
+
+        long totalAtivos = pessoaRepository.countByPlanoAtivoIsNotNull();
+        long totalOciosos = pessoaRepository.countByPlanoAtivoIsNull();
+        
+        Map<String, Object> dados = new HashMap<>();
+        dados.put("membros", membrosFiltrados);
+        dados.put("totalMembros", totalAtivos + totalOciosos);
+        dados.put("totalAtivos", totalAtivos);
+        dados.put("totalOciosos", totalOciosos);
+        dados.put("totalMasculino", pessoaRepository.countByGenero("M"));
+        dados.put("totalFeminino", pessoaRepository.countByGenero("F"));
+        dados.put("totalOutro", pessoaRepository.countByGenero("O"));
+        dados.put("dataGeracao", LocalDateTime.now());
+
+        try {
+            byte[] pdfBytes = pdfService.gerarPdfDeHtml("relatorios/relatorio-membros-pdf", dados);
+            
+            HttpHeaders headers = new HttpHeaders();
+            headers.setContentType(MediaType.APPLICATION_PDF);
+            String filename = "relatorio-membros-" + LocalDate.now() + ".pdf";
+            headers.setContentDispositionFormData("attachment", filename);
+            headers.setCacheControl("must-revalidate, post-check=0, pre-check=0");
+            
+            return new ResponseEntity<>(pdfBytes, headers, HttpStatus.OK);
+
+        } catch (IOException | DocumentException e) {
+            // Log do erro
+            return new ResponseEntity<>(HttpStatus.INTERNAL_SERVER_ERROR);
+        }
     }
 }

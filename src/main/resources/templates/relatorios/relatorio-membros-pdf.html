@@ -1,0 +1,99 @@
+<!DOCTYPE html>
+<html xmlns:th="http://www.thymeleaf.org">
+<head>
+    <meta charset="UTF-8" />
+    <title>Relatório de Membros</title>
+    <style>
+        body {
+            font-family: Arial, sans-serif;
+            font-size: 12px;
+            color: #333;
+        }
+        h1 {
+            text-align: center;
+            color: #FF6B35;
+            border-bottom: 2px solid #FF6B35;
+            padding-bottom: 10px;
+            margin-bottom: 20px;
+        }
+        .report-info {
+            margin-bottom: 20px;
+            font-size: 11px;
+            color: #555;
+        }
+        .report-info span {
+            display: inline-block;
+            margin-right: 20px;
+        }
+        table {
+            width: 100%;
+            border-collapse: collapse;
+            margin-top: 20px;
+        }
+        th, td {
+            border: 1px solid #ddd;
+            padding: 8px;
+            text-align: left;
+        }
+        thead {
+            background-color: #f2f2f2;
+            color: #333;
+        }
+        tbody tr:nth-child(even) {
+            background-color: #f9f9f9;
+        }
+        .status-ativo {
+            color: green;
+            font-weight: bold;
+        }
+        .status-ocioso {
+            color: #888;
+            font-weight: bold;
+        }
+    </style>
+</head>
+<body>
+    <h1>Relatório de Membros Cadastrados</h1>
+
+    <div class="report-info">
+        <span><strong>Total de Membros:</strong> <span th:text="${totalMembros}"></span></span>
+        <span><strong>Ativos:</strong> <span th:text="${totalAtivos}"></span></span>
+        <span><strong>Ociosos:</strong> <span th:text="${totalOciosos}"></span></span>
+        <br />
+        <span><strong>Gênero:</strong> M: <span th:text="${totalMasculino}"></span> | F: <span th:text="${totalFeminino}"></span> | O: <span th:text="${totalOutro}"></span></span>
+        <span><strong>Gerado em:</strong> <span th:text="${#temporals.format(dataGeracao, 'dd/MM/yyyy HH:mm')}"></span></span>
+    </div>
+
+    <table>
+        <thead>
+            <tr>
+                <th>ID</th>
+                <th>Nome</th>
+                <th>Email</th>
+                <th>CPF</th>
+                <th>Telefone</th>
+                <th>Data de Nascimento</th>
+                <th>Gênero</th>
+                <th>Data de Cadastro</th>
+                <th>Status</th>
+            </tr>
+        </thead>
+        <tbody>
+            <tr th:each="membro : ${membros}">
+                <td th:text="${membro.id}"></td>
+                <td th:text="${membro.nome}"></td>
+                <td th:text="${membro.email}"></td>
+                <td th:text="${membro.getCpfFormatado()}"></td>
+                <td th:text="${membro.telefone}"></td>
+                <td th:text="${membro.getDataNascimentoFormatada()}"></td>
+                <td th:text="${membro.getGeneroDescricao()}"></td>
+                <td th:text="${membro.getDataCadastroFormatada()}"></td>
+                <td>
+                    <span th:if="${membro.planoAtivo != null}" class="status-ativo">ATIVO</span>
+                    <span th:unless="${membro.planoAtivo != null}" class="status-ocioso">OCIOSO</span>
+                </td>
+            </tr>
+        </tbody>
+    </table>
+</body>
+</html>

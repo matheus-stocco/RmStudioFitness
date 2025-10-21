@@ -224,38 +224,59 @@ p { margin-bottom: calc(var(--spacing-unit) * 2); }
 /* --- RELATÓRIOS --- */
 .summary-cards {
     display: grid;
-    grid-template-columns: repeat(auto-fit, minmax(280px, 1fr));
-    gap: calc(var(--spacing-unit) * 3);
-    margin-bottom: calc(var(--spacing-unit) * 3);
+    grid-template-columns: repeat(auto-fit, minmax(220px, 1fr)); /* Reduzido de 280px */
+    gap: calc(var(--spacing-unit) * 2); /* Reduzido o espaçamento */
+    margin-bottom: calc(var(--spacing-unit) * 4);
 }
 
 .summary-card {
     background-color: var(--color-secondary);
     border: 1px solid var(--color-border);
     border-radius: var(--border-radius);
-    padding: calc(var(--spacing-unit) * 2.5);
+    padding: calc(var(--spacing-unit) * 2); /* Reduzido o padding */
     display: flex;
     align-items: center;
-    gap: calc(var(--spacing-unit) * 2.5);
+    gap: calc(var(--spacing-unit) * 2);
 }
 
 .summary-card .card-icon {
-    font-size: 2.5rem;
+    font-size: 2rem; /* Reduzido */
     color: var(--color-primary);
 }
 
 .summary-card .card-content .card-title {
     display: block;
-    font-size: 0.9rem;
+    font-size: 0.8rem; /* Reduzido */
     color: var(--color-text-muted);
-    margin-bottom: var(--spacing-unit);
+    margin-bottom: calc(var(--spacing-unit) * 0.5);
 }
 
 .summary-card .card-content .card-value {
     display: block;
-    font-size: 1.75rem;
+    font-size: 1.5rem; /* Reduzido */
     font-weight: 700;
     color: var(--color-text);
+}
+
+.summary-card .card-content .card-value-small {
+    font-size: 0.9rem;
+    font-weight: 500;
+    color: var(--color-text-muted);
+}
+
+.filters-container {
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    gap: calc(var(--spacing-unit) * 2);
+    margin-bottom: calc(var(--spacing-unit) * 3);
+    flex-wrap: wrap;
+}
+
+.filter-actions {
+    display: flex;
+    gap: calc(var(--spacing-unit) * 2);
+    align-items: center;
 }
 
 .report-filters {
