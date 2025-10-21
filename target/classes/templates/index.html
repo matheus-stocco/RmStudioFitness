@@ -49,20 +49,22 @@
           <a sec:authorize="isAuthenticated()" th:href="@{/minhas-mensalidades}">Mensalidades</a>
           <a sec:authorize="isAuthenticated()" th:href="@{/perfil}">Perfil</a>
 
-          <!-- Dropdown de Gestão para Admin -->
-          <div sec:authorize="hasRole('ADMIN')" class="nav-dropdown">
+          <!-- Dropdown de Gestão para ADMIN e PERSONAL -->
+          <div sec:authorize="hasAnyRole('ADMIN', 'PERSONAL')" class="nav-dropdown">
             <a href="#" class="nav-dropdown-toggle">Gestão <i class="fas fa-caret-down"></i></a>
             <div class="nav-dropdown-menu">
-              <a sec:authorize="hasRole('ADMIN')" th:href="@{/membros}">Gestão de Membros</a>
-              <a th:href="@{/avaliacoes}">Gestão de Avaliações Físicas</a>
-              <a sec:authorize="hasRole('ADMIN')" th:href="@{/tipos-plano}">Gestão de Planos Monetarios</a>
-              <a th:href="@{/planos-aula}">Gestão de Planos de Aulas</a>
+              <a th:href="@{/avaliacoes}">Gestão de Avaliações</a>
+              <a th:href="@{/planos-aula}">Gestão de Planos de Aula</a>
               <a th:href="@{/exercicios}">Gestão de Exercícios</a>
+              <!-- Links exclusivos para ADMIN -->
+              <a sec:authorize="hasRole('ADMIN')" th:href="@{/membros}">Gestão de Membros</a>
+              <a sec:authorize="hasRole('ADMIN')" th:href="@{/tipos-plano}">Gestão de Planos Monetários</a>
               <a sec:authorize="hasRole('ADMIN')" th:href="@{/cidades}">Gestão de Cidades</a>
               <a sec:authorize="hasRole('ADMIN')" th:href="@{/estados}">Gestão de Estados</a>
               <a sec:authorize="hasRole('ADMIN')" th:href="@{/gerenciamento/roles}">Gerenciamento de Papéis</a>
             </div>
           </div>
+          
           <!-- Dropdown de Relatórios para Administradores -->
           <div sec:authorize="hasRole('ADMIN')" class="nav-dropdown">
             <a href="#" class="nav-dropdown-toggle">Relatórios <i class="fas fa-caret-down"></i></a>

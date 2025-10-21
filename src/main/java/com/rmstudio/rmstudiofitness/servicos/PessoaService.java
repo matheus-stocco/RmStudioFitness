@@ -36,8 +36,13 @@ public class PessoaService {
     public void adicionarRolePersonal(Long pessoaId) {
         Pessoa pessoa = pessoaRepository.findById(pessoaId)
                 .orElseThrow(() -> new RuntimeException("Usuário não encontrado"));
+
         Perfil personalPerfil = perfilRepository.findByNome("ROLE_PERSONAL")
                 .orElseThrow(() -> new RuntimeException("Perfil PERSONAL não encontrado"));
+        Perfil userPerfil = perfilRepository.findByNome("ROLE_USER")
+                .orElseThrow(() -> new RuntimeException("Perfil USER não encontrado"));
+
+        pessoa.getPerfis().remove(userPerfil);
         pessoa.getPerfis().add(personalPerfil);
         pessoaRepository.save(pessoa);
     }
@@ -46,9 +51,14 @@ public class PessoaService {
     public void removerRolePersonal(Long pessoaId) {
         Pessoa pessoa = pessoaRepository.findById(pessoaId)
                 .orElseThrow(() -> new RuntimeException("Usuário não encontrado"));
+
         Perfil personalPerfil = perfilRepository.findByNome("ROLE_PERSONAL")
                 .orElseThrow(() -> new RuntimeException("Perfil PERSONAL não encontrado"));
+        Perfil userPerfil = perfilRepository.findByNome("ROLE_USER")
+                .orElseThrow(() -> new RuntimeException("Perfil USER não encontrado"));
+
         pessoa.getPerfis().remove(personalPerfil);
+        pessoa.getPerfis().add(userPerfil);
         pessoaRepository.save(pessoa);
     }
 }

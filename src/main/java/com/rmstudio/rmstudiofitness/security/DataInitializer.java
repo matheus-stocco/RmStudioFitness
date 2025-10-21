@@ -69,8 +69,11 @@ public class DataInitializer implements CommandLineRunner {
                     return cidadeRepository.save(novaCidade);
                 });
 
-            Perfil adminPerfil = perfilRepository.findAll().stream().filter(p -> p.getNome().equals("ROLE_ADMIN")).findFirst().orElseThrow();
+            Perfil adminPerfil = perfilRepository.findByNome("ROLE_ADMIN").orElseThrow();
+            Perfil personalPerfil = perfilRepository.findByNome("ROLE_PERSONAL").orElseThrow();
+            Perfil userPerfil = perfilRepository.findByNome("ROLE_USER").orElseThrow();
 
+            // --- Admin ---
             Pessoa admin = new Pessoa();
             admin.setUsername("admin");
             admin.setSenha(passwordEncoder.encode("admin"));
@@ -78,9 +81,30 @@ public class DataInitializer implements CommandLineRunner {
             admin.setEmail("admin@rmstudio.com");
             admin.setAtivo(true);
             admin.setCidade(cidadePadrao);
-            admin.setPerfis(Set.of(adminPerfil));
-            
+            admin.setPerfis(Set.of(adminPerfil)); 
             pessoaRepository.save(admin);
+
+            // --- Personal ---
+            Pessoa personal = new Pessoa();
+            personal.setUsername("personal");
+            personal.setSenha(passwordEncoder.encode("personal"));
+            personal.setNome("Personal Trainer");
+            personal.setEmail("personal@rmstudio.com");
+            personal.setAtivo(true);
+            personal.setCidade(cidadePadrao);
+            personal.setPerfis(Set.of(personalPerfil));
+            pessoaRepository.save(personal);
+
+            // --- Aluno (User) ---
+            Pessoa aluno = new Pessoa();
+            aluno.setUsername("aluno");
+            aluno.setSenha(passwordEncoder.encode("aluno"));
+            aluno.setNome("Aluno Exemplo");
+            aluno.setEmail("aluno@rmstudio.com");
+            aluno.setAtivo(true);
+            aluno.setCidade(cidadePadrao);
+            aluno.setPerfis(Set.of(userPerfil));
+            pessoaRepository.save(aluno);
         }
     }
 }
