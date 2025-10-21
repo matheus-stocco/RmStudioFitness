@@ -19,12 +19,6 @@ public class Exercicio implements Serializable {
     @Column(name = "descricao", length = 255)
     private String descricao;
 
-    @Column(name = "series", nullable = true)
-    private Integer series;
-
-    @Column(name = "repeticoes", nullable = true)
-    private Integer repeticoes;
-
     @Column(name = "grupo_muscular", nullable = false, length = 40)
     private String grupoMuscular;
 
@@ -51,12 +45,6 @@ public class Exercicio implements Serializable {
 
     public String getDescricao() { return descricao; }
     public void setDescricao(String descricao) { this.descricao = descricao; }
-
-    public Integer getSeries() { return series; }
-    public void setSeries(Integer series) { this.series = series; }
-
-    public Integer getRepeticoes() { return repeticoes; }
-    public void setRepeticoes(Integer repeticoes) { this.repeticoes = repeticoes; }
 
     public String getGrupoMuscular() { return grupoMuscular; }
     public void setGrupoMuscular(String grupoMuscular) { this.grupoMuscular = grupoMuscular; }

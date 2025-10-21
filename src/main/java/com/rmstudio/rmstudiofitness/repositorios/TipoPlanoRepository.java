@@ -32,14 +32,8 @@ public interface TipoPlanoRepository extends JpaRepository<TipoPlano, Long> {
     /** Busca tipos por nome contendo */
     List<TipoPlano> findByNomeContainingIgnoreCase(String nome);
 
-    /** Busca tipos por categoria */
-    List<TipoPlano> findByCategoriaOrderByValor(String categoria);
-
     /** Busca tipos por faixa de valor */
     List<TipoPlano> findByValorBetweenOrderByValor(BigDecimal valorMin, BigDecimal valorMax);
-
-    /** Busca tipos por duração */
-    List<TipoPlano> findByDuracaoMesesOrderByValor(Integer duracaoMeses);
 
     /** Busca tipos com acesso a planos de aula */
     List<TipoPlano> findByAcessoPlanosAulaTrueOrderByValor();
@@ -51,16 +45,18 @@ public interface TipoPlanoRepository extends JpaRepository<TipoPlano, Long> {
     @Query("SELECT t FROM TipoPlano t WHERE t.ativo = true ORDER BY t.valor ASC")
     List<TipoPlano> findCheapestPlans();
 
-    /** Busca tipos por valor mensal calculado (valor / duracaoMeses, tratando null como 1) */
+    /**
+     * Busca planos ativos por uma faixa de valor MENSAL.
+     * O valor mensal é calculado na query para garantir a ordenação correta.
+     */
     @Query("""
-           SELECT t
-             FROM TipoPlano t
-            WHERE t.ativo = true
-              AND (t.valor / COALESCE(t.duracaoMeses, 1)) BETWEEN :valorMin AND :valorMax
-         ORDER BY (t.valor / COALESCE(t.duracaoMeses, 1)) ASC
-           """)
-    List<TipoPlano> findByValorMensalBetween(@Param("valorMin") BigDecimal valorMin,
-                                             @Param("valorMax") BigDecimal valorMax);
+        SELECT t
+          FROM TipoPlano t
+         WHERE t.ativo = true
+           AND t.valor BETWEEN :valorMin AND :valorMax
+      ORDER BY t.valor ASC
+    """)
+    List<TipoPlano> findByValorMensalBetween(@Param("valorMin") BigDecimal valorMin, @Param("valorMax") BigDecimal valorMax);
 
     /** Conta tipos ativos */
     long countByAtivoTrue();

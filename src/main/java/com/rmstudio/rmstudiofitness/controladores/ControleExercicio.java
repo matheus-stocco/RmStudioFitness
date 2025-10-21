@@ -81,9 +81,6 @@ public class ControleExercicio {
         novo.setNome(body.getNome().trim());
         novo.setDescricao(body.getDescricao());
         novo.setGrupoMuscular(body.getGrupoMuscular().trim());
-        // Valores padrão para compatibilidade com BD existente
-        novo.setSeries(1);
-        novo.setRepeticoes(1);
 
         em.persist(novo);
         em.flush(); // garante ID
@@ -103,9 +100,6 @@ public class ControleExercicio {
         existente.setNome(body.getNome().trim());
         existente.setDescricao(body.getDescricao());
         existente.setGrupoMuscular(body.getGrupoMuscular().trim());
-        // Manter valores padrão se não foram fornecidos
-        if (existente.getSeries() == null) existente.setSeries(1);
-        if (existente.getRepeticoes() == null) existente.setRepeticoes(1);
 
         em.flush();
         return ResponseEntity.ok(existente);

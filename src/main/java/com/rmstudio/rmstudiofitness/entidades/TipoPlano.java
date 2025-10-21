@@ -36,10 +36,6 @@ public class TipoPlano implements Serializable {
     @Column(nullable = false, precision = 10, scale = 2)
     private BigDecimal valor;
 
-    @Positive
-    @Column(name = "duracao_meses")
-    private Integer duracaoMeses;
-
     @Column(name = "ativo")
     private Boolean ativo = true;
 
@@ -59,10 +55,6 @@ public class TipoPlano implements Serializable {
     @Column(name = "acesso_planos_aula")
     private Boolean acessoPlanosAula = true;
 
-    @Size(max = 50)
-    @Column(name = "categoria", length = 50)
-    private String categoria; // "MENSAL", "TRIMESTRAL", "SEMESTRAL", "ANUAL"
-
     // Construtores
     public TipoPlano() {
         this.dataCriacao = LocalDateTime.now();
@@ -76,12 +68,11 @@ public class TipoPlano implements Serializable {
         this.valor = valor;
     }
 
-    public TipoPlano(String nome, String descricao, BigDecimal valor, Integer duracaoMeses) {
+    public TipoPlano(String nome, String descricao, BigDecimal valor) {
         this();
         this.nome = nome;
         this.descricao = descricao;
         this.valor = valor;
-        this.duracaoMeses = duracaoMeses;
     }
 
     @PrePersist
@@ -109,9 +100,6 @@ public class TipoPlano implements Serializable {
     public BigDecimal getValor() { return valor; }
     public void setValor(BigDecimal valor) { this.valor = valor; }
 
-    public Integer getDuracaoMeses() { return duracaoMeses; }
-    public void setDuracaoMeses(Integer duracaoMeses) { this.duracaoMeses = duracaoMeses; }
-
     public Boolean getAtivo() { return ativo; }
     public void setAtivo(Boolean ativo) { this.ativo = ativo; }
 
@@ -130,9 +118,6 @@ public class TipoPlano implements Serializable {
     public Boolean getAcessoPlanosAula() { return acessoPlanosAula; }
     public void setAcessoPlanosAula(Boolean acessoPlanosAula) { this.acessoPlanosAula = acessoPlanosAula; }
 
-    public String getCategoria() { return categoria; }
-    public void setCategoria(String categoria) { this.categoria = categoria; }
-
     // Utilitários (transientes)
     @Transient
     public String getValorFormatado() {
@@ -142,8 +127,8 @@ public class TipoPlano implements Serializable {
 
     @Transient
     public BigDecimal getValorMensal() {
-        if (valor == null || duracaoMeses == null || duracaoMeses <= 0) return valor;
-        return valor.divide(BigDecimal.valueOf(duracaoMeses), 2, RoundingMode.HALF_UP);
+        if (valor == null) return BigDecimal.ZERO;
+        return valor.divide(BigDecimal.valueOf(1), 2, RoundingMode.HALF_UP); // Valor mensal é o próprio valor
     }
 
     @Transient
@@ -151,27 +136,6 @@ public class TipoPlano implements Serializable {
         NumberFormat nf = NumberFormat.getCurrencyInstance(new Locale("pt", "BR"));
         BigDecimal vm = getValorMensal();
         return nf.format(vm != null ? vm : BigDecimal.ZERO);
-    }
-
-    @Transient
-    public String getCategoriaDescricao() {
-        if (categoria == null) return "Não definida";
-        switch (categoria.toUpperCase()) {
-            case "MENSAL": return "Mensal";
-            case "TRIMESTRAL": return "Trimestral";
-            case "SEMESTRAL": return "Semestral";
-            case "ANUAL": return "Anual";
-            default: return "Personalizado";
-        }
-    }
-
-    @Transient
-    public String getDuracaoDescricao() {
-        if (duracaoMeses == null || duracaoMeses <= 0) return "Duração não definida";
-        if (duracaoMeses == 1) return "1 mês";
-        if (duracaoMeses == 12) return "1 ano";
-        if (duracaoMeses % 12 == 0) return (duracaoMeses / 12) + " anos";
-        return duracaoMeses + " meses";
     }
 
     @Transient
@@ -193,9 +157,7 @@ public class TipoPlano implements Serializable {
     public String getInfoCompleta() {
         StringBuilder sb = new StringBuilder();
         sb.append(nome);
-        if (duracaoMeses != null && duracaoMeses > 0) sb.append(" - ").append(getDuracaoDescricao());
         sb.append(" - ").append(getValorFormatado());
-        if (duracaoMeses != null && duracaoMeses > 1) sb.append(" (").append(getValorMensalFormatado()).append("/mês)");
         return sb.toString();
     }
 
@@ -214,11 +176,8 @@ public class TipoPlano implements Serializable {
         n.setNome(novoNome);
         n.setDescricao(this.descricao);
         n.setValor(this.valor);
-        n.setDuracaoMeses(this.duracaoMeses);
-        // Não copiamos os benefícios transientes aqui
-        n.setLimiteAvaliacoes(this.limiteAvaliacoes);
+        n.setAtivo(this.ativo);
         n.setAcessoPlanosAula(this.acessoPlanosAula);
-        n.setCategoria(this.categoria);
         return n;
     }
 
@@ -232,7 +191,6 @@ public class TipoPlano implements Serializable {
     @Override public int hashCode() { return Objects.hash(id); }
 
     @Override public String toString() {
-        return nome + " - " + getValorFormatado()
-                + (duracaoMeses != null && duracaoMeses > 0 ? " (" + getDuracaoDescricao() + ")" : "");
+        return nome + " - " + getValorFormatado();
     }
 }

@@ -60,9 +60,6 @@ public class Pessoa implements UserDetails {
     @Column(name = "ativo")
     private Boolean ativo = true;
 
-    @Column(name = "observacoes", length = 500)
-    private String observacoes;
-
     // Muitas pessoas para uma cidade
     @ManyToOne(fetch = FetchType.EAGER, optional = false)
     @JoinColumn(name = "cidade_id", nullable = false)
@@ -144,9 +141,6 @@ public class Pessoa implements UserDetails {
 
     public Boolean getAtivo() { return ativo; }
     public void setAtivo(Boolean ativo) { this.ativo = ativo; }
-
-    public String getObservacoes() { return observacoes; }
-    public void setObservacoes(String observacoes) { this.observacoes = observacoes; }
 
     public Cidade getCidade() { return cidade; }
     public void setCidade(Cidade cidade) { this.cidade = cidade; }

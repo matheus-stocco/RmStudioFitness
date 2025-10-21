@@ -41,14 +41,6 @@ public class PlanoAula implements Serializable {
     @Column(name = "ativo")
     private Boolean ativo = true;
 
-    // "INICIANTE", "INTERMEDIARIO", "AVANCADO" (pode virar Enum futuramente)
-    @Column(name = "nivel_dificuldade")
-    private String nivelDificuldade;
-
-    @Size(max = 200)
-    @Column(name = "objetivo", length = 200)
-    private String objetivo;
-
     @Column(name = "data_inicio")
     private LocalDateTime dataInicio;
 
@@ -78,8 +70,8 @@ public class PlanoAula implements Serializable {
         this(); this.nome = nome;
     }
 
-    public PlanoAula(String nome, String descricao, String nivelDificuldade) {
-        this(); this.nome = nome; this.descricao = descricao; this.nivelDificuldade = nivelDificuldade;
+    public PlanoAula(String nome, String descricao) {
+        this(); this.nome = nome; this.descricao = descricao;
     }
 
     @PrePersist
@@ -111,12 +103,6 @@ public class PlanoAula implements Serializable {
 
     public Boolean getAtivo() { return ativo; }
     public void setAtivo(Boolean ativo) { this.ativo = ativo; }
-
-    public String getNivelDificuldade() { return nivelDificuldade; }
-    public void setNivelDificuldade(String nivelDificuldade) { this.nivelDificuldade = nivelDificuldade; }
-
-    public String getObjetivo() { return objetivo; }
-    public void setObjetivo(String objetivo) { this.objetivo = objetivo; }
 
     public LocalDateTime getDataInicio() {
         return dataInicio;
@@ -187,15 +173,6 @@ public class PlanoAula implements Serializable {
                 .collect(Collectors.groupingBy(item -> item.getDia().getLabel()));
     }
 
-    @Transient public String getNivelDificuldadeDescricao() {
-        if (nivelDificuldade == null) return "Não definido";
-        switch (nivelDificuldade.toUpperCase()) {
-            case "INICIANTE": return "Iniciante";
-            case "INTERMEDIARIO": return "Intermediário";
-            case "AVANCADO": return "Avançado";
-            default: return "Não definido";
-        }
-    }
     @Transient public List<Exercicio> getExerciciosUnicos() {
         return getItens().stream().map(ItemPlanoAula::getExercicio).filter(Objects::nonNull).distinct().collect(Collectors.toList());
     }
@@ -221,8 +198,6 @@ public class PlanoAula implements Serializable {
         PlanoAula n = new PlanoAula();
         n.setNome(novoNome);
         n.setDescricao(this.descricao);
-        n.setNivelDificuldade(this.nivelDificuldade);
-        n.setObjetivo(this.objetivo);
         for (ItemPlanoAula it : this.getItens()) {
             ItemPlanoAula novo = new ItemPlanoAula();
             novo.copiarDe(it);
@@ -236,9 +211,6 @@ public class PlanoAula implements Serializable {
         if (hasItens()) {
             r.append(" (").append(getQuantidadeItens()).append(" exercícios, ")
              .append(getQuantidadeDiasAtivos()).append(" dias)");
-        }
-        if (nivelDificuldade != null) {
-            r.append(" - ").append(getNivelDificuldadeDescricao());
         }
         return r.toString();
     }

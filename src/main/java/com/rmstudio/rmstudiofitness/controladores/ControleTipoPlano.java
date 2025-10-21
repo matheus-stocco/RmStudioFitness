@@ -72,9 +72,8 @@ public class ControleTipoPlano {
                 existente.setNome(payload.getNome());
                 existente.setDescricao(payload.getDescricao());
                 existente.setValor(payload.getValor());
-                // Adicione outros campos para atualizar conforme necessário
-                // existente.setDuracaoMeses(payload.getDuracaoMeses());
-                // existente.setAtivo(payload.getAtivo());
+                existente.setAtivo(payload.getAtivo());
+                existente.setAcessoPlanosAula(payload.getAcessoPlanosAula());
                 
                 TipoPlano atualizado = tipoPlanoRepository.save(existente);
                 return ResponseEntity.ok(atualizado);

@@ -41,9 +41,6 @@ public interface PlanoAulaRepository extends JpaRepository<PlanoAula, Long> {
     /** Busca planos por nome contendo */
     List<PlanoAula> findByNomeContainingIgnoreCase(String nome);
 
-    /** Busca planos por nível de dificuldade */
-    List<PlanoAula> findByNivelDificuldadeOrderByNome(String nivelDificuldade);
-
     /** Busca planos criados em um período */
     List<PlanoAula> findByDataCriacaoBetweenOrderByDataCriacaoDesc(LocalDateTime inicio, LocalDateTime fim);
 
@@ -57,9 +54,6 @@ public interface PlanoAulaRepository extends JpaRepository<PlanoAula, Long> {
 
     /** Conta planos ativos */
     long countByAtivoTrue();
-
-    /** Busca planos por objetivo */
-    List<PlanoAula> findByObjetivoContainingIgnoreCase(String objetivo);
 
     /** Busca planos mais recentes */
     List<PlanoAula> findTop10ByAtivoTrueOrderByDataCriacaoDesc();
