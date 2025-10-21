@@ -9,41 +9,475 @@
     <style>
         /* Estilos dos badges de status */
         .status-badge {
-            padding: 5px 10px;
-            border-radius: 15px;
-            font-size: 0.8rem;
+            padding: 6px 14px;
+            border-radius: 20px;
+            font-size: 0.75rem;
             font-weight: 700;
             text-transform: uppercase;
-            color: #fff;
             display: inline-block;
+            transition: all 0.3s ease;
         }
-        .status-pendente { background-color: #f0ad4e; }
-        .status-pago { background-color: #5cb85c; }
-        .status-atrasado { background-color: #d9534f; }
-        .status-cancelado { background-color: #6c757d; }
+        
+        .status-badge.status-pendente { 
+            background-color: rgba(241, 196, 15, 0.15);
+            border: 1.5px solid #f1c40f;
+            color: #f1c40f;
+        }
+        .status-badge.status-pago { 
+            background-color: rgba(46, 204, 113, 0.15);
+            border: 1.5px solid #2ecc71;
+            color: #2ecc71;
+        }
+        .status-badge.status-atrasado { 
+            background-color: rgba(231, 76, 60, 0.15);
+            border: 1.5px solid #e74c3c;
+            color: #e74c3c;
+        }
+        .status-badge.status-cancelado { 
+            background-color: rgba(149, 165, 166, 0.15);
+            border: 1.5px solid #95a5a6;
+            color: #95a5a6;
+        }
 
-        .filters-container {
+        /* Cards de resumo aprimorados */
+        .summary-cards {
+            display: grid;
+            grid-template-columns: repeat(auto-fit, minmax(280px, 1fr));
+            gap: calc(var(--spacing-unit) * 3);
+            margin-bottom: calc(var(--spacing-unit) * 5);
+        }
+
+        .summary-card {
+            background: linear-gradient(135deg, var(--color-secondary) 0%, rgba(26, 26, 26, 0.8) 100%);
+            border: 1px solid var(--color-border);
+            border-radius: 8px;
+            padding: calc(var(--spacing-unit) * 3);
+            display: flex;
+            align-items: center;
+            gap: calc(var(--spacing-unit) * 2.5);
+            transition: all 0.3s ease;
+            position: relative;
+            overflow: hidden;
+        }
+
+        .summary-card::before {
+            content: '';
+            position: absolute;
+            top: 0;
+            left: 0;
+            width: 4px;
+            height: 100%;
+            background: var(--color-primary);
+            opacity: 0;
+            transition: opacity 0.3s ease;
+        }
+
+        .summary-card:hover {
+            transform: translateY(-5px);
+            border-color: var(--color-primary);
+            box-shadow: 0 8px 24px rgba(255, 107, 53, 0.2);
+        }
+
+        .summary-card:hover::before {
+            opacity: 1;
+        }
+
+        .summary-card .card-icon {
+            font-size: 2.5rem;
+            color: var(--color-primary);
+            min-width: 60px;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            background: rgba(255, 107, 53, 0.1);
+            border-radius: 12px;
+            padding: 12px;
+        }
+
+        /* Seção de filtros melhorada */
+        .filters-wrapper {
+            background-color: var(--color-secondary);
+            border: 1px solid var(--color-border);
+            border-radius: 8px;
+            padding: calc(var(--spacing-unit) * 3);
+            margin-bottom: calc(var(--spacing-unit) * 3);
+        }
+
+        .filters-section {
+            display: flex;
+            flex-direction: column;
+            gap: calc(var(--spacing-unit) * 3);
+        }
+
+        .filters-row {
+            display: flex;
+            flex-wrap: wrap;
+            gap: calc(var(--spacing-unit) * 2);
+            align-items: flex-end;
+        }
+
+        .report-filters {
+            display: flex;
+            gap: calc(var(--spacing-unit) * 2);
+            align-items: flex-end;
+            flex: 1;
+            flex-wrap: wrap;
+        }
+        
+        .report-filters .filter-group {
+            display: flex;
+            flex-direction: column;
+            gap: calc(var(--spacing-unit) * 0.75);
+            min-width: 180px;
+        }
+
+        .filter-group label {
+            font-size: 0.85rem;
+            font-weight: 600;
+            color: var(--color-text-muted);
+            text-transform: uppercase;
+            letter-spacing: 0.05em;
+            display: flex;
+            align-items: center;
+            gap: 6px;
+        }
+
+        .filter-group label i {
+            color: var(--color-primary);
+            font-size: 0.9rem;
+        }
+
+        .input-group {
+            display: flex;
+            gap: 8px;
+        }
+
+        .input-group .form-control {
+            flex: 1;
+        }
+
+        .input-group .btn {
+            padding: calc(var(--spacing-unit) * 1.25) calc(var(--spacing-unit) * 2);
+            min-width: auto;
+        }
+
+        /* Botões de filtro de status */
+        .status-filters-container {
+            display: flex;
+            flex-direction: column;
+            gap: calc(var(--spacing-unit) * 1.5);
+        }
+
+        .status-filters-label {
+            font-size: 0.85rem;
+            font-weight: 600;
+            color: var(--color-text-muted);
+            text-transform: uppercase;
+            letter-spacing: 0.05em;
+            display: flex;
+            align-items: center;
+            gap: 6px;
+        }
+
+        .status-filters-label i {
+            color: var(--color-primary);
+        }
+
+        .status-filters {
+            display: flex;
+            gap: calc(var(--spacing-unit) * 1.5);
+            flex-wrap: wrap;
+        }
+
+        .status-filters .btn {
+            padding: calc(var(--spacing-unit) * 1.25) calc(var(--spacing-unit) * 2.5);
+            font-size: 0.8rem;
+            border-radius: 6px;
+            display: flex;
+            align-items: center;
+            gap: 8px;
+            transition: all 0.3s ease;
+            position: relative;
+            overflow: hidden;
+        }
+
+        .status-filters .btn i {
+            font-size: 0.9rem;
+        }
+
+        .status-filters .btn-primary {
+            background-color: var(--color-primary);
+            border-color: var(--color-primary);
+            box-shadow: 0 4px 12px rgba(255, 107, 53, 0.3);
+        }
+
+        .status-filters .btn-secondary {
+            background-color: transparent;
+            border-color: var(--color-border);
+            color: var(--color-text-muted);
+        }
+
+        .status-filters .btn-secondary:hover {
+            background-color: rgba(255, 107, 53, 0.1);
+            border-color: var(--color-primary);
+            color: var(--color-primary);
+            transform: translateY(-2px);
+        }
+
+        /* Ações de PDF */
+        .pdf-actions {
+            display: flex;
+            gap: calc(var(--spacing-unit) * 2);
+            padding-top: calc(var(--spacing-unit) * 2);
+            border-top: 1px solid var(--color-border);
+        }
+
+        .pdf-export .btn {
+            display: flex;
+            align-items: center;
+            gap: 10px;
+            padding: calc(var(--spacing-unit) * 1.5) calc(var(--spacing-unit) * 2.5);
+            font-size: 0.85rem;
+            border-radius: 6px;
+            transition: all 0.3s ease;
+        }
+
+        .pdf-export .btn:hover {
+            transform: translateY(-2px);
+            box-shadow: 0 6px 16px rgba(0, 0, 0, 0.3);
+        }
+
+        .pdf-export .btn i {
+            font-size: 1.1rem;
+        }
+
+        /* Tabela aprimorada */
+        .table-responsive {
+            border-radius: 8px;
+            margin-top: calc(var(--spacing-unit) * 2);
+            overflow: visible !important; /* Remove barras de rolagem horizontal e vertical */
+            overflow-x: visible !important;
+            overflow-y: visible !important;
+        }
+
+        .table {
+            table-layout: auto; /* Permite que as colunas se ajustem automaticamente */
+            width: 100%;
+            min-width: unset !important; /* Remove largura mínima que causa overflow */
+        }
+
+        .table thead th {
+            background-color: rgba(0, 0, 0, 0.3);
+            border-bottom: 2px solid var(--color-primary);
+            padding: calc(var(--spacing-unit) * 2);
+            font-weight: 700;
+            letter-spacing: 0.08em;
+        }
+
+        .table thead th i {
+            color: var(--color-primary);
+            margin-right: 8px;
+            font-size: 0.95rem;
+        }
+
+        .table tbody tr {
+            transition: all 0.2s ease;
+        }
+
+        .table tbody tr:hover {
+            background-color: rgba(255, 107, 53, 0.08);
+            transform: none; /* Remove transform scale para evitar overflow */
+        }
+
+        .table tbody tr:hover:not(.empty-row) {
+            cursor: pointer;
+        }
+
+        .table td {
+            padding: calc(var(--spacing-unit) * 2);
+            vertical-align: middle;
+        }
+
+        /* Estado vazio da tabela */
+        .empty-row:hover {
+            background-color: transparent !important;
+            transform: none !important;
+            cursor: default !important;
+        }
+
+        /* Animação de carregamento sutil */
+        @keyframes fadeIn {
+            from {
+                opacity: 0;
+                transform: translateY(10px);
+            }
+            to {
+                opacity: 1;
+                transform: translateY(0);
+            }
+        }
+
+        .card.form-card {
+            animation: fadeIn 0.4s ease-out;
+            overflow: visible; /* Remove barras de rolagem do card */
+        }
+
+        .card.form-card.card--wide {
+            overflow: visible !important; /* Remove barras de rolagem */
+        }
+
+        /* Garante que não haja overflow no container principal */
+        .main-content {
+            overflow-x: hidden;
+        }
+
+        .container-fluid {
+            overflow-x: hidden;
+        }
+
+        /* Título da página aprimorado */
+        .page-title {
+            position: relative;
+            display: inline-block;
+            padding-bottom: calc(var(--spacing-unit) * 2);
+        }
+
+        .page-title::after {
+            content: '';
+            position: absolute;
+            bottom: 0;
+            left: 50%;
+            transform: translateX(-50%);
+            width: 80px;
+            height: 3px;
+            background: linear-gradient(90deg, transparent, var(--color-primary), transparent);
+        }
+
+        /* Efeito de foco melhorado nos inputs */
+        .form-control:focus {
+            box-shadow: 0 0 0 3px rgba(255, 107, 53, 0.25);
+            border-color: var(--color-primary);
+        }
+
+        /* Contador visual de resultados */
+        .results-info {
             display: flex;
             justify-content: space-between;
             align-items: center;
-            margin-bottom: 20px;
-            flex-wrap: wrap;
-            gap: 15px;
+            padding: calc(var(--spacing-unit) * 2);
+            background-color: rgba(255, 107, 53, 0.05);
+            border-radius: 6px;
+            margin-bottom: calc(var(--spacing-unit) * 2);
+            font-size: 0.9rem;
+            color: var(--color-text-muted);
         }
-        .report-filters {
-            display: flex;
-            gap: 15px;
-            align-items: flex-end; /* Alinha os itens na base */
+
+        .results-info i {
+            color: var(--color-primary);
+            margin-right: 8px;
         }
-        .report-filters .filter-group {
-            display: flex;
-            flex-direction: column; /* Coloca o label acima do select */
-            gap: 5px;
+
+        /* Responsividade */
+        @media (max-width: 992px) {
+            .filters-row {
+                flex-direction: column;
+                align-items: stretch;
+            }
+
+            .report-filters {
+                width: 100%;
+            }
+
+            .report-filters .filter-group {
+                min-width: 100%;
+            }
+
+            .status-filters {
+                justify-content: center;
+            }
+
+            .pdf-actions {
+                flex-direction: column;
+            }
+
+            .pdf-export {
+                width: 100%;
+            }
+
+            .pdf-export .btn {
+                width: 100%;
+                justify-content: center;
+            }
+
+            .results-info {
+                flex-direction: column;
+                gap: calc(var(--spacing-unit) * 1);
+                text-align: center;
+            }
         }
-        .status-filters {
-            display: flex;
-            gap: 10px;
-            flex-wrap: wrap;
+
+        @media (max-width: 768px) {
+            .summary-cards {
+                grid-template-columns: 1fr;
+            }
+
+            .filters-wrapper {
+                padding: calc(var(--spacing-unit) * 2);
+            }
+
+            .status-filters .btn {
+                font-size: 0.75rem;
+                padding: calc(var(--spacing-unit) * 1) calc(var(--spacing-unit) * 1.5);
+            }
+
+            .table {
+                min-width: unset; /* Remove largura mínima em mobile */
+            }
+
+            .table thead th {
+                font-size: 0.75rem;
+                padding: calc(var(--spacing-unit) * 1.5);
+            }
+
+            .table thead th i {
+                display: none; /* Esconde ícones em telas muito pequenas */
+            }
+
+            .table td {
+                font-size: 0.85rem;
+                padding: calc(var(--spacing-unit) * 1.5);
+            }
+        }
+
+        @media (max-width: 576px) {
+            .summary-card {
+                flex-direction: column;
+                text-align: center;
+                gap: calc(var(--spacing-unit) * 2);
+            }
+
+            .summary-card .card-icon {
+                min-width: 50px;
+                font-size: 2rem;
+                padding: 10px;
+            }
+
+            .status-filters .btn {
+                flex: 1 1 calc(50% - var(--spacing-unit));
+                justify-content: center;
+            }
+
+            .page-link {
+                padding: calc(var(--spacing-unit) * 0.75) calc(var(--spacing-unit) * 1.25);
+                font-size: 0.75rem;
+            }
+
+            /* Esconde texto "Anterior" e "Próximo" e deixa só os ícones em mobile */
+            .pagination .page-link {
+                display: flex;
+                align-items: center;
+                gap: 4px;
+            }
         }
     </style>
 </head>
@@ -73,66 +507,142 @@
                 </div>
             </div>
 
-            <div class="card form-card card--wide">
-                <!-- Filtros -->
-                <div class="filters-container">
-                    <form th:action="@{/relatorios/mensalidades}" method="get" class="report-filters">
-                        <div class="filter-group">
-                            <label for="alunoNome">Aluno:</label>
-                            <div class="input-group">
-                                <input type="text" name="alunoNome" id="alunoNome" class="form-control" th:value="${alunoNomePesquisado}" placeholder="Nome do Aluno">
-                                <button type="submit" class="btn btn-primary"><i class="fas fa-search"></i></button>
+            <!-- Filtros -->
+            <div class="filters-wrapper">
+                <div class="filters-section">
+                    <!-- Linha 1: Filtros de Busca -->
+                    <div class="filters-row">
+                        <form th:action="@{/relatorios/mensalidades}" method="get" class="report-filters">
+                            <div class="filter-group">
+                                <label for="alunoNome">
+                                    <i class="fas fa-user"></i>
+                                    Aluno
+                                </label>
+                                <div class="input-group">
+                                    <input type="text" name="alunoNome" id="alunoNome" class="form-control" 
+                                           th:value="${alunoNomePesquisado}" placeholder="Digite o nome do aluno">
+                                    <button type="submit" class="btn btn-primary" title="Buscar">
+                                        <i class="fas fa-search"></i>
+                                    </button>
+                                </div>
                             </div>
-                        </div>
-                        <div class="filter-group">
-                            <label for="ano">Ano:</label>
-                            <select name="ano" id="ano" class="form-control" onchange="this.form.submit()">
-                                <option th:each="a : ${anos}" th:value="${a}" th:text="${a}" th:selected="${a == anoSelecionado}"></option>
-                            </select>
-                        </div>
-                        <div class="filter-group">
-                            <label for="mes">Mês:</label>
-                            <select name="mes" id="mes" class="form-control" onchange="this.form.submit()">
-                                <option value="">Todos</option>
-                                <option th:each="m : ${#numbers.sequence(1, 12)}" th:value="${m}" th:text="${#temporals.create(2000, m, 1, 0, 0).month.getDisplayName('FULL', new java.util.Locale('pt', 'BR'))}" th:selected="${m == mesSelecionado}"></option>
-                            </select>
-                        </div>
-                        <input type="hidden" name="status" th:value="${filtroAtual}" />
-                    </form>
-    
-                    <div class="status-filters">
-                        <a th:href="@{/relatorios/mensalidades(status='TODAS', ano=${anoSelecionado}, mes=${mesSelecionado}, alunoNome=${alunoNomePesquisado})}" class="btn" th:classappend="${filtroAtual == 'TODAS'} ? 'btn-primary' : 'btn-secondary'">Todas</a>
-                        <a th:href="@{/relatorios/mensalidades(status='PAGO', ano=${anoSelecionado}, mes=${mesSelecionado}, alunoNome=${alunoNomePesquisado})}" class="btn" th:classappend="${filtroAtual == 'PAGO'} ? 'btn-primary' : 'btn-secondary'">Pagas</a>
-                        <a th:href="@{/relatorios/mensalidades(status='PENDENTE', ano=${anoSelecionado}, mes=${mesSelecionado}, alunoNome=${alunoNomePesquisado})}" class="btn" th:classappend="${filtroAtual == 'PENDENTE'} ? 'btn-primary' : 'btn-secondary'">Pendentes</a>
-                        <a th:href="@{/relatorios/mensalidades(status='ATRASADA', ano=${anoSelecionado}, mes=${mesSelecionado}, alunoNome=${alunoNomePesquisado})}" class="btn" th:classappend="${filtroAtual == 'ATRASADA'} ? 'btn-primary' : 'btn-secondary'">Atrasadas</a>
-                        <a th:href="@{/relatorios/mensalidades(status='CANCELADO', ano=${anoSelecionado}, mes=${mesSelecionado}, alunoNome=${alunoNomePesquisado})}" class="btn" th:classappend="${filtroAtual == 'CANCELADO'} ? 'btn-primary' : 'btn-secondary'">Canceladas</a>
+                            <div class="filter-group">
+                                <label for="ano">
+                                    <i class="fas fa-calendar-alt"></i>
+                                    Ano
+                                </label>
+                                <select name="ano" id="ano" class="form-control" onchange="this.form.submit()">
+                                    <option th:each="a : ${anos}" th:value="${a}" th:text="${a}" 
+                                            th:selected="${a == anoSelecionado}"></option>
+                                </select>
+                            </div>
+                            <div class="filter-group">
+                                <label for="mes">
+                                    <i class="fas fa-calendar"></i>
+                                    Mês
+                                </label>
+                                <select name="mes" id="mes" class="form-control" onchange="this.form.submit()">
+                                    <option value="">Todos os meses</option>
+                                    <option th:each="m : ${#numbers.sequence(1, 12)}" th:value="${m}" 
+                                            th:text="${#temporals.create(2000, m, 1, 0, 0).month.getDisplayName('FULL', new java.util.Locale('pt', 'BR'))}" 
+                                            th:selected="${m == mesSelecionado}"></option>
+                                </select>
+                            </div>
+                            <input type="hidden" name="status" th:value="${filtroAtual}" />
+                        </form>
                     </div>
-                     <!-- Botão para Gerar PDF Financeiro -->
-                     <div class="pdf-export" th:if="${alunoUnico == null}">
-                        <a th:href="@{/relatorios/mensalidades/pdf(ano=${anoSelecionado})}" class="btn btn-danger" target="_blank">
-                            <i class="fas fa-file-pdf"></i> Gerar Resumo em PDF
-                        </a>
+    
+                    <!-- Linha 2: Filtros de Status -->
+                    <div class="status-filters-container">
+                        <div class="status-filters-label">
+                            <i class="fas fa-filter"></i>
+                            Filtrar por Status
+                        </div>
+                        <div class="status-filters">
+                            <a th:href="@{/relatorios/mensalidades(status='TODAS', ano=${anoSelecionado}, mes=${mesSelecionado}, alunoNome=${alunoNomePesquisado})}" 
+                               class="btn" th:classappend="${filtroAtual == 'TODAS'} ? 'btn-primary' : 'btn-secondary'"
+                               title="Ver todas as mensalidades">
+                                <i class="fas fa-list"></i>
+                                Todas
+                            </a>
+                            <a th:href="@{/relatorios/mensalidades(status='PAGO', ano=${anoSelecionado}, mes=${mesSelecionado}, alunoNome=${alunoNomePesquisado})}" 
+                               class="btn" th:classappend="${filtroAtual == 'PAGO'} ? 'btn-primary' : 'btn-secondary'"
+                               title="Ver mensalidades pagas">
+                                <i class="fas fa-check-circle"></i>
+                                Pagas
+                            </a>
+                            <a th:href="@{/relatorios/mensalidades(status='PENDENTE', ano=${anoSelecionado}, mes=${mesSelecionado}, alunoNome=${alunoNomePesquisado})}" 
+                               class="btn" th:classappend="${filtroAtual == 'PENDENTE'} ? 'btn-primary' : 'btn-secondary'"
+                               title="Ver mensalidades pendentes">
+                                <i class="fas fa-clock"></i>
+                                Pendentes
+                            </a>
+                            <a th:href="@{/relatorios/mensalidades(status='ATRASADA', ano=${anoSelecionado}, mes=${mesSelecionado}, alunoNome=${alunoNomePesquisado})}" 
+                               class="btn" th:classappend="${filtroAtual == 'ATRASADA'} ? 'btn-primary' : 'btn-secondary'"
+                               title="Ver mensalidades atrasadas">
+                                <i class="fas fa-exclamation-triangle"></i>
+                                Atrasadas
+                            </a>
+                            <a th:href="@{/relatorios/mensalidades(status='CANCELADO', ano=${anoSelecionado}, mes=${mesSelecionado}, alunoNome=${alunoNomePesquisado})}" 
+                               class="btn" th:classappend="${filtroAtual == 'CANCELADO'} ? 'btn-primary' : 'btn-secondary'"
+                               title="Ver mensalidades canceladas">
+                                <i class="fas fa-times-circle"></i>
+                                Canceladas
+                            </a>
+                        </div>
                     </div>
 
-                    <!-- Botão para Gerar PDF do Aluno (condicional) -->
-                    <div class="pdf-export" th:if="${alunoUnico != null}">
-                        <a th:href="@{/relatorios/mensalidades/aluno/{id}/pdf(id=${alunoUnico.id})}" class="btn btn-success" target="_blank">
-                            <i class="fas fa-file-pdf"></i> Gerar PDF de <span th:text="${alunoUnico.primeiroNome()}"></span>
-                        </a>
+                    <!-- Linha 3: Ações de PDF -->
+                    <div class="pdf-actions">
+                        <!-- Botão para Gerar PDF Financeiro -->
+                        <div class="pdf-export" th:if="${alunoUnico == null}">
+                            <a th:href="@{/relatorios/mensalidades/pdf(ano=${anoSelecionado})}" 
+                               class="btn btn-danger" target="_blank"
+                               title="Gerar relatório completo em PDF">
+                                <i class="fas fa-file-pdf"></i> 
+                                Gerar Resumo em PDF
+                            </a>
+                        </div>
+
+                        <!-- Botão para Gerar PDF do Aluno (condicional) -->
+                        <div class="pdf-export" th:if="${alunoUnico != null}">
+                            <a th:href="@{/relatorios/mensalidades/aluno/{id}/pdf(id=${alunoUnico.id})}" 
+                               class="btn btn-success" target="_blank"
+                               th:title="'Gerar PDF das mensalidades de ' + ${alunoUnico.primeiroNome()}">
+                                <i class="fas fa-file-pdf"></i> 
+                                Gerar PDF de <span th:text="${alunoUnico.primeiroNome()}"></span>
+                            </a>
+                        </div>
                     </div>
                 </div>
+            </div>
 
-                <!-- Tabela de Resultados -->
+            <!-- Tabela de Resultados -->
+            <div class="card form-card card--wide">
+                <!-- Informações de resultados -->
+                <div class="results-info" th:if="${!#lists.isEmpty(mensalidades.content)}">
+                    <span>
+                        <i class="fas fa-list-ul"></i>
+                        Exibindo <strong th:text="${mensalidades.content.size()}">0</strong> 
+                        <span th:text="${mensalidades.content.size() == 1 ? 'registro' : 'registros'}">registros</span> 
+                        de <strong th:text="${mensalidades.totalElements}">0</strong> no total
+                    </span>
+                    <span th:if="${mensalidades.totalPages > 1}">
+                        <i class="fas fa-file-alt"></i>
+                        Página <strong th:text="${mensalidades.number + 1}">1</strong> de <strong th:text="${mensalidades.totalPages}">1</strong>
+                    </span>
+                </div>
+
                 <div class="table-responsive">
                     <table class="table">
                         <thead>
                             <tr>
-                                <th>Aluno</th>
-                                <th>Plano</th>
-                                <th>Valor</th>
-                                <th>Vencimento</th>
-                                <th>Data Pagamento</th>
-                                <th>Status</th>
+                                <th><i class="fas fa-user"></i> Aluno</th>
+                                <th><i class="fas fa-dumbbell"></i> Plano</th>
+                                <th><i class="fas fa-dollar-sign"></i> Valor</th>
+                                <th><i class="fas fa-calendar-day"></i> Vencimento</th>
+                                <th><i class="fas fa-calendar-check"></i> Data Pagamento</th>
+                                <th><i class="fas fa-info-circle"></i> Status</th>
                             </tr>
                         </thead>
                         <tbody>
@@ -154,33 +664,50 @@
                                         </span>
                                         <span th:case="'PAGO'" class="status-badge status-pago">PAGO</span>
                                         <span th:case="'CANCELADO'" class="status-badge status-cancelado">CANCELADO</span>
-                                        <span th:case="*" class="status-badge" th:text="${m.status}"></span> <!-- Default case -->
+                                        <span th:case="*" class="status-badge" th:text="${m.status}"></span>
                                     </th:block>
                                 </td>
                             </tr>
-                            <tr th:if="${#lists.isEmpty(mensalidades.content)}">
-                                <td colspan="6" class="text-center">Nenhuma mensalidade encontrada para este filtro.</td>
+                            <tr th:if="${#lists.isEmpty(mensalidades.content)}" class="empty-row">
+                                <td colspan="6" style="padding: calc(var(--spacing-unit) * 5); text-align: center;">
+                                    <div style="color: var(--color-text-muted);">
+                                        <i class="fas fa-inbox" style="font-size: 3rem; color: var(--color-primary); margin-bottom: calc(var(--spacing-unit) * 2); display: block;"></i>
+                                        <p style="font-size: 1.1rem; font-weight: 600; margin-bottom: calc(var(--spacing-unit) * 0.5);">Nenhuma mensalidade encontrada</p>
+                                        <p style="font-size: 0.9rem;">Tente ajustar os filtros para ver mais resultados.</p>
+                                    </div>
+                                </td>
                             </tr>
                         </tbody>
                     </table>
                 </div>
 
                  <!-- Controles de Paginação -->
-                 <nav aria-label="Page navigation" th:if="${mensalidades.totalPages > 1}">
+                 <nav aria-label="Navegação de páginas" th:if="${mensalidades.totalPages > 1}">
                     <ul class="pagination">
                         <!-- Botão Anterior -->
                         <li class="page-item" th:classappend="${mensalidades.first} ? 'disabled'">
-                            <a class="page-link" th:href="@{/relatorios/mensalidades(status=${filtroAtual}, ano=${anoSelecionado}, mes=${mesSelecionado}, page=${mensalidades.number - 1}, size=${mensalidades.size})}">Anterior</a>
+                            <a class="page-link" 
+                               th:href="@{/relatorios/mensalidades(status=${filtroAtual}, ano=${anoSelecionado}, mes=${mesSelecionado}, page=${mensalidades.number - 1}, size=${mensalidades.size}, alunoNome=${alunoNomePesquisado})}"
+                               title="Página anterior">
+                                <i class="fas fa-chevron-left"></i> Anterior
+                            </a>
                         </li>
 
                         <!-- Números de Página -->
                         <li class="page-item" th:each="i : ${#numbers.sequence(0, mensalidades.totalPages - 1)}" th:classappend="${i == mensalidades.number} ? 'active'">
-                            <a class="page-link" th:href="@{/relatorios/mensalidades(status=${filtroAtual}, ano=${anoSelecionado}, mes=${mesSelecionado}, page=${i}, size=${mensalidades.size})}" th:text="${i + 1}"></a>
+                            <a class="page-link" 
+                               th:href="@{/relatorios/mensalidades(status=${filtroAtual}, ano=${anoSelecionado}, mes=${mesSelecionado}, page=${i}, size=${mensalidades.size}, alunoNome=${alunoNomePesquisado})}" 
+                               th:text="${i + 1}"
+                               th:title="'Ir para página ' + ${i + 1}"></a>
                         </li>
 
                         <!-- Botão Próximo -->
                         <li class="page-item" th:classappend="${mensalidades.last} ? 'disabled'">
-                            <a class="page-link" th:href="@{/relatorios/mensalidades(status=${filtroAtual}, ano=${anoSelecionado}, mes=${mesSelecionado}, page=${mensalidades.number + 1}, size=${mensalidades.size})}">Próximo</a>
+                            <a class="page-link" 
+                               th:href="@{/relatorios/mensalidades(status=${filtroAtual}, ano=${anoSelecionado}, mes=${mesSelecionado}, page=${mensalidades.number + 1}, size=${mensalidades.size}, alunoNome=${alunoNomePesquisado})}"
+                               title="Próxima página">
+                                Próximo <i class="fas fa-chevron-right"></i>
+                            </a>
                         </li>
                     </ul>
                 </nav>
