@@ -85,10 +85,17 @@ public class SecurityConfig {
                             "/CadastroTipoPlano.html", "/CadastroCidade.html",
                             "/CadastroEstado.html", "/gerenciamento-roles"
                         ).hasRole("ADMIN")
-                        .requestMatchers("/api/gerenciamento/**", "/api/pagamentos/**", "/api/tipos-plano/**", "/api/cidades/**", "/api/estados/**", "/api/pessoas/**").hasRole("ADMIN")
-
+                        .requestMatchers("/api/gerenciamento/**", "/api/tipos-plano/**", "/api/cidades/**", "/api/estados/**", "/api/pessoas/**").hasRole("ADMIN")
+                        .requestMatchers(HttpMethod.POST, "/api/pagamentos/atribuir-plano").hasRole("ADMIN") // Atribuir plano a um aluno
+                        
                         // --- Permissões Gerais para Usuários Autenticados ---
-                        .requestMatchers("/perfil", "/minhas-avaliacoes", "/meus-planos-aula", "/minhas-mensalidades").authenticated()
+                        .requestMatchers(
+                            "/perfil", "/minhas-avaliacoes", "/meus-planos-aula", "/minhas-mensalidades",
+                            "/api/pagamentos/gerar-pix/**" // Gerar PIX para uma mensalidade
+                        ).authenticated()
+                        .requestMatchers(HttpMethod.POST, "/planos/inscrever/**", "/api/pagamentos/cancelar-plano").authenticated()
+                        .requestMatchers(HttpMethod.GET, "/api/pagamentos/pagar/**").authenticated() // Acessar a página de pagamento
+
                         .anyRequest().authenticated()
                 )
                 .formLogin(form -> form

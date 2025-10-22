@@ -73,7 +73,7 @@ public class ControlePagamento {
      * Endpoint para um usuário LOGADO se inscrever em um plano.
      */
     @PostMapping("/planos/inscrever/{planoId}")
-    public String inscreverPlano(@PathVariable Long planoId, Authentication authentication) {
+    public String inscreverPlano(@PathVariable Long planoId, Authentication authentication, RedirectAttributes redirectAttributes) {
         if (authentication == null || !authentication.isAuthenticated()) {
             return "redirect:/login";
         }
@@ -82,7 +82,12 @@ public class ControlePagamento {
         Pessoa pessoa = pessoaRepository.findByUsername(username)
             .orElseThrow(() -> new ResponseStatusException(HttpStatus.NOT_FOUND, "Usuário não encontrado."));
 
-        pagamentoService.atribuirPlano(pessoa.getId(), planoId);
+        try {
+            pagamentoService.atribuirPlano(pessoa.getId(), planoId);
+            redirectAttributes.addFlashAttribute("successMessage", "Inscrição realizada com sucesso! Sua primeira cobrança foi gerada.");
+        } catch (Exception e) {
+            redirectAttributes.addFlashAttribute("errorMessage", "Erro ao realizar inscrição: " + e.getMessage());
+        }
 
         // Redireciona o usuário para a tela de mensalidades onde a nova cobrança aparecerá
         return "redirect:/minhas-mensalidades";
