@@ -292,13 +292,25 @@ public class PagamentoService {
     }
 
     private PagHiperRequest criarPagHiperRequest(Mensalidade m) {
+        // Validação para CPF nulo
+        String cpf = m.getPessoa().getCpf();
+        if (cpf == null || cpf.trim().isEmpty()) {
+            throw new RuntimeException("CPF é obrigatório para gerar PIX. Por favor, cadastre o CPF da pessoa antes de gerar o pagamento.");
+        }
+        
+        // Validação para telefone nulo
+        String telefone = m.getPessoa().getTelefone();
+        if (telefone == null || telefone.trim().isEmpty()) {
+            throw new RuntimeException("Telefone é obrigatório para gerar PIX. Por favor, cadastre o telefone da pessoa antes de gerar o pagamento.");
+        }
+        
         return new PagHiperRequest(
             pagHiperService.getApiKey(),
             m.getId().toString(), // Usando o ID da mensalidade como order_id
             m.getPessoa().getEmail(),
             m.getPessoa().getNome(),
-            m.getPessoa().getCpf().replaceAll("[^0-9]", ""), // A API espera apenas números
-            m.getPessoa().getTelefone().replaceAll("[^0-9]", ""),
+            cpf.replaceAll("[^0-9]", ""), // A API espera apenas números
+            telefone.replaceAll("[^0-9]", ""),
             pagHiperService.getNotificationUrl(),
             5,
             Collections.singletonList(new PagHiperItem(

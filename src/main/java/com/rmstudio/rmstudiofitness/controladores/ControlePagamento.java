@@ -97,7 +97,7 @@ public class ControlePagamento {
      * Endpoint para gerar o PIX para uma mensalidade pendente.
      */
     @PostMapping("/api/pagamentos/gerar-pix/{mensalidadeId}")
-    public String gerarPix(@PathVariable Long mensalidadeId, Authentication authentication) {
+    public String gerarPix(@PathVariable Long mensalidadeId, Authentication authentication, RedirectAttributes redirectAttributes) {
         // Validação de segurança: garantir que o usuário logado é o dono da mensalidade (opcional mas recomendado)
         String username = authentication.getName();
         Pessoa pessoa = pessoaRepository.findByUsername(username)
@@ -110,9 +110,14 @@ public class ControlePagamento {
             throw new ResponseStatusException(HttpStatus.FORBIDDEN, "Você não tem permissão para acessar esta cobrança.");
         }
         
-        pagamentoService.gerarPixParaMensalidade(mensalidadeId);
-        
-        return "redirect:/api/pagamentos/pagar/" + mensalidadeId;
+        try {
+            pagamentoService.gerarPixParaMensalidade(mensalidadeId);
+            return "redirect:/api/pagamentos/pagar/" + mensalidadeId;
+        } catch (RuntimeException e) {
+            // Captura exceções relacionadas a CPF/telefone obrigatórios
+            redirectAttributes.addFlashAttribute("errorMessage", e.getMessage());
+            return "redirect:/minhas-mensalidades";
+        }
     }
 
     @PostMapping("/api/pagamentos/cancelar-plano")
