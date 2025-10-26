@@ -234,7 +234,11 @@ public class PagamentoService {
 
     @Transactional
     public void processarNotificacao(PagHiperNotificationRequest notification) {
-        logger.info("Recebendo notificação da PagHiper para a transação: {}", notification.transactionId());
+        logger.info("=== INÍCIO PROCESSAMENTO NOTIFICAÇÃO PAGHIPER ===");
+        logger.info("Transaction ID: {}", notification.transactionId());
+        logger.info("Status recebido: {}", notification.status());
+        logger.info("Notification ID: {}", notification.notificationId());
+        logger.info("Order ID: {}", notification.orderId());
 
         Mensalidade mensalidade = mensalidadeRepository.findByTransactionId(notification.transactionId())
             .orElseThrow(() -> {
@@ -242,32 +246,44 @@ public class PagamentoService {
                 return new ResponseStatusException(HttpStatus.NOT_FOUND, "Mensalidade não encontrada para esta transação.");
             });
 
+        logger.info("Mensalidade encontrada - ID: {}, Status atual: {}", mensalidade.getId(), mensalidade.getStatus());
+
+        // Mapeamento dos status da PagHiper para nossos status internos
         String novoStatus = switch (notification.status().toLowerCase()) {
-            case "paid", "approved" -> "PAGO";
-            case "pending", "reserved" -> "PENDENTE";
-            case "canceled", "refunded" -> "CANCELADO";
-            default -> null;
+            case "paid", "approved", "completed" -> "PAGO";
+            case "pending", "reserved", "waiting_payment" -> "PENDENTE";
+            case "canceled", "cancelled", "refunded" -> "CANCELADO";
+            default -> {
+                logger.warn("Status não mapeado: '{}'. Mensalidade permanecerá com status atual.", notification.status());
+                yield null;
+            }
         };
 
         if (novoStatus == null) {
-            logger.warn("Status da notificação '{}' não mapeado. Nenhuma ação será tomada.", notification.status());
+            logger.warn("Status da notificação '{}' não foi mapeado. Nenhuma alteração será feita.", notification.status());
             return;
         }
 
         if (novoStatus.equals(mensalidade.getStatus())) {
-            logger.info("Mensalidade {} já estava com status {}. Nenhuma alteração feita.", mensalidade.getId(), novoStatus);
-            return; // Evita processamento duplicado
+            logger.info("Mensalidade {} já está com status {}. Nenhuma atualização necessária.", mensalidade.getId(), novoStatus);
+            return; // Evita processamento duplicado e logs desnecessários
         }
 
+        logger.info("Atualizando mensalidade {} de '{}' para '{}'", mensalidade.getId(), mensalidade.getStatus(), novoStatus);
+        
         mensalidade.setStatus(novoStatus);
+        
         if ("PAGO".equals(novoStatus)) {
             mensalidade.setDataPagamento(LocalDate.now());
-        } else {
-            mensalidade.setDataPagamento(null); // Garante que a data de pagamento seja nula se não estiver pago
+            logger.info("Data de pagamento definida para hoje: {}", mensalidade.getDataPagamento());
+        } else if ("PENDENTE".equals(novoStatus)) {
+            mensalidade.setDataPagamento(null); // Limpa a data de pagamento se voltar para pendente
         }
 
         mensalidadeRepository.save(mensalidade);
-        logger.info("Mensalidade {} atualizada para {} com sucesso.", mensalidade.getId(), novoStatus);
+        
+        logger.info("✅ Mensalidade {} atualizada com sucesso para status '{}'", mensalidade.getId(), novoStatus);
+        logger.info("=== FIM PROCESSAMENTO NOTIFICAÇÃO ===");
     }
 
     @Transactional
@@ -514,5 +530,163 @@ public class PagamentoService {
         );
 
         return dto;
+    }
+
+    /**
+     * Verifica e atualiza o status de todas as mensalidades pendentes consultando a API do PagHiper.
+     * Este método deve ser chamado ao recarregar a página de mensalidades para garantir que
+     * o status está sincronizado com o PagHiper.
+     * 
+     * @param pessoaId ID da pessoa
+     * @return Quantidade de mensalidades atualizadas
+     */
+    @Transactional
+    public int verificarEAtualizarStatusMensalidades(Long pessoaId) {
+        logger.info("Iniciando verificação de status das mensalidades para pessoa {}", pessoaId);
+        
+        // Busca todas as mensalidades da pessoa que têm transactionId
+        // Verifica TODAS as mensalidades, não apenas as pendentes, para garantir que o status esteja sincronizado
+        List<Mensalidade> mensalidadesParaVerificar = mensalidadeRepository.findByPessoaIdWithTipoPlano(pessoaId)
+            .stream()
+            .filter(m -> m.getTransactionId() != null && !m.getTransactionId().trim().isEmpty())
+            .collect(Collectors.toList());
+        
+        if (mensalidadesParaVerificar.isEmpty()) {
+            logger.info("Nenhuma mensalidade com transactionId encontrada para pessoa {}", pessoaId);
+            return 0;
+        }
+        
+        logger.info("Encontradas {} mensalidades para verificação", mensalidadesParaVerificar.size());
+        
+        int atualizadas = 0;
+        
+        for (Mensalidade mensalidade : mensalidadesParaVerificar) {
+            try {
+                logger.info("Consultando status da mensalidade {} com transaction_id {}", 
+                           mensalidade.getId(), mensalidade.getTransactionId());
+                
+                // Consulta o status no PagHiper
+                String respostaJson = pagHiperService.consultarStatusPix(mensalidade.getTransactionId());
+                
+                logger.info("Resposta recebida para mensalidade {}: {}", mensalidade.getId(), respostaJson);
+                
+                // Parse da resposta JSON usando ObjectMapper
+                if (respostaJson != null && respostaJson.contains("status_request")) {
+                    logger.debug("Resposta completa do PagHiper: {}", respostaJson);
+                    
+                    // Extrai o status da resposta usando ObjectMapper
+                    String statusPagHiper = extrairStatusDaResposta(respostaJson);
+                    
+                    if (statusPagHiper != null) {
+                        logger.info("Status retornado pelo PagHiper: '{}'", statusPagHiper);
+                        
+                        // Mapeia o status do PagHiper para nosso status interno
+                        String novoStatus = mapStatusPagHiper(statusPagHiper);
+                        
+                        logger.info("Status mapeado: '{}' -> '{}'", statusPagHiper, novoStatus);
+                        
+                        if (novoStatus != null && !novoStatus.equals(mensalidade.getStatus())) {
+                            logger.info("Atualizando mensalidade {} de '{}' para '{}'", 
+                                       mensalidade.getId(), mensalidade.getStatus(), novoStatus);
+                            
+                            mensalidade.setStatus(novoStatus);
+                            
+                            if ("PAGO".equals(novoStatus)) {
+                                mensalidade.setDataPagamento(LocalDate.now());
+                                logger.info("Data de pagamento definida para hoje: {}", mensalidade.getDataPagamento());
+                            }
+                            
+                            mensalidadeRepository.save(mensalidade);
+                            atualizadas++;
+                            
+                            logger.info("✅ Mensalidade {} atualizada com sucesso para '{}'", 
+                                       mensalidade.getId(), novoStatus);
+                        } else if (novoStatus == null) {
+                            logger.warn("Status '{}' não foi mapeado. Nenhuma atualização será feita.", statusPagHiper);
+                        } else {
+                            logger.info("Mensalidade {} já está com status correto '{}'. Nenhuma alteração necessária.", 
+                                       mensalidade.getId(), novoStatus);
+                        }
+                    } else {
+                        logger.warn("Não foi possível extrair o status da resposta JSON");
+                        logger.debug("Resposta que causou erro: {}", respostaJson);
+                    }
+                } else {
+                    logger.warn("Resposta JSON inválida ou sem campo 'status_request'. Resposta: {}", respostaJson);
+                }
+                
+            } catch (Exception e) {
+                logger.error("Erro ao verificar status da mensalidade {}: {}", 
+                           mensalidade.getId(), e.getMessage(), e);
+                // Continua com as outras mensalidades mesmo se uma falhar
+            }
+        }
+        
+        logger.info("Verificação concluída. {} mensalidade(s) atualizada(s)", atualizadas);
+        return atualizadas;
+    }
+    
+    /**
+     * Extrai o status da resposta JSON do PagHiper
+     * Formato esperado: {"status_request":{"status":"paid","result":"success",...}}
+     */
+    @SuppressWarnings("unchecked")
+    private String extrairStatusDaResposta(String respostaJson) {
+        try {
+            // Usa ObjectMapper para parsear o JSON corretamente
+            if (respostaJson == null || respostaJson.trim().isEmpty()) {
+                logger.warn("Resposta JSON vazia ou nula");
+                return null;
+            }
+            
+            logger.debug("Parseando resposta JSON: {}", respostaJson);
+            
+            // Parse do JSON principal
+            Map<String, Object> respostaCompleta = objectMapper.readValue(respostaJson, Map.class);
+            
+            // Extrai o objeto status_request
+            Map<String, Object> statusRequest = (Map<String, Object>) respostaCompleta.get("status_request");
+            
+            if (statusRequest == null) {
+                logger.warn("Campo 'status_request' não encontrado na resposta");
+                return null;
+            }
+            
+            // Extrai o campo status
+            String status = (String) statusRequest.get("status");
+            
+            if (status != null) {
+                logger.debug("Status extraído com sucesso: '{}'", status);
+                return status;
+            } else {
+                logger.warn("Campo 'status' não encontrado em 'status_request'");
+                return null;
+            }
+            
+        } catch (Exception e) {
+            logger.error("Erro ao extrair status da resposta: {}", e.getMessage(), e);
+            logger.error("Resposta que causou erro: {}", respostaJson);
+            return null;
+        }
+    }
+    
+    /**
+     * Mapeia o status retornado pelo PagHiper para nosso status interno
+     */
+    private String mapStatusPagHiper(String statusPagHiper) {
+        if (statusPagHiper == null) return null;
+        
+        String statusLower = statusPagHiper.toLowerCase();
+        
+        if (statusLower.equals("paid") || statusLower.equals("approved") || statusLower.equals("completed")) {
+            return "PAGO";
+        } else if (statusLower.equals("pending") || statusLower.equals("reserved") || statusLower.equals("waiting_payment")) {
+            return "PENDENTE";
+        } else if (statusLower.equals("canceled") || statusLower.equals("cancelled") || statusLower.equals("refunded")) {
+            return "CANCELADO";
+        }
+        
+        logger.warn("Status não mapeado: {}", statusPagHiper);
+        return null;
     }
 }

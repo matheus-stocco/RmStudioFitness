@@ -48,6 +48,7 @@ public class ControleNavegacao {
     private final MensalidadeRepository mensalidadeRepository;
     private final EntityManager entityManager;
     private final ExercicioRepository exercicioRepository;
+    private final PagamentoService pagamentoService;
 
 
     @Autowired
@@ -62,6 +63,7 @@ public class ControleNavegacao {
         this.pessoaRepository = pessoaRepository;
         this.estadoRepository = estadoRepository;
         this.tipoPlanoRepository = tipoPlanoRepository;
+        this.pagamentoService = pagamentoService;
         this.avaliacaoFisicaRepository = avaliacaoFisicaRepository;
         this.mensalidadeRepository = mensalidadeRepository;
         this.entityManager = entityManager;
@@ -234,7 +236,7 @@ public class ControleNavegacao {
      * Mapeia a URL /minhas-mensalidades para a página de mensalidades do usuário.
      */
     @GetMapping("/minhas-mensalidades")
-    @Transactional(readOnly = true)
+    @Transactional
     public String minhasMensalidades(Model model, Authentication authentication,
                                      @PageableDefault(size = 5) Pageable pageable) {
         logger.info("Iniciando carregamento de mensalidades para usuário: {}", authentication != null ? authentication.getName() : "null");
@@ -252,6 +254,15 @@ public class ControleNavegacao {
                 .orElseThrow(() -> new ResponseStatusException(HttpStatus.NOT_FOUND, "Usuário não encontrado."));
             
             logger.debug("Pessoa encontrada: ID={}, Nome={}", pessoa.getId(), pessoa.getNome());
+            
+            // Verifica e atualiza o status das mensalidades pendentes consultando o PagHiper
+            logger.info("Verificando status das mensalidades pendentes...");
+            int mensalidadesAtualizadas = pagamentoService.verificarEAtualizarStatusMensalidades(pessoa.getId());
+            if (mensalidadesAtualizadas > 0) {
+                logger.info("{} mensalidade(s) atualizada(s) com sucesso", mensalidadesAtualizadas);
+            } else {
+                logger.info("Nenhuma mensalidade precisa ser atualizada");
+            }
             
             model.addAttribute("pessoa", pessoa);
             

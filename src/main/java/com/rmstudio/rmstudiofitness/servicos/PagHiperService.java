@@ -145,4 +145,50 @@ public class PagHiperService {
             throw new RuntimeException("Falha na comunicação com a API PagHiper para cancelamento", e);
         }
     }
+
+    /**
+     * Consulta o status atual de uma transação PIX na PagHiper
+     * 
+     * @param transactionId ID da transação
+     * @return Resposta JSON com o status da transação
+     * @throws RuntimeException se houver erro na comunicação com a API
+     */
+    public String consultarStatusPix(String transactionId) {
+        // Verifica se as configurações estão válidas
+        if (apiToken == null || apiToken.trim().isEmpty() || 
+            "seu_token_aqui".equals(apiToken) || "seu_token_paghiper_aqui".equals(apiToken)) {
+            throw new RuntimeException("Token da PagHiper não configurado. Configure a variável PAGHIPER_TOKEN ou a propriedade paghiper.api.token com seu token real da PagHiper");
+        }
+        
+        if (apiKey == null || apiKey.trim().isEmpty()) {
+            throw new RuntimeException("API Key da PagHiper não configurada");
+        }
+        
+        // URL de consulta de status do PIX
+        String statusUrl = "https://pix.paghiper.com/invoice/status/";
+        
+        HttpHeaders headers = new HttpHeaders();
+        headers.setContentType(MediaType.APPLICATION_JSON);
+        headers.setAccept(java.util.Collections.singletonList(MediaType.APPLICATION_JSON));
+        
+        try {
+            // Cria o JSON de requisição conforme a documentação
+            String requestJson = String.format(
+                "{\"token\":\"%s\",\"apiKey\":\"%s\",\"transaction_id\":\"%s\"}",
+                apiToken, apiKey, transactionId
+            );
+            
+            HttpEntity<String> entity = new HttpEntity<>(requestJson, headers);
+            ResponseEntity<String> response = restTemplate.postForEntity(statusUrl, entity, String.class);
+            
+            if (response.getStatusCode().is2xxSuccessful()) {
+                return response.getBody();
+            } else {
+                String errorBody = response.getBody();
+                throw new RuntimeException("Erro HTTP ao consultar status: " + response.getStatusCode() + " - " + (errorBody != null ? errorBody : "Sem detalhes"));
+            }
+        } catch (Exception e) {
+            throw new RuntimeException("Falha na comunicação com a API PagHiper para consulta de status", e);
+        }
+    }
 }

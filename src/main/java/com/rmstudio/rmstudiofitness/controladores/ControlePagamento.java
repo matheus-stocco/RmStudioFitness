@@ -22,11 +22,13 @@ public class ControlePagamento {
     private final PagamentoService pagamentoService;
     private final MensalidadeRepository mensalidadeRepository;
     private final PessoaRepository pessoaRepository;
+    private final com.rmstudio.rmstudiofitness.servicos.PagHiperService pagHiperService;
 
-    public ControlePagamento(PagamentoService pagamentoService, MensalidadeRepository mensalidadeRepository, PessoaRepository pessoaRepository) {
+    public ControlePagamento(PagamentoService pagamentoService, MensalidadeRepository mensalidadeRepository, PessoaRepository pessoaRepository, com.rmstudio.rmstudiofitness.servicos.PagHiperService pagHiperService) {
         this.pagamentoService = pagamentoService;
         this.mensalidadeRepository = mensalidadeRepository;
         this.pessoaRepository = pessoaRepository;
+        this.pagHiperService = pagHiperService;
     }
 
     /**
@@ -183,6 +185,38 @@ public class ControlePagamento {
             return ResponseEntity.ok("ℹ️ Nenhuma mensalidade com resposta PagHiper encontrada.");
         } catch (Exception e) {
             return ResponseEntity.badRequest().body("❌ Erro ao testar token: " + e.getMessage());
+        }
+    }
+
+    /**
+     * Endpoint de debug para testar consulta de status de uma mensalidade
+     */
+    @GetMapping("/api/pagamentos/testar-status/{mensalidadeId}")
+    @ResponseBody
+    public ResponseEntity<String> testarStatusMensalidade(@PathVariable Long mensalidadeId) {
+        try {
+            Mensalidade mensalidade = mensalidadeRepository.findById(mensalidadeId)
+                .orElse(null);
+            
+            if (mensalidade == null) {
+                return ResponseEntity.badRequest().body("❌ Mensalidade não encontrada.");
+            }
+            
+            if (mensalidade.getTransactionId() == null || mensalidade.getTransactionId().isEmpty()) {
+                return ResponseEntity.badRequest().body("❌ Mensalidade não possui transaction_id.");
+            }
+            
+            String transactionId = mensalidade.getTransactionId();
+            
+            // Consulta o status diretamente usando o PagHiperService
+            String respostaJson = pagHiperService.consultarStatusPix(transactionId);
+            
+            return ResponseEntity.ok("✅ ID da mensalidade: " + mensalidade.getId() + 
+                                    "\nTransaction ID: " + transactionId + 
+                                    "\nStatus atual: " + mensalidade.getStatus() +
+                                    "\n\nResposta PagHiper:\n" + respostaJson);
+        } catch (Exception e) {
+            return ResponseEntity.badRequest().body("❌ Erro: " + e.getMessage());
         }
     }
 
