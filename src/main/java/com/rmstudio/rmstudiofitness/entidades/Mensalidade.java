@@ -46,6 +46,10 @@ public class Mensalidade implements Serializable {
     @Column(name = "pix_copia_e_cola")
     private String pixCopiaECola; // Código do PIX "copia e cola"
 
+    @Lob
+    @Column(name = "paghiper_response")
+    private String paghiperResponse; // Resposta completa da PagHiper (JSON)
+
     // Construtores, Getters, Setters, etc.
 
     public Mensalidade() {
@@ -72,6 +76,8 @@ public class Mensalidade implements Serializable {
     public void setPixQrCodeUrl(String pixQrCodeUrl) { this.pixQrCodeUrl = pixQrCodeUrl; }
     public String getPixCopiaECola() { return pixCopiaECola; }
     public void setPixCopiaECola(String pixCopiaECola) { this.pixCopiaECola = pixCopiaECola; }
+    public String getPaghiperResponse() { return paghiperResponse; }
+    public void setPaghiperResponse(String paghiperResponse) { this.paghiperResponse = paghiperResponse; }
 
     @Override
     public boolean equals(Object o) {

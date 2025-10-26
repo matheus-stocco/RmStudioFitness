@@ -14,6 +14,7 @@ import org.springframework.security.core.Authentication;
 import com.rmstudio.rmstudiofitness.entidades.Pessoa;
 import com.rmstudio.rmstudiofitness.repositorios.PessoaRepository;
 import org.springframework.web.servlet.mvc.support.RedirectAttributes;
+import java.util.List;
 
 @Controller
 public class ControlePagamento {
@@ -138,6 +139,51 @@ public class ControlePagamento {
         }
 
         return "redirect:/minhas-mensalidades";
+    }
+
+    /**
+     * Endpoint para testar a configuração da PagHiper
+     */
+    @GetMapping("/api/pagamentos/testar-paghiper")
+    @ResponseBody
+    public ResponseEntity<String> testarPagHiper() {
+        try {
+            // Testa se a configuração está válida
+            boolean configuracaoValida = pagamentoService.testarConfiguracaoPagHiper();
+            
+            if (configuracaoValida) {
+                return ResponseEntity.ok("✅ Configuração da PagHiper está válida!");
+            } else {
+                return ResponseEntity.badRequest().body("❌ Configuração da PagHiper inválida. Verifique o token.");
+            }
+        } catch (Exception e) {
+            return ResponseEntity.badRequest().body("❌ Erro ao testar PagHiper: " + e.getMessage());
+        }
+    }
+
+    /**
+     * Endpoint para testar extração de token da resposta PagHiper
+     */
+    @GetMapping("/api/pagamentos/testar-token-resposta")
+    @ResponseBody
+    public ResponseEntity<String> testarTokenResposta() {
+        try {
+            // Busca uma mensalidade com resposta da PagHiper
+            List<Mensalidade> mensalidades = mensalidadeRepository.findAll();
+            for (Mensalidade m : mensalidades) {
+                if (m.getPaghiperResponse() != null && !m.getPaghiperResponse().trim().isEmpty()) {
+                    String tokenExtraido = pagamentoService.extrairTokenDaResposta(m.getPaghiperResponse());
+                    if (tokenExtraido != null) {
+                        return ResponseEntity.ok("✅ Token extraído da resposta: " + tokenExtraido.substring(0, Math.min(10, tokenExtraido.length())) + "...");
+                    } else {
+                        return ResponseEntity.ok("ℹ️ Resposta PagHiper encontrada, mas sem token: " + m.getPaghiperResponse().substring(0, Math.min(100, m.getPaghiperResponse().length())) + "...");
+                    }
+                }
+            }
+            return ResponseEntity.ok("ℹ️ Nenhuma mensalidade com resposta PagHiper encontrada.");
+        } catch (Exception e) {
+            return ResponseEntity.badRequest().body("❌ Erro ao testar token: " + e.getMessage());
+        }
     }
 
     // DTO para receber os dados da requisição

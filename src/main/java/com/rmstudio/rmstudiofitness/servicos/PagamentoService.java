@@ -149,8 +149,17 @@ public class PagamentoService {
                 mensalidade.setTransactionId(response.createRequest().transactionId());
                 mensalidade.setPixQrCodeUrl(response.createRequest().pixCode().qrcodeImageUrl());
                 mensalidade.setPixCopiaECola(response.createRequest().pixCode().emv());
+                
+                // Armazena a resposta completa da PagHiper para uso posterior
+                mensalidade.setPaghiperResponse(responseJson);
+                
+                // Log da resposta completa para debug
+                logger.info("PIX criado com sucesso - TransactionId: {}, Resposta completa: {}", 
+                           response.createRequest().transactionId(), responseJson);
+                
                 return mensalidadeRepository.save(mensalidade);
             } else {
+                logger.error("Falha ao gerar PIX - Resposta: {}", responseJson);
                 throw new RuntimeException("Falha ao gerar PIX: Resposta inválida da API.");
             }
         } catch (Exception e) {
@@ -279,9 +288,45 @@ public class PagamentoService {
              logger.warn("Nenhuma mensalidade pendente encontrada para {}, mas o plano estava ativo. O plano será desativado.", pessoa.getNome());
         }
 
+        int cancelamentosPagHiperSucesso = 0;
+        int cancelamentosPagHiperFalha = 0;
+        
+        // Verifica se a configuração da PagHiper está válida
+        boolean configuracaoPagHiperValida = pagHiperService.isConfiguracaoValida();
+        if (!configuracaoPagHiperValida) {
+            logger.warn("⚠️ CONFIGURAÇÃO PAGHIPER INVÁLIDA: Token não configurado ou inválido. Cancelamentos serão feitos apenas localmente.");
+            logger.warn("Para ativar cancelamento na PagHiper, configure o token real em: PAGHIPER_TOKEN ou paghiper.api.token");
+        }
+
         for (Mensalidade m : mensalidadesPendentes) {
+            logger.info("Processando cancelamento da mensalidade {} - Status: {}, TransactionId: {}", 
+                       m.getId(), m.getStatus(), m.getTransactionId());
+            
+            // Se a mensalidade tem transactionId, tenta cancelar na PagHiper
+            if (m.getTransactionId() != null && !m.getTransactionId().trim().isEmpty()) {
+                try {
+                    // Tenta extrair token da resposta da PagHiper, se disponível
+                    String tokenDaResposta = extrairTokenDaResposta(m.getPaghiperResponse());
+                    if (tokenDaResposta != null) {
+                        logger.info("🔑 Token extraído da resposta PagHiper para cancelamento");
+                    }
+                    
+                    logger.info("🔄 Enviando requisição de cancelamento para PagHiper - TransactionId: {}", m.getTransactionId());
+                    String responseJson = pagHiperService.cancelarTransacao(m.getTransactionId());
+                    logger.info("✅ Transação {} cancelada na PagHiper com sucesso. Resposta: {}", m.getTransactionId(), responseJson);
+                    cancelamentosPagHiperSucesso++;
+                } catch (Exception e) {
+                    logger.error("❌ Erro ao cancelar transação {} na PagHiper: {}", m.getTransactionId(), e.getMessage(), e);
+                    cancelamentosPagHiperFalha++;
+                    // Continua o cancelamento local mesmo se falhar na PagHiper
+                }
+            } else {
+                logger.info("ℹ️ Mensalidade {} não possui transactionId válido para cancelamento na PagHiper", m.getId());
+            }
+            
+            // Sempre cancela localmente
             m.setStatus("CANCELADO");
-            logger.info("Mensalidade {} da pessoa {} cancelada.", m.getId(), pessoa.getNome());
+            logger.info("✅ Mensalidade {} da pessoa {} cancelada localmente.", m.getId(), pessoa.getNome());
         }
 
         // 2. Remove a associação do plano ativo da pessoa
@@ -289,6 +334,60 @@ public class PagamentoService {
 
         // 3. Salva as alterações
         pessoaRepository.save(pessoa);
+        
+        // 4. Log final com estatísticas
+        logger.info("🎯 === CANCELAMENTO DE PLANO CONCLUÍDO ===");
+        logger.info("👤 Pessoa: {}", pessoa.getNome());
+        logger.info("📊 Total de mensalidades processadas: {}", mensalidadesPendentes.size());
+        
+        if (configuracaoPagHiperValida) {
+            logger.info("🔄 Cancelamentos na PagHiper - Sucesso: {}, Falha: {}", cancelamentosPagHiperSucesso, cancelamentosPagHiperFalha);
+            if (cancelamentosPagHiperFalha > 0) {
+                logger.warn("⚠️ ATENÇÃO: {} transações falharam no cancelamento na PagHiper. Verifique os logs de erro acima.", cancelamentosPagHiperFalha);
+            }
+        } else {
+            logger.warn("⚠️ PagHiper não configurado - cancelamentos feitos apenas localmente");
+            logger.warn("💡 Para ativar cancelamento na PagHiper, configure: PAGHIPER_TOKEN=seu_token_real");
+        }
+        
+        logger.info("✅ Todas as mensalidades foram canceladas localmente.");
+        logger.info("✅ Plano removido do usuário.");
+    }
+
+    /**
+     * Testa se a configuração da PagHiper está válida
+     */
+    public boolean testarConfiguracaoPagHiper() {
+        return pagHiperService.isConfiguracaoValida();
+    }
+
+    /**
+     * Extrai o token da resposta da PagHiper, se disponível
+     */
+    public String extrairTokenDaResposta(String paghiperResponse) {
+        if (paghiperResponse == null || paghiperResponse.trim().isEmpty()) {
+            return null;
+        }
+        
+        try {
+            // Tenta extrair um token da resposta JSON
+            if (paghiperResponse.contains("\"token\"")) {
+                // Procura por um campo "token" na resposta
+                String[] parts = paghiperResponse.split("\"token\"");
+                if (parts.length > 1) {
+                    String tokenPart = parts[1];
+                    int start = tokenPart.indexOf("\"") + 1;
+                    int end = tokenPart.indexOf("\"", start);
+                    if (start > 0 && end > start) {
+                        return tokenPart.substring(start, end);
+                    }
+                }
+            }
+        } catch (Exception e) {
+            logger.warn("Erro ao extrair token da resposta PagHiper: {}", e.getMessage());
+        }
+        
+        return null;
     }
 
     private PagHiperRequest criarPagHiperRequest(Mensalidade m) {
