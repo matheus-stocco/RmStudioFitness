@@ -95,7 +95,9 @@ public class ControleRelatorios {
     @GetMapping("/relatorios/alunos/buscar")
     @ResponseBody
     public List<Pessoa> buscarAlunos(@RequestParam("term") String termo) {
-        return pessoaRepository.findTop10ByNomeContainingIgnoreCaseAndTiposPessoa(termo, "ALUNO");
+        // Busca todas as pessoas que contêm o termo no nome, limitando a 10 resultados
+        List<Pessoa> resultados = pessoaRepository.findByNomeContainingIgnoreCase(termo);
+        return resultados.stream().limit(10).collect(Collectors.toList());
     }
 
     @GetMapping("/relatorios/membros")
