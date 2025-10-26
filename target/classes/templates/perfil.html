@@ -40,7 +40,7 @@
                     </div>
                     <div class="info-item">
                         <span class="info-label">Usuário:</span>
-                        <span class="info-value" th-text="${pessoa.username}"></span>
+                        <span class="info-value" th:text="${pessoa.username ?: 'Não informado'}"></span>
                     </div>
                     <div class="info-item">
                         <span class="info-label">E-mail:</span>

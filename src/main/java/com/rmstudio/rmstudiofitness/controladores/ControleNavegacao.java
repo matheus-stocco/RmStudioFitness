@@ -306,11 +306,20 @@ public class ControleNavegacao {
     @Transactional(readOnly = true)
     public String perfil(Model model, Authentication authentication) {
         if (authentication != null && authentication.isAuthenticated()) {
-            Pessoa principal = (Pessoa) authentication.getPrincipal();
+            String username = authentication.getName();
+            logger.info("Buscando perfil para username: {}", username);
             
-            // Recarrega a pessoa do banco de dados com a cidade e o estado
-            pessoaRepository.findByIdWithDetails(principal.getId())
-                .ifPresent(pessoaCompleta -> model.addAttribute("pessoa", pessoaCompleta));
+            // Busca a pessoa pelo username do banco de dados com todos os detalhes
+            pessoaRepository.findByUsername(username)
+                .flatMap(p -> {
+                    logger.info("Pessoa encontrada: ID={}, Nome={}, Username={}", p.getId(), p.getNome(), p.getUsername());
+                    return pessoaRepository.findByIdWithDetails(p.getId());
+                })
+                .ifPresent(pessoaCompleta -> {
+                    logger.info("Adicionando pessoa ao model: ID={}, Nome={}, Username={}", 
+                               pessoaCompleta.getId(), pessoaCompleta.getNome(), pessoaCompleta.getUsername());
+                    model.addAttribute("pessoa", pessoaCompleta);
+                });
         }
         model.addAttribute("estados", estadoRepository.findAllByOrderByNome());
         return "perfil";
